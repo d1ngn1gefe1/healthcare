@@ -1,3 +1,4 @@
 /data/*.t7
 /src/*.swp
+/src/.nfs*
 /src/.*
