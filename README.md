@@ -1,1 +1,1 @@
-Convolutional neural netword based hand hygiene action classifier
+Convolutional Neural Network(CNN) based hand hygiene action classifier
