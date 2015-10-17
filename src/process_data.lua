@@ -4,7 +4,9 @@ require 'image'
 
 -- READ TRAIN IMAGES
 
-trainFramesDir = '/scail/data/group/vision/u/syyeung/hospital/data/train/frames/d/'
+imageType = 'rgb'
+
+trainFramesDir = '/scail/data/group/vision/u/syyeung/hospital/data/train/frames/' .. imageType .. '/'
 trainLabelsFile = '/scail/data/group/vision/u/syyeung/hospital/data/train/labels.txt'
 files = {}
 for file in paths.files(trainFramesDir) do
@@ -16,7 +18,7 @@ end
 trainFiles = {}
 numFiles = #files
 for i = 0,numFiles-1 do
-    local fileName = trainFramesDir .. 'd-' .. i .. '.jpg'
+    local fileName = trainFramesDir .. imageType .. '-' .. i .. '.jpg'
     table.insert(trainFiles, fileName)
 end
 
@@ -46,8 +48,8 @@ image_size = trainImages[1]:size()
 
 -- READ TEST IMAGES
 
-testFramesDir = '../data/test/frames/d/'
-testLabelsFile = '../data/test/labels.txt'
+testFramesDir = '/scail/data/group/vision/u/syyeung/hospital/data/test/frames/' .. imageType ..'/'
+testLabelsFile = '/scail/data/group/vision/u/syyeung/hospital/data/test/labels.txt'
 files = {}
 for file in paths.files(testFramesDir) do
    if file:find('jpg' .. '$') then
@@ -58,7 +60,7 @@ end
 testFiles = {}
 numFiles = #files
 for i = 0,numFiles-1 do
-    local fileName = testFramesDir .. 'd-' .. i .. '.jpg'
+    local fileName = testFramesDir .. imageType .. '-' .. i .. '.jpg'
     table.insert(testFiles, fileName)
 end
 
@@ -110,5 +112,5 @@ for i = 1,#testImages do
     hh.test.labels[i] = testLabels[i]
 end
 
-dataFile = '../data/hh.t7'
+dataFile = '../data/hh_' .. imageType .. '.t7'
 torch.save(dataFile, hh)

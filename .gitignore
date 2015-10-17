@@ -1,1 +1,2 @@
-*.swp
+/data/*.t7
+/src/*.swp
