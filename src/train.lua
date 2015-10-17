@@ -3,7 +3,7 @@ require 'nn'
 require 'cunn'
 
 -- load data file
-dataFile = '/scail/data/group/vision/u/syyeung/hospital/data/hh.t7'
+dataFile = '/scail/scratch/group/vision/hospital/data/hh_d.t7'
 hh = torch.load(dataFile)
 
 trainset = {}

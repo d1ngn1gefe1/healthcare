@@ -4,7 +4,7 @@ require 'image'
 
 -- READ TRAIN IMAGES
 
-imageType = 'rgb'
+imageType = 'fs'
 
 trainFramesDir = '/scail/data/group/vision/u/syyeung/hospital/data/train/frames/' .. imageType .. '/'
 trainLabelsFile = '/scail/data/group/vision/u/syyeung/hospital/data/train/labels.txt'
