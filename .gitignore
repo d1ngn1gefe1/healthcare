@@ -2,3 +2,7 @@
 /src/*.swp
 /src/.nfs*
 /src/.*
+/src/log
+/src/*.log
+/hands/*
+
