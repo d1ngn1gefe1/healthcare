@@ -1,13 +1,14 @@
 require 'cutorch'
 require 'nn'
 require 'cunn'
+require 'optim'
     
 -- parameters
-imageTypes = {'rgb'}
+imageTypes = {'d'}
 dir = '/scail/scratch/group/vision/hospital/'
 crop = true
-maxIter = 15
-random = false
+maxIter = 20
+volume = false
 
 -- load data file and labels file
 dataFile = dir .. 'data/hh' 
@@ -17,12 +18,8 @@ for i = 1, #imageTypes do
     labelsFile = labelsFile .. imageTypes[i] .. '_'
 end
 if crop then
-    dataFile = dataFile .. '_crop'
-    labelsFile = labelsFile .. 'crop_'
-end
-if random then
-    dataFile = dataFile .. '_random.t7'
-    labelsFile = labelsFile .. 'random_'
+    dataFile = dataFile .. '_crop.t7'
+    labelsFile = labelsFile .. 'crop_baseline_'
 else
     dataFile = dataFile .. '.t7'
 end
@@ -30,7 +27,7 @@ end
 hh = torch.load(dataFile)
 
 k = 10 -- k-fold cross-validation
-sz = hh.train.data[1]:size()
+sz = hh.train.data:size()
 nChannels = sz[1]
 width = sz[2]
 height = sz[3]
@@ -42,15 +39,18 @@ for t = 1, 1 do
     print('<----------' .. t .. '---------->')
     trainSet = {}
     testSet = {}
-    
+
     trainSet.data = hh.train.data
     trainSet.labels = hh.train.labels
     nTrain = trainSet.labels:size(1)
     print(trainSet)
-        
+    for i = 1, nTrain do
+      trainSet.labels[i] = trainSet.labels[i] + 1
+    end
+
     testSet.data = hh.test.data
     testSet.labels = hh.test.labels
-    nTest = testSet.labels:size(1)
+    nTest = testSet.labels:size(1) 
     print(testSet)
 
     pos = trainSet.labels:nonzero()
@@ -82,89 +82,110 @@ for t = 1, 1 do
     function testSet:size() 
         return self.data:size(1) 
     end
-
-    trainSet.labels = trainSet.labels + 1
-
-    -- normalization
-    mean = {} -- store the mean, to normalize the test set in the future
-    stdv  = {} -- store the standard-deviation for the future
-    for i = 1, nChannels do -- over each image channel
-        mean[i] = trainSet.data[{ {}, {i}, {}, {}  }]:mean() -- mean estimation
-        print('Channel ' .. i .. ', Mean: ' .. mean[i])
-        trainSet.data[{ {}, {i}, {}, {}  }]:add(-mean[i]) -- mean subtraction    
-        stdv[i] = trainSet.data[{ {}, {i}, {}, {}  }]:std() -- std estimation
-        print('Channel ' .. i .. ', Standard Deviation: ' .. stdv[i])
-        trainSet.data[{ {}, {i}, {}, {}  }]:div(stdv[i]) -- std scaling
+    
+    -- logistic regression
+    print('logistic regression')
+    sz = trainSet.data[1][1]:size()
+    trainSet.data:resize(trainSet.data:size(1), sz[1]*sz[2])
+    testSet.data:resize(testSet.data:size(1), sz[1]*sz[2])
+    
+    if volume == true then
+    trainData = torch.Tensor(trainSet.data:size(1))
+    for i = 1,trainSet.data:size(1) do
+      local sum = 0
+      for j = 1,trainSet.data:size(2) do
+        sum = sum + trainSet.data[i][j]
+      end
+      trainData[i] = sum
     end
-    
-    -- view an image
-    -- itorch.image(trainset.data[301])
-    
-    -- define network
-    net = nn.Sequential() -- input: nChannels, 64, 64
-    if crop == true then
-        net:add(nn.SpatialConvolution(nChannels, 6, 5, 5)) -- output: 6, 60, 60
-        net:add(nn.SpatialMaxPooling(3, 3, 3, 3)) -- output: 6, 20, 20
-        net:add(nn.SpatialConvolution(6, 12, 5, 5)) -- output: 12, 16, 16
-        net:add(nn.SpatialMaxPooling(2, 2, 2, 2)) -- output: 12, 8, 8
+    trainSet.data = trainData
+    trainSet.data = trainSet.data:double()
+    end
 
-        net:add(nn.View(12*8*8))
-        net:add(nn.Linear(12*8*8, 100))
-        net:add(nn.Linear(100, 2))
-        net:add(nn.LogSoftMax())
-    else 
-        net:add(nn.SpatialConvolution(nChannels, 6, 7, 7, 2, 2))
-        net:add(nn.SpatialMaxPooling(3, 3, 3, 3))  
-        net:add(nn.SpatialConvolution(6, 16, 5, 5, 2, 2))
-        net:add(nn.SpatialMaxPooling(2, 2, 2, 2))
-        
-        net:add(nn.View(16*9*12))
-        net:add(nn.Linear(16*9*12, 50))
-        net:add(nn.Linear(50, 2))
-        net:add(nn.LogSoftMax())                    
-    end 
+    if volume == true then
+      testData = torch.Tensor(testSet.data:size(1))
+      for i = 1,testSet.data:size(1) do
+        local sum = 0
+	for j = 1,testSet.data:size(2) do
+          sum = sum + testSet.data[i][j]
+        end
+	testData[i] = sum
+      end
+      testSet.data = testData
+      testSet.data = testSet.data:double()
+    end
+    print(trainSet.data:size())
+    print(testSet.data:size())
 
-    net = net:cuda()
+    model = nn.Sequential()
+    if volume == true then
+      model:add(nn.Linear(trainSet.data:size(1), 2))
+    else
+      model:add(nn.Linear(sz[1]*sz[2], 2))
+    end
+    model:add(nn.LogSoftMax())
+
     criterion = nn.ClassNLLCriterion()
+
+    x, dl_dx = model:getParameters()
     
-    --train
-    net = net:cuda()
-    criterion = criterion:cuda()
-    trainSet.data = trainSet.data:cuda()
+    feval = function(x_new)
+        if x ~= x_new then
+            x:copy(x_new)
+        end
+     
+        _nidx_ = (_nidx_ or 0) + 1
+        if _nidx_ > trainSet.data:size(1) then _nidx_ = 1 end
+
+        local inputs = trainSet.data[_nidx_]
+        local target = trainSet.labels[_nidx_]
+
+        dl_dx:zero()
+     
+        local loss_x = criterion:forward(model:forward(inputs), target)
+        model:backward(inputs, criterion:backward(model.output, target))
+ 
+        return loss_x, dl_dx
+    end
+
+    sgd_params = {
+        learningRate = 1e-2,
+        learningRateDecay = 1e-4,
+        weightDecay = 0,
+        momentum = 0
+    }
+
+    epochs = 100
     
-    trainer = nn.StochasticGradient(net, criterion)
-    trainer.learningRate = 0.001
-    trainer.maxIteration = maxIter
-    
-    trainer:train(trainSet)
-    
+    print('Training with SGD')
+
+    for i = 1, epochs do
+        current_loss = 0
+        for i = 1, trainSet.data:size(1) do
+            _, fs = optim.sgd(feval, x, sgd_params)
+            current_loss = current_loss + fs[1]
+        end
+ 
+        current_loss = current_loss / trainSet.data:size(1)
+        print('epoch = ' .. i .. ' of ' .. epochs .. ' current loss = ' .. current_loss)
+    end
+
     -- test accuracy
     testSet.data = testSet.data:double()   -- convert from Byte tensor to Double tensor
-    for i = 1, nChannels do -- over each image channel
-        testSet.data[{ {}, {i}, {}, {}  }]:add(-mean[i]) -- mean subtraction    
-        testSet.data[{ {}, {i}, {}, {}  }]:div(stdv[i]) -- std scaling
-    end
-    testSet.data = testSet.data:cuda()
     
     correct = 0
+    testProb = {}
     testScores = io.open(labelsFile .. 'test_scores.txt', 'w')
     testTrue = io.open(labelsFile .. 'test_true.txt', 'w') 
     for i = 1, nTest do 
         local groundtruth = testSet.labels[i] + 1
-        local prediction = net:forward(testSet.data[i])
+        local prediction = model:forward(testSet.data[i])
         local confidences, indices = torch.sort(prediction, true)  -- true means sort in descending order
         if groundtruth == indices[1] then
             correct = correct + 1
         end
-        local testProb = 0
-        if prediction[1] == 0 then
-            testProb = 0
-        elseif prediction[2] == 0 then
-            testProb = 1
-        else
-            testProb = (1/prediction[2])/(1/prediction[1] + 1/prediction[2])
-        end
-        testScores:write(testProb, '\n')
+        testProb[i] = (1/prediction[2])/(1/prediction[1]+1/prediction[2])
+        testScores:write(testProb[i], '\n')
         testTrue:write(testSet.labels[i], '\n')
     end
     print('test accuracy: ' .. correct .. '/' .. nTest, 100*correct/nTest .. ' %')
@@ -178,7 +199,7 @@ for t = 1, 1 do
     for i = 1, nTest do
         local groundtruth = testSet.labels[i] + 1
         classCounts[groundtruth] = classCounts[groundtruth] + 1
-        local prediction = net:forward(testSet.data[i])
+        local prediction = model:forward(testSet.data[i])
         local confidences, indices = torch.sort(prediction, true)  -- true means sort in descending order
         classPreds[indices[1] ] = classPreds[indices[1] ] + 1
         if groundtruth == indices[1] then
@@ -193,27 +214,21 @@ for t = 1, 1 do
     --print(classPreds)
     --print(classPerformance)
     --print(classCounts)
-    
+
     -- train accuracy
     correct = 0
+    trainProb = {}
     trainScores = io.open(labelsFile .. 'train_scores.txt', 'w')
     trainTrue = io.open(labelsFile .. 'train_true.txt', 'w') 
     for i = 1, nTrain do
         local groundtruth = trainSet.labels[i]
-        local prediction = net:forward(trainSet.data[i])
+        local prediction = model:forward(trainSet.data[i])
         local confidences, indices = torch.sort(prediction, true)  -- true means sort in descending order
         if groundtruth == indices[1] then
             correct = correct + 1
         end
-        local trainProb = 0
-        if prediction[1] == 0 then
-            trainProb = 0
-        elseif prediction[2] == 0 then
-            trainProb = 1
-        else
-            trainProb = (1/prediction[2])/(1/prediction[1] + 1/prediction[2])
-        end
-        trainScores:write(trainProb, '\n')
+        trainProb[i] = (1/prediction[2])/(1/prediction[1]+1/prediction[2])
+        trainScores:write(trainProb[i], '\n')
         trainTrue:write(trainSet.labels[i]-1, '\n')
     end
     print('train accuracy: ' .. correct .. '/' .. nTrain, 100*correct/nTrain .. ' %')
@@ -224,10 +239,10 @@ for t = 1, 1 do
     classPreds = {0, 0}
     classPerformance = {0, 0}
     classCounts = {0, 0}
-    for i = 1, nTrain do
+    for i = 1, trainSet:size() do
         local groundtruth = trainSet.labels[i]
         classCounts[groundtruth] = classCounts[groundtruth] + 1
-        local prediction = net:forward(trainSet.data[i])
+        local prediction = model:forward(trainSet.data[i])
         local confidences, indices = torch.sort(prediction, true)  -- true means sort in descending order
         classPreds[indices[1] ] = classPreds[indices[1] ] + 1
         if groundtruth == indices[1] then
@@ -241,6 +256,5 @@ for t = 1, 1 do
 
     --print(class_preds)
     --print(class_performance)
-    --print(class_counts)
-    
+    --print(class_counts)    
 end

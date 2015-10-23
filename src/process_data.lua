@@ -4,16 +4,18 @@ require 'image'
 
 -- READ TRAIN IMAGES
 
-imageTypes = {'d'}
+imageTypes = {'rgb'}
 dir = '/scail/data/group/vision/u/syyeung/hospital/data/'
-datasets = {'cvpr10-17-15afternoon/', 'cvpr10-18-15morning/', 'cvpr10-19-15morning/', 'cvpr10-20-15morning/'}
+datasets = {--[['cvpr10-17-15afternoon/',--]]'cvpr10-19-15morning/', 'cvpr10-20-15morning/', 'cvpr10-21-15/'}
 
-coor = {115, 240}
+coor = {110, 240}
 boxSz = 64
-crop = false
+crop = true
+random = false
 
 skip = 3
-ratio = 0.3 -- pos/neg
+ratioTest = 0.2 
+ratioPos = 0.1
 
 labels = {}
 filesSet = {}
@@ -41,34 +43,68 @@ for k1, v1 in pairs(datasets) do
     end
 end
 
--- balance pos and neg and randomize the order
+--
+if random then
+    for i = 1, #labels*2 do
+        local idx1 = math.random(#labels)
+        local idx2 = math.random(#labels)
+        labels[idx1], labels[idx2] = labels[idx2], labels[idx1] 
+        for k, v in pairs(imageTypes) do
+            filesSet[k][idx1], filesSet[k][idx2] = filesSet[k][idx2], filesSet[k][idx1]
+        end
+    end
+end
+--
+
 labelsTensor = torch.Tensor(#labels)
 for i = 1, #labels do
     labelsTensor[i] = labels[i]
 end
-pos = labelsTensor:nonzero()
-neg = torch.add(labelsTensor, -1):nonzero()
-print(pos:size(1), neg:size(1))
-nPos = pos:size(1)
-nNeg = math.floor(nPos/ratio)
-print(nPos, nNeg)
 
-labels2 = {}
-filesSet2 = {}
+-- split train and test
+nTest = math.floor(#labels*ratioTest)
+nTrain = #labels - nTest
+trainLabels = labelsTensor:narrow(1, nTest + 1, nTrain)
+testLabels = labelsTensor:narrow(1, 1, nTest)
+print(trainLabels:size(), testLabels:size())
+trainFilesSet = {}
+testFilesSet = {}
 for k, v in pairs(imageTypes) do
-    filesSet2[k] = {}
+    trainFilesSet[k] = {}
+    testFilesSet[k] = {}
+    for i = 1, #filesSet[k] do
+        if i <= nTest then
+            table.insert(testFilesSet[k], filesSet[k][i])
+        else
+            table.insert(trainFilesSet[k], filesSet[k][i])
+        end
+    end
+end
+
+-- in train, balance pos and neg and randomize the order
+pos = trainLabels:nonzero()
+neg = torch.add(trainLabels, -1):nonzero()
+print('train set now: ', pos:size(1), neg:size(1))
+nPos = pos:size(1)
+nNeg = math.floor(nPos*(1 - ratioPos)/ratioPos)
+print('train set after:', nPos, nNeg)
+
+trainLabels2 = {}
+trainFilesSet2 = {}
+for k, v in pairs(imageTypes) do
+    trainFilesSet2[k] = {}
 end
 
 for i = 1, nPos do
     local idx = pos[i][1]
-    assert(labels[idx] == 1)
-    table.insert(labels2, labels[idx])
+    assert(trainLabels[idx] == 1)
+    table.insert(trainLabels2, trainLabels[idx])
     for k, v in pairs(imageTypes) do
-        table.insert(filesSet2[k], filesSet[k][idx])
+        table.insert(trainFilesSet2[k], trainFilesSet[k][idx])
     end
 end
 
-math.randomseed(os.time())
+math.randomseed(1) -- not randomized
 
 for i = 1, nNeg do
     local rand = math.random(neg:size(1))
@@ -77,10 +113,10 @@ for i = 1, nNeg do
     end
 
     local idx = neg[rand][1]
-    assert(labels[idx] == 0)
-    table.insert(labels2, labels[idx])
+    assert(trainLabels[idx] == 0)
+    table.insert(trainLabels2, trainLabels[idx])
     for k, v in pairs(imageTypes) do
-        table.insert(filesSet2[k], filesSet[k][idx])
+        table.insert(trainFilesSet2[k], trainFilesSet[k][idx])
     end
     neg[rand] = 0
 end
@@ -93,44 +129,108 @@ end
 --neg = torch.add(labelsTensor, -1):nonzero()
 --print(pos:size(1), neg:size(1))
 
-labels = labels2
-filesSet = filesSet2
+trainLabels = trainLabels2
+trainFilesSet = trainFilesSet2
 
-for i = 1, #labels*2 do
-    local idx1 = math.random(#labels)
-    local idx2 = math.random(#labels)
-    labels[idx1], labels[idx2] = labels[idx2], labels[idx1] 
+for i = 1, #trainLabels*2 do
+    local idx1 = math.random(#trainLabels)
+    local idx2 = math.random(#trainLabels)
+    trainLabels[idx1], trainLabels[idx2] = trainLabels[idx2], trainLabels[idx1] 
     for k, v in pairs(imageTypes) do
-        filesSet[k][idx1], filesSet[k][idx2] = filesSet[k][idx2], filesSet[k][idx1]
+        trainFilesSet[k][idx1], trainFilesSet[k][idx2] = trainFilesSet[k][idx2], trainFilesSet[k][idx1]
     end
 end
+
+-- test
+--[[
+-- in train, balance pos and neg and randomize the order
+pos = trainLabels:nonzero()
+neg = torch.add(trainLabels, -1):nonzero()
+print('train set now: ', pos:size(1), neg:size(1))
+nPos = pos:size(1)
+nNeg = math.floor(nPos*(1 - ratioPos)/ratioPos)
+print('train set after:', nPos, nNeg)
+
+trainLabels2 = {}
+trainFilesSet2 = {}
+for k, v in pairs(imageTypes) do
+    trainFilesSet2[k] = {}
+end
+
+for i = 1, nPos do
+    local idx = pos[i][1]
+    assert(trainLabels[idx] == 1)
+    table.insert(trainLabels2, trainLabels[idx])
+    for k, v in pairs(imageTypes) do
+        table.insert(trainFilesSet2[k], trainFilesSet[k][idx])
+    end
+end
+
+math.randomseed(1) -- not randomized
+
+for i = 1, nNeg do
+    local rand = math.random(neg:size(1))
+    while neg[rand][1] == 0 do
+        rand = math.random(neg:size(1))
+    end
+
+    local idx = neg[rand][1]
+    assert(trainLabels[idx] == 0)
+    table.insert(trainLabels2, trainLabels[idx])
+    for k, v in pairs(imageTypes) do
+        table.insert(trainFilesSet2[k], trainFilesSet[k][idx])
+    end
+    neg[rand] = 0
+end
+
+--labelsTensor = torch.Tensor(#labels2)
+--for i = 1, #labels2 do
+--    labelsTensor[i] = labels2[i]
+--end
+--pos = labelsTensor:nonzero()
+--neg = torch.add(labelsTensor, -1):nonzero()
+--print(pos:size(1), neg:size(1))
+
+trainLabels = trainLabels2
+trainFilesSet = trainFilesSet2
+--]]
+
 
 -- read images
-imagesSet = {}
+trainImagesSet = {}
+testImagesSet = {}
 for k, v in pairs(imageTypes) do
-    imagesSet[k] = {}
+    trainImagesSet[k] = {}
+    testImagesSet[k] = {}
 end
 
-for k1, v1 in pairs(filesSet) do
+for k1, v1 in pairs(trainFilesSet) do
     for k2, v2 in pairs(v1) do
-        table.insert(imagesSet[k1], image.load(v2))
+        table.insert(trainImagesSet[k1], image.load(v2))
+    end
+end
+for k1, v1 in pairs(testFilesSet) do
+    for k2, v2 in pairs(v1) do
+        table.insert(testImagesSet[k1], image.load(v2))
     end
 end
 
-imageSize = imagesSet[1][1]:size()
+imageSize = trainImagesSet[1][1]:size()
 print(imageSize)
 --print(#labels)
 
 nChannelsSet = {}
 totalChannels = 0
 for k, v in pairs(imageTypes) do
-    nChannelsSet[k] = imagesSet[k][1]:size(1)
+    nChannelsSet[k] = trainImagesSet[k][1]:size(1)
     totalChannels = totalChannels + nChannelsSet[k]
 end
 --print(nChannelsSet)
 
 -- create and save data object
 hh = {}
+hh.train = {}
+hh.test = {}
 
 if coor[1]-boxSz/2 < 1 then
     x1 = 1
@@ -153,32 +253,54 @@ else
     y2 = coor[2]+boxSz/2-1 
 end
 
-print('tl: ' .. x1 .. ',' .. y1, 'br: ' .. x2 .. ',' .. y2)
+if crop then
+    print('tl: ' .. x1 .. ',' .. y1, 'br: ' .. x2 .. ',' .. y2)
+end
+
+tmp = torch.Tensor(#trainLabels)
+for i = 1, #trainLabels do
+    tmp[i] = trainLabels[i]
+end
+trainLabels = tmp
 
 if crop then
-    hh.images = torch.Tensor(#labels, totalChannels, boxSz, boxSz)
+    hh.train.data = torch.Tensor(trainLabels:size(1), totalChannels, boxSz, boxSz)
+    hh.test.data = torch.Tensor(testLabels:size(1), totalChannels, boxSz, boxSz)
 else
-    hh.images = torch.Tensor(#labels, totalChannels, imageSize[2], imageSize[3])
+    hh.train.data = torch.Tensor(trainLabels:size(1), totalChannels, imageSize[2], imageSize[3])
+    hh.test.data = torch.Tensor(testLabels:size(1), totalChannels, imageSize[2], imageSize[3])
 end
-for i = 1, #labels do
+for i = 1, trainLabels:size(1) do
     if i % 1000 == 0 then
-        print('processing train image ' .. i)
+        print('processing train data ' .. i)
     end
     curIdx = 1
     for k, v in pairs(imageTypes) do
         if crop then
-            hh.images[i][{{curIdx, curIdx+nChannelsSet[k]-1}, {}, {}}] = imagesSet[k][i][{{}, {y1, y2}, {x1, x2}}]
+            hh.train.data[i][{{curIdx, curIdx+nChannelsSet[k]-1}, {}, {}}] = trainImagesSet[k][i][{{}, {y1, y2}, {x1, x2}}]
         else
-            hh.images[i][{{curIdx, curIdx+nChannelsSet[k]-1}, {}, {}}] = imagesSet[k][i]
+            hh.train.data[i][{{curIdx, curIdx+nChannelsSet[k]-1}, {}, {}}] = trainImagesSet[k][i]
+        end
+        curIdx = curIdx + nChannelsSet[k]
+    end
+end
+for i = 1, testLabels:size(1) do
+    if i % 1000 == 0 then
+        print('processing test data ' .. i)
+    end
+    curIdx = 1
+    for k, v in pairs(imageTypes) do
+        if crop then
+            hh.test.data[i][{{curIdx, curIdx+nChannelsSet[k]-1}, {}, {}}] = testImagesSet[k][i][{{}, {y1, y2}, {x1, x2}}]
+        else
+            hh.test.data[i][{{curIdx, curIdx+nChannelsSet[k]-1}, {}, {}}] = testImagesSet[k][i]
         end
         curIdx = curIdx + nChannelsSet[k]
     end
 end
 
-hh.labels = torch.Tensor(#labels)
-for i = 1, #labels do
-    hh.labels[i] = labels[i]
-end
+hh.train.labels = trainLabels 
+hh.test.labels = testLabels
 
 dataFile = '../data/hh'
 for i = 1, #imageTypes do
@@ -187,6 +309,9 @@ end
 if crop then
     dataFile = dataFile .. '_crop'
 end
+if random then
+    dataFile = dataFile .. '_random'
+end
 dataFile = dataFile .. '.t7'
-print('saving file')
+print('saving file: ', dataFile)
 torch.save(dataFile, hh)
