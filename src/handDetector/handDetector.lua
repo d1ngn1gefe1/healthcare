@@ -5,9 +5,7 @@ require 'image'
 
 -- load images
 imageType = 'rgb'
-frameDir = '/scail/data/group/vision/u/syyeung/hospital/data/cvpr10-18-15morning/' .. imageType .. '/'
-
-hh = torch.load('/scail/scratch/group/vision/hospital/data/hh_rgb_crop.t7')
+hh = torch.load('/scail/scratch/group/vision/hospital/data/hh_' .. imageType .. '_crop.t7')
 images = hh.test.data
 
 height = images:size(3) -- 64
@@ -37,15 +35,15 @@ for n = 1, images:size(1) do
   end
   totalCroppedImage[n] = croppedImage 
 end
--- torch.save('/scail/scratch/group/vision/bypeng/healthcare/src/totalCroppedImage.t7', totalCroppedImage)
+torch.save('/scail/scratch/group/vision/bypeng/healthcare/data/totalCroppedImage.t7', totalCroppedImage)
 else 
-totalCroppedImage = torch.load('/scail/scratch/group/vision/bypeng/healthcare/src/totalCroppedImage.t7')
+totalCroppedImage = torch.load('/scail/scratch/group/vision/bypeng/healthcare/data/totalCroppedImage.t7')
 end
 
 print('Each image has:', #(totalCroppedImage[1]))
 
 -- load cnn model
-model = torch.load('/scail/scratch/group/vision/bypeng/healthcare/src/handClassifer.bin')
+model = torch.load('/scail/scratch/group/vision/bypeng/healthcare/src/handClassifier.bin')
 
 totalImageLabels = {}
 for n = 1, images:size(1) do
@@ -66,4 +64,4 @@ for n = 1, images:size(1) do
   totalImageLabels[n] = croppedImageLabel
 end
 
-torch.save('/scail/scratch/group/vision/bypeng/healthcare/src/handDetect_crop_' .. cropSize .. '.t7', totalImageLabels)
+torch.save('/scail/scratch/group/vision/bypeng/healthcare/data/handDetect_crop_' .. cropSize .. '_'  .. imageType .. '.t7', totalImageLabels)
