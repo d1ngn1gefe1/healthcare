@@ -1,5 +1,5 @@
 /data/*.t7
-/src/*.swp
+/src/**/*.swp
 /src/.nfs*
 /src/.*
 /src/log
