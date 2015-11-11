@@ -103,67 +103,69 @@ if setRatioPosTrain then
     print('train set now: ', pos:size(1), neg:size(1))
     nPos = pos:size(1)
     nNeg = math.floor(nPos*(1 - ratioPosTrain)/ratioPosTrain)
-    print('train set after: ', nPos, nNeg)
-    nTrain = nPos + nNeg
+    if nNeg < neg:size(1) then 
+        print('train set after: ', nPos, nNeg)
+        nTrain = nPos + nNeg
 
-    trainLabels2 = {}
-    trainFilesSet2 = {}
-    for k, v in pairs(imageTypes) do
-        trainFilesSet2[k] = {}
-    end
-
-    for i = 1, nPos do
-        local idx = pos[i][1]
-        assert(trainLabels[idx] == 1)
-        table.insert(trainLabels2, trainLabels[idx])
+        trainLabels2 = {}
+        trainFilesSet2 = {}
         for k, v in pairs(imageTypes) do
-            table.insert(trainFilesSet2[k], trainFilesSet[k][idx])
-        end
-    end
-
-    math.randomseed(1) -- not randomized
-
-    for i = 1, nNeg do
-        local rand = math.random(neg:size(1))
-        while neg[rand][1] == -1 do
-            rand = math.random(neg:size(1))
+            trainFilesSet2[k] = {}
         end
 
-        local idx = neg[rand][1]
-        assert(trainLabels[idx] == 0)
-        table.insert(trainLabels2, trainLabels[idx])
-        for k, v in pairs(imageTypes) do
-            table.insert(trainFilesSet2[k], trainFilesSet[k][idx])
+        for i = 1, nPos do
+            local idx = pos[i][1]
+            assert(trainLabels[idx] == 1)
+            table.insert(trainLabels2, trainLabels[idx])
+            for k, v in pairs(imageTypes) do
+                table.insert(trainFilesSet2[k], trainFilesSet[k][idx])
+            end
         end
-        neg[rand] = -1
-    end
 
-    --labelsTensor = torch.Tensor(#labels2)
-    --for i = 1, #labels2 do
-    --    labelsTensor[i] = labels2[i]
-    --end
-    --pos = labelsTensor:nonzero()
-    --neg = torch.add(labelsTensor, -1):nonzero()
-    --print(pos:size(1), neg:size(1))
+        math.randomseed(1) -- not randomized
 
-    trainLabels = trainLabels2
-    trainFilesSet = trainFilesSet2
+        for i = 1, nNeg do
+            local rand = math.random(neg:size(1))
+            while neg[rand][1] == -1 do
+                rand = math.random(neg:size(1))
+            end
 
-    for i = 1, #trainLabels*2 do
-        local idx1 = math.random(#trainLabels)
-        local idx2 = math.random(#trainLabels)
-        trainLabels[idx1], trainLabels[idx2] = trainLabels[idx2], trainLabels[idx1] 
-        for k, v in pairs(imageTypes) do
-            trainFilesSet[k][idx1], trainFilesSet[k][idx2] = trainFilesSet[k][idx2], trainFilesSet[k][idx1]
+            local idx = neg[rand][1]
+            assert(trainLabels[idx] == 0)
+            table.insert(trainLabels2, trainLabels[idx])
+            for k, v in pairs(imageTypes) do
+                table.insert(trainFilesSet2[k], trainFilesSet[k][idx])
+            end
+            neg[rand] = -1
         end
-    end
 
-    -- array to tensor
-    tmp = torch.Tensor(#trainLabels)
-    for i = 1, #trainLabels do
-        tmp[i] = trainLabels[i]
+        --labelsTensor = torch.Tensor(#labels2)
+        --for i = 1, #labels2 do
+        --    labelsTensor[i] = labels2[i]
+        --end
+        --pos = labelsTensor:nonzero()
+        --neg = torch.add(labelsTensor, -1):nonzero()
+        --print(pos:size(1), neg:size(1))
+
+        trainLabels = trainLabels2
+        trainFilesSet = trainFilesSet2
+
+        for i = 1, #trainLabels*2 do
+            local idx1 = math.random(#trainLabels)
+            local idx2 = math.random(#trainLabels)
+            trainLabels[idx1], trainLabels[idx2] = trainLabels[idx2], trainLabels[idx1] 
+            for k, v in pairs(imageTypes) do
+                trainFilesSet[k][idx1], trainFilesSet[k][idx2] = trainFilesSet[k][idx2], trainFilesSet[k][idx1]
+            end
+        end
+
+        -- array to tensor
+        tmp = torch.Tensor(#trainLabels)
+        for i = 1, #trainLabels do
+            tmp[i] = trainLabels[i]
+        end
+        trainLabels = tmp
     end
-    trainLabels = tmp
 end
 
 -- in test, balance pos and neg and randomize the order
@@ -174,67 +176,68 @@ if setRatioPosTest then
     nPos = pos:size(1)
     nNeg = math.floor(nPos*(1 - ratioPosTest)/ratioPosTest)
     if nNeg < neg:size(1) then 
-    print('test set after: ', nPos, nNeg)
-    nTest = nPos + nNeg
+        print('test set after: ', nPos, nNeg)
+        nTest = nPos + nNeg
 
-    testLabels2 = {}
-    testFilesSet2 = {}
-    for k, v in pairs(imageTypes) do
-        testFilesSet2[k] = {}
-    end
-
-    for i = 1, nPos do
-        local idx = pos[i][1]
-        assert(testLabels[idx] == 1)
-        table.insert(testLabels2, testLabels[idx])
+        testLabels2 = {}
+        testFilesSet2 = {}
         for k, v in pairs(imageTypes) do
-            table.insert(testFilesSet2[k], testFilesSet[k][idx])
-        end
-    end
-
-    math.randomseed(1) -- not randomized
-
-    for i = 1, nNeg do
-        local rand = math.random(neg:size(1))
-        while neg[rand][1] == -1 do
-            rand = math.random(neg:size(1))
+            testFilesSet2[k] = {}
         end
 
-        local idx = neg[rand][1]
-        assert(testLabels[idx] == 0)
-        table.insert(testLabels2, testLabels[idx])
-        for k, v in pairs(imageTypes) do
-            table.insert(testFilesSet2[k], testFilesSet[k][idx])
+        for i = 1, nPos do
+            local idx = pos[i][1]
+            assert(testLabels[idx] == 1)
+            table.insert(testLabels2, testLabels[idx])
+            for k, v in pairs(imageTypes) do
+                table.insert(testFilesSet2[k], testFilesSet[k][idx])
+            end
         end
-        neg[rand] = -1
-    end
 
-    --labelsTensor = torch.Tensor(#labels2)
-    --for i = 1, #labels2 do
-    --    labelsTensor[i] = labels2[i]
-    --end
-    --pos = labelsTensor:nonzero()
-    --neg = torch.add(labelsTensor, -1):nonzero()
-    --print(pos:size(1), neg:size(1))
+        math.randomseed(1) -- not randomized
 
-    testLabels = testLabels2
-    testFilesSet = testFilesSet2
+        for i = 1, nNeg do
+            local rand = math.random(neg:size(1))
+            while neg[rand][1] == -1 do
+                rand = math.random(neg:size(1))
+            end
 
-    for i = 1, #testLabels*2 do
-        local idx1 = math.random(#testLabels)
-        local idx2 = math.random(#testLabels)
-        testLabels[idx1], testLabels[idx2] = testLabels[idx2], testLabels[idx1] 
-        for k, v in pairs(imageTypes) do
-            testFilesSet[k][idx1], testFilesSet[k][idx2] = testFilesSet[k][idx2], testFilesSet[k][idx1]
+            local idx = neg[rand][1]
+            assert(testLabels[idx] == 0)
+            table.insert(testLabels2, testLabels[idx])
+            for k, v in pairs(imageTypes) do
+                table.insert(testFilesSet2[k], testFilesSet[k][idx])
+            end
+            neg[rand] = -1
         end
-    end
 
-    -- array to tensor
-    tmp = torch.Tensor(#testLabels)
-    for i = 1, #testLabels do
-        tmp[i] = testLabels[i]
+        --labelsTensor = torch.Tensor(#labels2)
+        --for i = 1, #labels2 do
+        --    labelsTensor[i] = labels2[i]
+        --end
+        --pos = labelsTensor:nonzero()
+        --neg = torch.add(labelsTensor, -1):nonzero()
+        --print(pos:size(1), neg:size(1))
+
+        testLabels = testLabels2
+        testFilesSet = testFilesSet2
+
+        for i = 1, #testLabels*2 do
+            local idx1 = math.random(#testLabels)
+            local idx2 = math.random(#testLabels)
+            testLabels[idx1], testLabels[idx2] = testLabels[idx2], testLabels[idx1] 
+            for k, v in pairs(imageTypes) do
+                testFilesSet[k][idx1], testFilesSet[k][idx2] = testFilesSet[k][idx2], testFilesSet[k][idx1]
+            end
+        end
+
+        -- array to tensor
+        tmp = torch.Tensor(#testLabels)
+        for i = 1, #testLabels do
+            tmp[i] = testLabels[i]
+        end
+        testLabels = tmp
     end
-    testLabels = tmp
 end
 
 testPath = io.open(testPathFile .. 'test_path.txt', 'w')
