@@ -85,43 +85,46 @@ for t = 1, 1 do
     
     -- logistic regression
     print('logistic regression')
+   
     sz = trainSet.data[1][1]:size()
     trainSet.data:resize(trainSet.data:size(1), sz[1]*sz[2])
     testSet.data:resize(testSet.data:size(1), sz[1]*sz[2])
-    
-    if volume == true then
-    trainData = torch.Tensor(trainSet.data:size(1))
-    for i = 1,trainSet.data:size(1) do
-      local sum = 0
-      for j = 1,trainSet.data:size(2) do
-        sum = sum + trainSet.data[i][j]
-      end
-      trainData[i] = sum
-    end
-    trainSet.data = trainData
-    trainSet.data = trainSet.data:double()
-    end
 
     if volume == true then
-      testData = torch.Tensor(testSet.data:size(1))
-      for i = 1,testSet.data:size(1) do
-        local sum = 0
-	for j = 1,testSet.data:size(2) do
-          sum = sum + testSet.data[i][j]
+        trainData = torch.Tensor(trainSet.data:size(1), 1)
+        for i = 1, trainSet.data:size(1) do
+            local sum = 0
+            for j = 1, trainSet.data:size(2) do
+                sum = sum + trainSet.data[i][j]
+            end
+            trainData[i][1] = sum
         end
-	testData[i] = sum
-      end
-      testSet.data = testData
-      testSet.data = testSet.data:double()
-    end
-    print(trainSet.data:size())
-    print(testSet.data:size())
+        trainSet.data = trainData
+        trainSet.data = trainSet.data:double()
 
+        testData = torch.Tensor(testSet.data:size(1), 1)
+        for i = 1, testSet.data:size(1) do
+            local sum = 0
+	        for j = 1, testSet.data:size(2) do
+                sum = sum + testSet.data[i][j]
+            end
+            testData[i][1] = sum
+        end
+        testSet.data = testData
+        testSet.data = testSet.data:double()
+    end
+
+    print(trainSet.data:size())
+    print(trainSet.labels:size())
+    print(testSet.data:size())
+    print(testSet.labels:size())
+
+    -- model
     model = nn.Sequential()
     if volume == true then
-      model:add(nn.Linear(trainSet.data:size(1), 2))
+        model:add(nn.Linear(1, 2))
     else
-      model:add(nn.Linear(sz[1]*sz[2], 2))
+        model:add(nn.Linear(sz[1]*sz[2], 2))
     end
     model:add(nn.LogSoftMax())
 
@@ -138,6 +141,7 @@ for t = 1, 1 do
         if _nidx_ > trainSet.data:size(1) then _nidx_ = 1 end
 
         local inputs = trainSet.data[_nidx_]
+
         local target = trainSet.labels[_nidx_]
 
         dl_dx:zero()
@@ -155,7 +159,7 @@ for t = 1, 1 do
         momentum = 0
     }
 
-    epochs = 100
+    epochs = 10
     
     print('Training with SGD')
 
@@ -257,4 +261,5 @@ for t = 1, 1 do
     --print(class_preds)
     --print(class_performance)
     --print(class_counts)    
+--]]
 end

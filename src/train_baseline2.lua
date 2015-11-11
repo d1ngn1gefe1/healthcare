@@ -1,14 +1,14 @@
 require 'cutorch'
 require 'nn'
 require 'cunn'
+require 'optim'
     
 -- parameters
-imageTypes = {'rgb'}
+imageTypes = {'d'}
 dir = '/scail/scratch/group/vision/hospital/'
 crop = true
-maxIter = 15
-random = false
-k = 1 -- k-fold cross-validation
+maxIter = 20
+volume = false
 
 -- load data file and labels file
 dataFile = dir .. 'data/hh' 
@@ -18,19 +18,16 @@ for i = 1, #imageTypes do
     labelsFile = labelsFile .. imageTypes[i] .. '_'
 end
 if crop then
-    dataFile = dataFile .. '_crop'
-    labelsFile = labelsFile .. 'crop_'
-end
-if random then
-    dataFile = dataFile .. '_random.t7'
-    labelsFile = labelsFile .. 'random_'
+    dataFile = dataFile .. '_crop.t7'
+    labelsFile = labelsFile .. 'crop_baseline_'
 else
     dataFile = dataFile .. '.t7'
 end
 
 hh = torch.load(dataFile)
 
-sz = hh.train.data[1]:size()
+k = 10 -- k-fold cross-validation
+sz = hh.train.data:size()
 nChannels = sz[1]
 width = sz[2]
 height = sz[3]
@@ -38,19 +35,22 @@ print('nChannels: ' .. nChannels)
 print('height: ' .. width)
 print('width: ' .. height)
 
-for t = 1, k do
+for t = 1, 1 do
     print('<----------' .. t .. '---------->')
     trainSet = {}
     testSet = {}
-    
+
     trainSet.data = hh.train.data
     trainSet.labels = hh.train.labels
     nTrain = trainSet.labels:size(1)
     print(trainSet)
-        
+    for i = 1, nTrain do
+      trainSet.labels[i] = trainSet.labels[i] + 1
+    end
+
     testSet.data = hh.test.data
     testSet.labels = hh.test.labels
-    nTest = testSet.labels:size(1)
+    nTest = testSet.labels:size(1) 
     print(testSet)
 
     pos = trainSet.labels:nonzero()
@@ -82,89 +82,55 @@ for t = 1, k do
     function testSet:size() 
         return self.data:size(1) 
     end
+    
+    -- logistic regression
+    print('logistic regression')
+   
+    sz = trainSet.data[1][1]:size()
+    trainSet.data:resize(trainSet.data:size(1), sz[1]*sz[2])
+    testSet.data:resize(testSet.data:size(1), sz[1]*sz[2])
 
-    trainSet.labels = trainSet.labels + 1
+    print(trainSet.data:size())
+    print(trainSet.labels:size())
+    print(testSet.data:size())
+    print(testSet.labels:size())
 
-    -- normalization
-    mean = {} -- store the mean, to normalize the test set in the future
-    stdv  = {} -- store the standard-deviation for the future
-    for i = 1, nChannels do -- over each image channel
-        mean[i] = trainSet.data[{ {}, {i}, {}, {}  }]:mean() -- mean estimation
-        print('Channel ' .. i .. ', Mean: ' .. mean[i])
-        trainSet.data[{ {}, {i}, {}, {}  }]:add(-mean[i]) -- mean subtraction    
-        stdv[i] = trainSet.data[{ {}, {i}, {}, {}  }]:std() -- std estimation
-        print('Channel ' .. i .. ', Standard Deviation: ' .. stdv[i])
-        trainSet.data[{ {}, {i}, {}, {}  }]:div(stdv[i]) -- std scaling
+    -- model
+    pixVal = 35
+    num = 500
+    trainSet.labels2 = torch.Tensor(nTrain)
+    for i = 1, nTrain do
+        local count = 0
+        for j = 1, sz[1]*sz[1] do
+            if trainSet.data[i][j] > pixVal then
+                count = count + 1
+            end
+        end
+        if count > num then
+            trainSet.labels2[i] = 1
+        else
+            trainSet.label2[i] = 0
+        end
     end
-    
-    -- view an image
-    -- itorch.image(trainset.data[301])
-    
-    -- define network
-    net = nn.Sequential() -- input: nChannels, 64, 64
-    if crop == true then
-        net:add(nn.SpatialConvolution(nChannels, 6, 5, 5)) -- output: 6, 60, 60
-        net:add(nn.SpatialMaxPooling(3, 3, 3, 3)) -- output: 6, 20, 20
-        net:add(nn.SpatialConvolution(6, 12, 5, 5)) -- output: 12, 16, 16
-        net:add(nn.SpatialMaxPooling(2, 2, 2, 2)) -- output: 12, 8, 8
 
-        net:add(nn.View(12*8*8))
-        net:add(nn.Linear(12*8*8, 100))
-        net:add(nn.Linear(100, 2))
-        net:add(nn.LogSoftMax())
-    else 
-        net:add(nn.SpatialConvolution(nChannels, 6, 7, 7, 2, 2))
-        net:add(nn.SpatialMaxPooling(3, 3, 3, 3))  
-        net:add(nn.SpatialConvolution(6, 16, 5, 5, 2, 2))
-        net:add(nn.SpatialMaxPooling(2, 2, 2, 2))
-        
-        net:add(nn.View(16*9*12))
-        net:add(nn.Linear(16*9*12, 50))
-        net:add(nn.Linear(50, 2))
-        net:add(nn.LogSoftMax())                    
-    end 
 
-    net = net:cuda()
-    criterion = nn.ClassNLLCriterion()
-    
-    --train
-    net = net:cuda()
-    criterion = criterion:cuda()
-    trainSet.data = trainSet.data:cuda()
-    
-    trainer = nn.StochasticGradient(net, criterion)
-    trainer.learningRate = 0.001
-    trainer.maxIteration = maxIter
-    
-    trainer:train(trainSet)
-    
+--[[
     -- test accuracy
     testSet.data = testSet.data:double()   -- convert from Byte tensor to Double tensor
-    for i = 1, nChannels do -- over each image channel
-        testSet.data[{ {}, {i}, {}, {}  }]:add(-mean[i]) -- mean subtraction    
-        testSet.data[{ {}, {i}, {}, {}  }]:div(stdv[i]) -- std scaling
-    end
-    testSet.data = testSet.data:cuda()
     
     correct = 0
+    testProb = {}
     testScores = io.open(labelsFile .. 'test_scores.txt', 'w')
     testTrue = io.open(labelsFile .. 'test_true.txt', 'w') 
     for i = 1, nTest do 
         local groundtruth = testSet.labels[i] + 1
-        local prediction = net:forward(testSet.data[i])
+        local prediction = model:forward(testSet.data[i])
         local confidences, indices = torch.sort(prediction, true)  -- true means sort in descending order
         if groundtruth == indices[1] then
             correct = correct + 1
         end
-        local testProb = 0
-        if prediction[1] == 0 then
-            testProb = 0
-        elseif prediction[2] == 0 then
-            testProb = 1
-        else
-            testProb = (1/prediction[2])/(1/prediction[1] + 1/prediction[2])
-        end
-        testScores:write(testProb, '\n')
+        testProb[i] = (1/prediction[2])/(1/prediction[1]+1/prediction[2])
+        testScores:write(testProb[i], '\n')
         testTrue:write(testSet.labels[i], '\n')
     end
     print('test accuracy: ' .. correct .. '/' .. nTest, 100*correct/nTest .. ' %')
@@ -178,7 +144,7 @@ for t = 1, k do
     for i = 1, nTest do
         local groundtruth = testSet.labels[i] + 1
         classCounts[groundtruth] = classCounts[groundtruth] + 1
-        local prediction = net:forward(testSet.data[i])
+        local prediction = model:forward(testSet.data[i])
         local confidences, indices = torch.sort(prediction, true)  -- true means sort in descending order
         classPreds[indices[1] ] = classPreds[indices[1] ] + 1
         if groundtruth == indices[1] then
@@ -193,41 +159,32 @@ for t = 1, k do
     --print(classPreds)
     --print(classPerformance)
     --print(classCounts)
-    
+--]]
     -- train accuracy
     correct = 0
+    trainProb = {}
     trainScores = io.open(labelsFile .. 'train_scores.txt', 'w')
     trainTrue = io.open(labelsFile .. 'train_true.txt', 'w') 
     for i = 1, nTrain do
-        local groundtruth = trainSet.labels[i]
-        local prediction = net:forward(trainSet.data[i])
-        local confidences, indices = torch.sort(prediction, true)  -- true means sort in descending order
-        if groundtruth == indices[1] then
+        local groundtruth = trainSet.labels[i] - 1
+        if groundtruth == trainSet.labels2[i] then
             correct = correct + 1
         end
-        local trainProb = 0
-        if prediction[1] == 0 then
-            trainProb = 0
-        elseif prediction[2] == 0 then
-            trainProb = 1
-        else
-            trainProb = (1/prediction[2])/(1/prediction[1] + 1/prediction[2])
-        end
-        trainScores:write(trainProb, '\n')
+        trainScores:write(trainSet.labels2[i], '\n')
         trainTrue:write(trainSet.labels[i]-1, '\n')
     end
     print('train accuracy: ' .. correct .. '/' .. nTrain, 100*correct/nTrain .. ' %')
     trainScores:close()
     trainTrue:close()   
- 
+--[[ 
     -- train accuracy by class
     classPreds = {0, 0}
     classPerformance = {0, 0}
     classCounts = {0, 0}
-    for i = 1, nTrain do
+    for i = 1, trainSet:size() do
         local groundtruth = trainSet.labels[i]
         classCounts[groundtruth] = classCounts[groundtruth] + 1
-        local prediction = net:forward(trainSet.data[i])
+        local prediction = model:forward(trainSet.data[i])
         local confidences, indices = torch.sort(prediction, true)  -- true means sort in descending order
         classPreds[indices[1] ] = classPreds[indices[1] ] + 1
         if groundtruth == indices[1] then
@@ -241,6 +198,6 @@ for t = 1, k do
 
     --print(class_preds)
     --print(class_performance)
-    --print(class_counts)
-    
+    --print(class_counts)    
+--]]
 end

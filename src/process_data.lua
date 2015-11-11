@@ -5,13 +5,25 @@ require 'image'
 -- READ TRAIN IMAGES
 
 imageTypes = {'rgb'}
-dir = '/scail/data/group/vision/u/syyeung/hospital/data/'
-datasets = {--[['cvpr10-17-15afternoon/',--]]'cvpr10-19-15morning/', 'cvpr10-20-15morning/', 'cvpr10-21-15/'}
+dataDir = '/scail/data/group/vision/u/syyeung/hospital/data/'
+datasets = {'cvpr10-21-15/'}
 
+dir = '/scail/scratch/group/vision/hospital/'
 coor = {110, 240}
 boxSz = 64
 crop = true
 random = false
+
+testPathFile = dir .. 'src/ap/'
+for i = 1, #imageTypes do
+    testPathFile = testPathFile .. imageTypes[i] .. '_'
+end
+if crop then
+    testPathFile = testPathFile .. 'crop_'
+end
+if random then
+    testPathFile = testPathFile .. 'random_'
+end
 
 skip = 3
 ratioTest = 0.2 
@@ -24,7 +36,7 @@ for k, v in pairs(imageTypes) do
 end
 
 for k1, v1 in pairs(datasets) do
-    local labelsDir = dir .. v1 .. 'labels.txt'
+    local labelsDir = dataDir .. v1 .. 'labels.txt'
     file = io.open(labelsDir)
     if file then
         local i = 0
@@ -32,7 +44,7 @@ for k1, v1 in pairs(datasets) do
             local label = tonumber(line)
             table.insert(labels, label)
             for k2, v2 in pairs(imageTypes) do
-                local fileName = dir .. v1 .. v2 .. '/' .. i*skip .. '.jpg'
+                local fileName = dataDir .. v1 .. v2 .. '/' .. v2 .. '-' .. i*skip .. '.jpg'
                 table.insert(filesSet[k2], fileName)
                 --print(fileName .. ': ' .. label)
             end
@@ -43,7 +55,7 @@ for k1, v1 in pairs(datasets) do
     end
 end
 
---
+-- will contaminate the test set
 if random then
     for i = 1, #labels*2 do
         local idx1 = math.random(#labels)
@@ -80,6 +92,11 @@ for k, v in pairs(imageTypes) do
         end
     end
 end
+testPath = io.open(testPathFile .. 'test_path.txt', 'w')
+for i = 1, nTest do 
+    testPath:write(testFilesSet[1][i], '\n')
+end
+testPath:close()
 
 -- in train, balance pos and neg and randomize the order
 pos = trainLabels:nonzero()
