@@ -6,7 +6,7 @@ require 'image'
 
 imageTypes = {'rgb'}
 dataDir = '/scail/data/group/vision/u/syyeung/hospital/data/'
-datasets = {'cvpr10-21-15/'}
+datasets = {'cvpr10-19-15morning/'}
 
 dir = '/scail/scratch/group/vision/hospital/'
 coor = {110, 240}
@@ -104,6 +104,7 @@ if setRatioPosTrain then
     nPos = pos:size(1)
     nNeg = math.floor(nPos*(1 - ratioPosTrain)/ratioPosTrain)
     print('train set after: ', nPos, nNeg)
+    nTrain = nPos + nNeg
 
     trainLabels2 = {}
     trainFilesSet2 = {}
@@ -124,7 +125,7 @@ if setRatioPosTrain then
 
     for i = 1, nNeg do
         local rand = math.random(neg:size(1))
-        while neg[rand][1] == 0 do
+        while neg[rand][1] == -1 do
             rand = math.random(neg:size(1))
         end
 
@@ -134,7 +135,7 @@ if setRatioPosTrain then
         for k, v in pairs(imageTypes) do
             table.insert(trainFilesSet2[k], trainFilesSet[k][idx])
         end
-        neg[rand] = 0
+        neg[rand] = -1
     end
 
     --labelsTensor = torch.Tensor(#labels2)
@@ -172,7 +173,9 @@ if setRatioPosTest then
     print('test set now: ', pos:size(1), neg:size(1))
     nPos = pos:size(1)
     nNeg = math.floor(nPos*(1 - ratioPosTest)/ratioPosTest)
+    if nNeg < neg:size(1) then 
     print('test set after: ', nPos, nNeg)
+    nTest = nPos + nNeg
 
     testLabels2 = {}
     testFilesSet2 = {}
@@ -193,7 +196,7 @@ if setRatioPosTest then
 
     for i = 1, nNeg do
         local rand = math.random(neg:size(1))
-        while neg[rand][1] == 0 do
+        while neg[rand][1] == -1 do
             rand = math.random(neg:size(1))
         end
 
@@ -203,7 +206,7 @@ if setRatioPosTest then
         for k, v in pairs(imageTypes) do
             table.insert(testFilesSet2[k], testFilesSet[k][idx])
         end
-        neg[rand] = 0
+        neg[rand] = -1
     end
 
     --labelsTensor = torch.Tensor(#labels2)
