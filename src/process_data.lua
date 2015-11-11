@@ -95,14 +95,9 @@ for k, v in pairs(imageTypes) do
         end
     end
 end
-testPath = io.open(testPathFile .. 'test_path.txt', 'w')
-for i = 1, nTest do 
-    testPath:write(testFilesSet[1][i], '\n')
-end
-testPath:close()
 
 -- in train, balance pos and neg and randomize the order
-if setRatioPosTest then 
+if setRatioPosTrain then 
     pos = trainLabels:nonzero()
     neg = torch.add(trainLabels, -1):nonzero()
     print('train set now: ', pos:size(1), neg:size(1))
@@ -161,6 +156,13 @@ if setRatioPosTest then
             trainFilesSet[k][idx1], trainFilesSet[k][idx2] = trainFilesSet[k][idx2], trainFilesSet[k][idx1]
         end
     end
+
+    -- array to tensor
+    tmp = torch.Tensor(#trainLabels)
+    for i = 1, #trainLabels do
+        tmp[i] = trainLabels[i]
+    end
+    trainLabels = tmp
 end
 
 -- in test, balance pos and neg and randomize the order
@@ -216,14 +218,27 @@ if setRatioPosTest then
     testFilesSet = testFilesSet2
 
     for i = 1, #testLabels*2 do
-    local idx1 = math.random(#testLabels)
-    local idx2 = math.random(#testLabels)
-    testLabels[idx1], testLabels[idx2] = testLabels[idx2], testLabels[idx1] 
+        local idx1 = math.random(#testLabels)
+        local idx2 = math.random(#testLabels)
+        testLabels[idx1], testLabels[idx2] = testLabels[idx2], testLabels[idx1] 
         for k, v in pairs(imageTypes) do
             testFilesSet[k][idx1], testFilesSet[k][idx2] = testFilesSet[k][idx2], testFilesSet[k][idx1]
         end
     end
+
+    -- array to tensor
+    tmp = torch.Tensor(#testLabels)
+    for i = 1, #testLabels do
+        tmp[i] = testLabels[i]
+    end
+    testLabels = tmp
 end
+
+testPath = io.open(testPathFile .. 'test_path.txt', 'w')
+for i = 1, nTest do 
+    testPath:write(testFilesSet[1][i], '\n')
+end
+testPath:close()
 
 -- read images
 trainImagesSet = {}
@@ -285,12 +300,6 @@ end
 if crop then
     print('tl: ' .. x1 .. ',' .. y1, 'br: ' .. x2 .. ',' .. y2)
 end
-
-tmp = torch.Tensor(#trainLabels)
-for i = 1, #trainLabels do
-    tmp[i] = trainLabels[i]
-end
-trainLabels = tmp
 
 if crop then
     hh.train.data = torch.Tensor(trainLabels:size(1), totalChannels, boxSz, boxSz)
