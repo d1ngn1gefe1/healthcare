@@ -149,6 +149,7 @@ for t = 1, k do
     correct = 0
     testScores = io.open(labelsFile .. 'test_scores.txt', 'w')
     testTrue = io.open(labelsFile .. 'test_true.txt', 'w') 
+    testPredict = io.open(labelsFile .. 'test_predict.txt', 'w') 
     for i = 1, nTest do 
         local groundtruth = testSet.labels[i] + 1
         local prediction = net:forward(testSet.data[i])
@@ -166,10 +167,12 @@ for t = 1, k do
         end
         testScores:write(testProb, '\n')
         testTrue:write(testSet.labels[i], '\n')
+        testPredict:write(indices[1]-1, '\n')
     end
     print('test accuracy: ' .. correct .. '/' .. nTest, 100*correct/nTest .. ' %')
     testScores:close()
-    testTrue:close()   
+    testTrue:close()
+    testPredict:close()
     
     -- test accuracy by class
     classPreds = {0, 0}
@@ -198,6 +201,7 @@ for t = 1, k do
     correct = 0
     trainScores = io.open(labelsFile .. 'train_scores.txt', 'w')
     trainTrue = io.open(labelsFile .. 'train_true.txt', 'w') 
+    trainPredict = io.open(labelsFile .. 'train_predict.txt', 'w') 
     for i = 1, nTrain do
         local groundtruth = trainSet.labels[i]
         local prediction = net:forward(trainSet.data[i])
@@ -215,10 +219,12 @@ for t = 1, k do
         end
         trainScores:write(trainProb, '\n')
         trainTrue:write(trainSet.labels[i]-1, '\n')
+        trainPredict:write(indices[1]-1, '\n')
     end
     print('train accuracy: ' .. correct .. '/' .. nTrain, 100*correct/nTrain .. ' %')
     trainScores:close()
     trainTrue:close()   
+    trainPredict:close()
  
     -- train accuracy by class
     classPreds = {0, 0}

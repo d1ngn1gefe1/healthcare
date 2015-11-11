@@ -6,7 +6,7 @@ require 'image'
 
 imageTypes = {'rgb'}
 dataDir = '/scail/data/group/vision/u/syyeung/hospital/data/'
-datasets = {'cvpr10-19-15morning/'}
+datasets = {'cvpr10-21-15/'}
 
 dir = '/scail/scratch/group/vision/hospital/'
 coor = {110, 240}
