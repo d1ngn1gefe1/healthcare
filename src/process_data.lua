@@ -209,8 +209,8 @@ if setRatioPosTest then
     --neg = torch.add(labelsTensor, -1):nonzero()
     --print(pos:size(1), neg:size(1))
 
-    trainLabels = trainLabels2
-    trainFilesSet = trainFilesSet2
+    testLabels = testLabels2
+    testFilesSet = testFilesSet2
 end
 
 -- read images
