@@ -106,7 +106,7 @@ neg = torch.add(trainLabels, -1):nonzero()
 print('train set now: ', pos:size(1), neg:size(1))
 nPos = pos:size(1)
 nNeg = math.floor(nPos*(1 - ratioPosTrain)/ratioPosTrain)
-print('train set after:', nPos, nNeg)
+print('train set after: ', nPos, nNeg)
 
 trainLabels2 = {}
 trainFilesSet2 = {}
@@ -167,7 +167,7 @@ if setRatioPosTest then
     print('test set now: ', pos:size(1), neg:size(1))
     nPos = pos:size(1)
     nNeg = math.floor(nPos*(1 - ratioPosTest)/ratioPosTest)
-    print('test set after:', nPos, nNeg)
+    print('test set after: ', nPos, nNeg)
 
     testLabels2 = {}
     testFilesSet2 = {}
