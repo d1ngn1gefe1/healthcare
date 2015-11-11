@@ -3,9 +3,9 @@ import numpy as np
 
 dir = '/Users/alan/Documents/research/dataset/new/'
 origDir = '/scail/data/group/vision/u/syyeung/hospital/data/'
-labelsPath = dir + 'rgb_crop_test_true.txt'
-probPath = dir + 'rgb_crop_test_scores.txt'
-testPath = dir + 'rgb_crop_test_path.txt'
+labelsPath = dir + 'ap/rgb_crop_test_true.txt'
+probPath = dir + 'ap/rgb_crop_test_scores.txt'
+testPath = dir + 'ap/rgb_crop_test_path.txt'
 outDir = dir + 'out/' 
 useProb = 1
 
