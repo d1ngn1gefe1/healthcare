@@ -3,30 +3,17 @@ require 'nn'
 require 'cunn'
     
 -- parameters
-imageTypes = {'rgb'}
-dir = '/scail/scratch/group/vision/hospital/'
 crop = true
-maxIter = 15
-random = false
+maxIter = 10
 k = 1 -- k-fold cross-validation
+fileName = 'rgb_crop_19_21'
+-- end parameters
 
 -- load data file and labels file
-dataFile = dir .. 'data/hh' 
-labelsFile = dir .. 'src/ap/'
-for i = 1, #imageTypes do
-    dataFile = dataFile .. '_' .. imageTypes[i]
-    labelsFile = labelsFile .. imageTypes[i] .. '_'
-end
-if crop then
-    dataFile = dataFile .. '_crop'
-    labelsFile = labelsFile .. 'crop_'
-end
-if random then
-    dataFile = dataFile .. '_random.t7'
-    labelsFile = labelsFile .. 'random_'
-else
-    dataFile = dataFile .. '.t7'
-end
+dataFile = '/scail/scratch/group/vision/hospital/data/' 
+resultsFile = '/scail/scratch/group/vision/hospital/src/ap/'
+dataFile = dataFile .. fileName .. '.t7'
+resultsFile = resultsFile .. fileName .. '_'
 
 hh = torch.load(dataFile)
 
@@ -147,9 +134,9 @@ for t = 1, k do
     testSet.data = testSet.data:cuda()
     
     correct = 0
-    testScores = io.open(labelsFile .. 'test_scores.txt', 'w')
-    testTrue = io.open(labelsFile .. 'test_true.txt', 'w') 
-    testPredict = io.open(labelsFile .. 'test_predict.txt', 'w') 
+    testScores = io.open(resultsFile .. 'test_scores.txt', 'w')
+    testTrue = io.open(resultsFile .. 'test_true.txt', 'w') 
+    testPredict = io.open(resultsFile .. 'test_predict.txt', 'w') 
     for i = 1, nTest do 
         local groundtruth = testSet.labels[i] + 1
         local prediction = net:forward(testSet.data[i])
@@ -199,9 +186,9 @@ for t = 1, k do
     
     -- train accuracy
     correct = 0
-    trainScores = io.open(labelsFile .. 'train_scores.txt', 'w')
-    trainTrue = io.open(labelsFile .. 'train_true.txt', 'w') 
-    trainPredict = io.open(labelsFile .. 'train_predict.txt', 'w') 
+    trainScores = io.open(resultsFile .. 'train_scores.txt', 'w')
+    trainTrue = io.open(resultsFile .. 'train_true.txt', 'w') 
+    trainPredict = io.open(resultsFile .. 'train_predict.txt', 'w') 
     for i = 1, nTrain do
         local groundtruth = trainSet.labels[i]
         local prediction = net:forward(trainSet.data[i])

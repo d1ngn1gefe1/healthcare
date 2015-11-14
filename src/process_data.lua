@@ -2,154 +2,126 @@ require 'cutorch'
 require 'nn'
 require 'image'
 
--- READ TRAIN IMAGES
-
+-- parameters
 imageTypes = {'rgb'}
-dataDir = '/scail/data/group/vision/u/syyeung/hospital/data/'
-datasets = {'cvpr10-21-15/'}
+datasets = {'cvpr10-19-15morning', 'cvpr10-21-15'}
 
-dir = '/scail/scratch/group/vision/hospital/'
-coor = {110, 240}
+coor = {114, 240}
 boxSz = 64
 crop = true
-random = false
-
-testPathFile = dir .. 'src/ap/'
-for i = 1, #imageTypes do
-    testPathFile = testPathFile .. imageTypes[i] .. '_'
-end
-if crop then
-    testPathFile = testPathFile .. 'crop_'
-end
-if random then
-    testPathFile = testPathFile .. 'random_'
-end
-
+seed = 1
 skip = 3
-ratioTest = 0.2
-setRatioPosTrain = true
-setRatioPosTest = true
-ratioPosTrain = 0.1
+
+ratioTest = 0.3 -- the ratio of examples used as the test set (the ratio will be different after dropping negative examples)
+setRatioPosTrain = true -- set the ratio of positive examples in training set, by dropping negative examples 
+setRatioPosTest = false -- set the ratio of positive examples in test set, by dropping negative examples 
+ratioPosTrain = 0.2
 ratioPosTest = 0.1
 
-labels = {}
-filesSet = {}
-for k, v in pairs(imageTypes) do
-    filesSet[k] = {}
-end
+dir = '/scail/scratch/group/vision/hospital/'
+dataDir = '/scail/data/group/vision/u/syyeung/hospital/data/'
+fileName = 'rgb_crop_19_21'
+-- end parameters
 
-for k1, v1 in pairs(datasets) do
-    local labelsDir = dataDir .. v1 .. 'labels.txt'
-    file = io.open(labelsDir)
-    if file then
-        local i = 0
-        for line in file:lines() do
-            local label = tonumber(line)
-            table.insert(labels, label)
-            for k2, v2 in pairs(imageTypes) do
-                local fileName = dataDir .. v1 .. v2 .. '/' .. v2 .. '-' .. i*skip .. '.jpg'
-                table.insert(filesSet[k2], fileName)
-                --print(fileName .. ': ' .. label)
-            end
-            i = i+1
-        end
-    else
-        print('label file does not exist')
-    end
-end
+dataFile = '../data/' .. fileName .. '.t7'
+testPathFile = dir .. 'src/ap/' .. fileName .. '_'
 
--- will contaminate the test set
-if random then
-    for i = 1, #labels*2 do
-        local idx1 = math.random(#labels)
-        local idx2 = math.random(#labels)
-        labels[idx1], labels[idx2] = labels[idx2], labels[idx1] 
-        for k, v in pairs(imageTypes) do
-            filesSet[k][idx1], filesSet[k][idx2] = filesSet[k][idx2], filesSet[k][idx1]
-        end
-    end
-end
---
-
-labelsTensor = torch.Tensor(#labels)
-for i = 1, #labels do
-    labelsTensor[i] = labels[i]
-end
-
--- split train and test
-nTest = math.floor(#labels*ratioTest)
-nTrain = #labels - nTest
-trainLabels = labelsTensor:narrow(1, nTest + 1, nTrain)
-testLabels = labelsTensor:narrow(1, 1, nTest)
-print(trainLabels:size(), testLabels:size())
+trainLabels = {}
+testLabels = {}
 trainFilesSet = {}
 testFilesSet = {}
-for k, v in pairs(imageTypes) do
-    trainFilesSet[k] = {}
-    testFilesSet[k] = {}
-    for i = 1, #filesSet[k] do
-        if i <= nTest then
-            table.insert(testFilesSet[k], filesSet[k][i])
+
+nTrain = 0
+nTest = 0
+
+for k1, v1 in pairs(datasets) do
+    local labelsPath = dataDir .. v1 .. '/labels.txt'
+    local file = assert(io.open(labelsPath, 'r'))
+
+    local nLines = 0
+    for line in file:lines() do
+        nLines = nLines + 1
+    end
+    nTest = math.floor(nLines*ratioTest)
+    nTrain = nLines - nTest
+
+    local i = 0
+    file:seek('set')
+    for line in file:lines() do
+        if i < nTrain then
+            local label = tonumber(line)
+            table.insert(trainLabels, label)
+            for k2, v2 in pairs(imageTypes) do
+                local fileName = dataDir .. v1 .. '/' .. v2 .. '/' .. v2 .. '-' .. i*skip .. '.jpg'
+                if trainFilesSet[k2] == nil then
+                    trainFilesSet[k2] = {}
+                end
+                table.insert(trainFilesSet[k2], fileName)
+                --print(fileName .. ': ' .. label)
+            end
         else
-            table.insert(trainFilesSet[k], filesSet[k][i])
+            local label = tonumber(line)
+            table.insert(testLabels, label)
+            for k2, v2 in pairs(imageTypes) do
+                local fileName = dataDir .. v1 .. '/' .. v2 .. '/' .. v2 .. '-' .. i*skip .. '.jpg'
+                if testFilesSet[k2] == nil then
+                    testFilesSet[k2] = {}
+                end
+                table.insert(testFilesSet[k2], fileName)
+                --print(fileName .. ': ' .. label)
+            end
         end
+        i = i+1
     end
 end
 
 -- in train, balance pos and neg and randomize the order
+posIdx = torch.Tensor(trainLabels):nonzero()
+negIdx = torch.add(torch.Tensor(trainLabels), -1):nonzero()
+print('train set now: ', posIdx:size(1), negIdx:size(1))
 if setRatioPosTrain then 
-    pos = trainLabels:nonzero()
-    neg = torch.add(trainLabels, -1):nonzero()
-    print('train set now: ', pos:size(1), neg:size(1))
-    nPos = pos:size(1)
-    nNeg = math.floor(nPos*(1 - ratioPosTrain)/ratioPosTrain)
-    if nNeg < neg:size(1) then 
+    local nPos = posIdx:size(1)
+    local nNeg = math.floor(nPos*(1 - ratioPosTrain)/ratioPosTrain)
+    if nNeg < negIdx:size(1) then 
         print('train set after: ', nPos, nNeg)
         nTrain = nPos + nNeg
 
-        trainLabels2 = {}
-        trainFilesSet2 = {}
-        for k, v in pairs(imageTypes) do
-            trainFilesSet2[k] = {}
-        end
+        local trainLabelsTemp = {}
+        local trainFilesSetTemp = {}
 
         for i = 1, nPos do
-            local idx = pos[i][1]
+            local idx = posIdx[i][1]
             assert(trainLabels[idx] == 1)
-            table.insert(trainLabels2, trainLabels[idx])
+            table.insert(trainLabelsTemp, trainLabels[idx])
             for k, v in pairs(imageTypes) do
-                table.insert(trainFilesSet2[k], trainFilesSet[k][idx])
+                if trainFilesSetTemp[k] == nil then
+                    trainFilesSetTemp[k] = {}
+                end
+                table.insert(trainFilesSetTemp[k], trainFilesSet[k][idx])
             end
         end
 
-        math.randomseed(1) -- not randomized
+        math.randomseed(seed) -- not randomized
 
         for i = 1, nNeg do
-            local rand = math.random(neg:size(1))
-            while neg[rand][1] == -1 do
-                rand = math.random(neg:size(1))
+            local rand = math.random(negIdx:size(1))
+            while negIdx[rand][1] == -1 do
+                rand = math.random(negIdx:size(1))
             end
 
-            local idx = neg[rand][1]
+            local idx = negIdx[rand][1]
             assert(trainLabels[idx] == 0)
-            table.insert(trainLabels2, trainLabels[idx])
+            table.insert(trainLabelsTemp, trainLabels[idx])
             for k, v in pairs(imageTypes) do
-                table.insert(trainFilesSet2[k], trainFilesSet[k][idx])
+                table.insert(trainFilesSetTemp[k], trainFilesSet[k][idx])
             end
-            neg[rand] = -1
+            negIdx[rand] = -1
         end
 
-        --labelsTensor = torch.Tensor(#labels2)
-        --for i = 1, #labels2 do
-        --    labelsTensor[i] = labels2[i]
-        --end
-        --pos = labelsTensor:nonzero()
-        --neg = torch.add(labelsTensor, -1):nonzero()
-        --print(pos:size(1), neg:size(1))
+        trainLabels = trainLabelsTemp
+        trainFilesSet = trainFilesSetTemp
 
-        trainLabels = trainLabels2
-        trainFilesSet = trainFilesSet2
-
+        -- randomize the order
         for i = 1, #trainLabels*2 do
             local idx1 = math.random(#trainLabels)
             local idx2 = math.random(#trainLabels)
@@ -158,89 +130,65 @@ if setRatioPosTrain then
                 trainFilesSet[k][idx1], trainFilesSet[k][idx2] = trainFilesSet[k][idx2], trainFilesSet[k][idx1]
             end
         end
-
-        -- array to tensor
-        tmp = torch.Tensor(#trainLabels)
-        for i = 1, #trainLabels do
-            tmp[i] = trainLabels[i]
-        end
-        trainLabels = tmp
     end
 end
+-- table to tensor
+trainLabels = torch.Tensor(trainLabels)
+print('train labels: ' .. trainLabels:size(1))
 
 -- in test, balance pos and neg and randomize the order
+posIdx = torch.Tensor(testLabels):nonzero()
+negIdx = torch.add(torch.Tensor(testLabels), -1):nonzero()
+print('test set now: ', posIdx:size(1), negIdx:size(1))
 if setRatioPosTest then 
-    pos = testLabels:nonzero()
-    neg = torch.add(testLabels, -1):nonzero()
-    print('test set now: ', pos:size(1), neg:size(1))
-    nPos = pos:size(1)
-    nNeg = math.floor(nPos*(1 - ratioPosTest)/ratioPosTest)
-    if nNeg < neg:size(1) then 
+    local nPos = posIdx:size(1)
+    local nNeg = math.floor(nPos*(1 - ratioPosTest)/ratioPosTest)
+    if nNeg < negIdx:size(1) then 
         print('test set after: ', nPos, nNeg)
         nTest = nPos + nNeg
 
-        testLabels2 = {}
-        testFilesSet2 = {}
-        for k, v in pairs(imageTypes) do
-            testFilesSet2[k] = {}
-        end
+        local testLabelsTemp = {}
+        local testFilesSetTemp = {}
 
         for i = 1, nPos do
-            local idx = pos[i][1]
+            local idx = posIdx[i][1]
             assert(testLabels[idx] == 1)
-            table.insert(testLabels2, testLabels[idx])
+            table.insert(testLabelsTemp, testLabels[idx])
             for k, v in pairs(imageTypes) do
-                table.insert(testFilesSet2[k], testFilesSet[k][idx])
+                if testFilesSetTemp[k] == nil then
+                    testFilesSetTemp[k] = {}
+                end
+                table.insert(testFilesSetTemp[k], testFilesSet[k][idx])
             end
         end
 
-        math.randomseed(1) -- not randomized
+        math.randomseed(seed) -- not randomized
 
         for i = 1, nNeg do
-            local rand = math.random(neg:size(1))
-            while neg[rand][1] == -1 do
-                rand = math.random(neg:size(1))
+            local rand = math.random(negIdx:size(1))
+            while negIdx[rand][1] == -1 do
+                rand = math.random(negIdx:size(1))
             end
 
-            local idx = neg[rand][1]
+            local idx = negIdx[rand][1]
             assert(testLabels[idx] == 0)
-            table.insert(testLabels2, testLabels[idx])
+            table.insert(testLabelsTemp, testLabels[idx])
             for k, v in pairs(imageTypes) do
-                table.insert(testFilesSet2[k], testFilesSet[k][idx])
+                table.insert(testFilesSetTemp[k], testFilesSet[k][idx])
             end
-            neg[rand] = -1
+            negIdx[rand] = -1
         end
 
-        --labelsTensor = torch.Tensor(#labels2)
-        --for i = 1, #labels2 do
-        --    labelsTensor[i] = labels2[i]
-        --end
-        --pos = labelsTensor:nonzero()
-        --neg = torch.add(labelsTensor, -1):nonzero()
-        --print(pos:size(1), neg:size(1))
-
-        testLabels = testLabels2
-        testFilesSet = testFilesSet2
-
-        for i = 1, #testLabels*2 do
-            local idx1 = math.random(#testLabels)
-            local idx2 = math.random(#testLabels)
-            testLabels[idx1], testLabels[idx2] = testLabels[idx2], testLabels[idx1] 
-            for k, v in pairs(imageTypes) do
-                testFilesSet[k][idx1], testFilesSet[k][idx2] = testFilesSet[k][idx2], testFilesSet[k][idx1]
-            end
-        end
-
-        -- array to tensor
-        tmp = torch.Tensor(#testLabels)
-        for i = 1, #testLabels do
-            tmp[i] = testLabels[i]
-        end
-        testLabels = tmp
+        testLabels = testLabelsTemp
+        testFilesSet = testFilesSetTemp
     end
 end
+-- table to tensor
+testLabels = torch.Tensor(testLabels)
+print('test labels: ' .. testLabels:size(1))
 
-testPath = io.open(testPathFile .. 'test_path.txt', 'w')
+-- write path to all test images 
+testPath = assert(io.open(testPathFile .. 'test_path.txt', 'w'))
 for i = 1, nTest do 
     testPath:write(testFilesSet[1][i], '\n')
 end
@@ -249,24 +197,34 @@ testPath:close()
 -- read images
 trainImagesSet = {}
 testImagesSet = {}
-for k, v in pairs(imageTypes) do
-    trainImagesSet[k] = {}
-    testImagesSet[k] = {}
-end
 
 for k1, v1 in pairs(trainFilesSet) do
+    if trainImagesSet[k1] == nil then
+        trainImagesSet[k1] = {}
+    end
     for k2, v2 in pairs(v1) do
+        if k2 % 100 == 0 then
+            print('reading train data ' .. k1 .. '.' .. k2)
+        end
         table.insert(trainImagesSet[k1], image.load(v2))
     end
 end
 for k1, v1 in pairs(testFilesSet) do
+    if testImagesSet[k1] == nil then
+        testImagesSet[k1] = {}
+    end
     for k2, v2 in pairs(v1) do
+        if k2 % 100 == 0 then
+            print('reading test data ' .. k1 .. '.' .. k2)
+        end
         table.insert(testImagesSet[k1], image.load(v2))
     end
 end
 
 imageSize = trainImagesSet[1][1]:size()
 print(imageSize)
+--print(trainImagesSet)
+--print(testImagesSet)
 --print(#labels)
 
 nChannelsSet = {}
@@ -318,7 +276,7 @@ for i = 1, trainLabels:size(1) do
     if i % 1000 == 0 then
         print('processing train data ' .. i)
     end
-    curIdx = 1
+    local curIdx = 1
     for k, v in pairs(imageTypes) do
         if crop then
             hh.train.data[i][{{curIdx, curIdx+nChannelsSet[k]-1}, {}, {}}] = trainImagesSet[k][i][{{}, {y1, y2}, {x1, x2}}]
@@ -332,7 +290,7 @@ for i = 1, testLabels:size(1) do
     if i % 1000 == 0 then
         print('processing test data ' .. i)
     end
-    curIdx = 1
+    local curIdx = 1
     for k, v in pairs(imageTypes) do
         if crop then
             hh.test.data[i][{{curIdx, curIdx+nChannelsSet[k]-1}, {}, {}}] = testImagesSet[k][i][{{}, {y1, y2}, {x1, x2}}]
@@ -343,19 +301,8 @@ for i = 1, testLabels:size(1) do
     end
 end
 
-hh.train.labels = trainLabels 
-hh.test.labels = testLabels
+hh.train.labels = trainLabels -- tensor
+hh.test.labels = testLabels -- tensor
 
-dataFile = '../data/hh'
-for i = 1, #imageTypes do
-    dataFile = dataFile .. '_' .. imageTypes[i]
-end
-if crop then
-    dataFile = dataFile .. '_crop'
-end
-if random then
-    dataFile = dataFile .. '_random'
-end
-dataFile = dataFile .. '.t7'
 print('saving file: ', dataFile)
 torch.save(dataFile, hh)
