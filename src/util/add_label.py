@@ -1,13 +1,14 @@
-import cv2
+from PIL import Image, ImageFont, ImageDraw
 import numpy as np
 
 dir = '/Users/alan/Documents/research/dataset/new/'
 origDir = '/scail/data/group/vision/u/syyeung/hospital/data/'
-labelsPath = dir + 'ap/rgb_crop_test_predict.txt'
-probPath = dir + 'ap/rgb_crop_test_scores.txt'
-testPath = dir + 'ap/rgb_crop_test_path.txt'
+fileName = 'rgb_crop_19_21'
+
+labelsPath = dir + 'ap/' + fileName + '_test_predict.txt'
+probPath = dir + 'ap/' + fileName + '_test_scores.txt'
+testPath = dir + 'ap/' + fileName + '_test_path.txt'
 outDir = dir + 'out/' 
-useProb = 1
 
 # Read in labels
 labelsFile = open(labelsPath, 'r')
@@ -31,32 +32,28 @@ for line in testFile:
     test = np.append(test, line[len(origDir):])
 
 assert (labels.shape[0] == prob.shape[0] == test.shape[0])
-num = labels.shape[0]
-font = cv2.FONT_HERSHEY_SIMPLEX
-fontScale = 0.5
-thickness = 1
-text1 = 'Probability'
+
+font1 = ImageFont.truetype('/Library/Fonts/Arial.ttf', 10)
+font2 = ImageFont.truetype('/Library/Fonts/Arial.ttf', 20)
+text1 = 'Threshold'
 text2 = 'Hand Hygiene!'
-textWidth1 = cv2.getTextSize(text1, font, fontScale, thickness)[0][0]
-textHeight1 = cv2.getTextSize(text1, font, fontScale, thickness)[0][1]
-textWidth2 = cv2.getTextSize(text2, font, fontScale, thickness)[0][0]
-textHeight2 = cv2.getTextSize(text2, font, fontScale, thickness)[0][1]
-top = 10
-left = 20
+
+num = labels.shape[0]
 for i in range(0, num):
     index = 3*i
-    img = cv2.imread(dir + test[i])
+    img = Image.open(dir + test[i])
     #print(dir + test[i])
     assert (img != None)
-
-    cv2.rectangle(img, (left - 5, top - 5), (left + textWidth1 + 110, top + textHeight1 + 5), (200, 200, 200), cv2.FILLED)
-    cv2.putText(img, text1, (left, top + textHeight1), font, fontScale, (40, 40, 40), thickness)
-    cv2.rectangle(img, (left + textWidth1 + 5, top), (left + textWidth1 + 105, top + textHeight1), (40, 40, 40), cv2.FILLED)
-    cv2.rectangle(img, (left + textWidth1 + 5, top), (left + textWidth1 + 5 + int(100*prob[i]), top + textHeight1), (0, 0, 180), cv2.FILLED)
-
+    draw = ImageDraw.Draw(img)
+    draw.rectangle([(10, 10), (170, 70)], fill=(200, 200, 200, 100))
+    draw.rectangle([(15, 15), (15+150*prob[i], 30)], fill=(100, 0, 0))
+    draw.line([(90, 15), (90, 30)], fill=(200, 0, 0))
+    draw.rectangle([(15, 15), (165, 30)], outline=(100, 100, 100))
+    w1, h1 = draw.textsize(text1, font1)
+    draw.text((15+75-w1/2, 30), text1, font=font1, fill=(100, 0, 0))
     if labels[i] == 1:
-        cv2.putText(img, text2, (left, top + textHeight1 + textHeight2 + 10), font, fontScale, (0, 0, 180))
-
-    cv2.imwrite(outDir + str(i) + '.jpg', img)
-    #cv2.imwrite(outDir + test[i].replace('/', '-'), img)
+        w2, h2 = draw.textsize(text2, font2)
+        draw.text((15+75-w2/2, 35+h1), text2, font=font2, fill=(100, 0, 0))
+    #draw.text((0, 0), 'Sample Text', (255,255,255), font=font)
+    img.save(outDir + str(i) + '.jpg', 'JPEG', quality=90)
     #print(outDir + test[i].replace('/', '-'))
