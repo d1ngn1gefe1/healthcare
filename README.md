@@ -1,1 +1,2 @@
-Convolutional Neural Network(CNN) based hand hygiene action classifier
+Vision-Based Hand Hygiene Monitoring in Hospitals
+
