@@ -54,6 +54,5 @@ for i in range(0, num):
     if labels[i] == 1:
         w2, h2 = draw.textsize(text2, font2)
         draw.text((15+75-w2/2, 35+h1), text2, font=font2, fill=(100, 0, 0))
-    #draw.text((0, 0), 'Sample Text', (255,255,255), font=font)
     img.save(outDir + str(i) + '.jpg', 'JPEG', quality=90)
     #print(outDir + test[i].replace('/', '-'))
