@@ -4,9 +4,11 @@ require 'cunn'
     
 -- parameters
 crop = true
-maxIter = 20
+maxIter = 10
 k = 1 -- k-fold cross-validation
 fileName = 'rgb_crop_19_21'
+kernel = {0.1, 0.15, 0.15, 0.2, 0.15, 0.15, 0.1}
+smooth = true
 -- end parameters
 
 -- load data file and labels file
@@ -133,56 +135,90 @@ for t = 1, k do
     end
     testSet.data = testSet.data:cuda()
     
-    correct = 0
     testScores = io.open(resultsFile .. 'test_scores.txt', 'w')
     testTrue = io.open(resultsFile .. 'test_true.txt', 'w') 
-    testPredict = io.open(resultsFile .. 'test_predict.txt', 'w') 
+    testPredict = io.open(resultsFile .. 'test_predict.txt', 'w')
+    testDiff = io.open(resultsFile .. 'test_diff.txt', 'w')
+    testProb = {}
+    correct = 0
+    truePos = 0
+    trueNeg = 0
+    nPos = 0
+    nNeg = 0
     for i = 1, nTest do 
-        local groundtruth = testSet.labels[i] + 1
         local prediction = net:forward(testSet.data[i])
-        local confidences, indices = torch.sort(prediction, true)  -- true means sort in descending order
-        if groundtruth == indices[1] then
-            correct = correct + 1
-        end
-        local testProb = 0
         if prediction[1] == 0 then
-            testProb = 0
+            testProb[i] = 0
         elseif prediction[2] == 0 then
-            testProb = 1
+            testProb[i] = 1
         else
-            testProb = (1/prediction[2])/(1/prediction[1] + 1/prediction[2])
+            testProb[i] = (1/prediction[2])/(1/prediction[1] + 1/prediction[2])
         end
-        testScores:write(testProb, '\n')
-        testTrue:write(testSet.labels[i], '\n')
-        testPredict:write(indices[1]-1, '\n')
+        local groundtruth = testSet.labels[i]
+        nPos = nPos + groundtruth
+        nNeg = nNeg - (groundtruth - 1)
+        testTrue:write(groundtruth, '\n')
+        if groundtruth == math.floor(testProb[i] + 0.5) then
+            correct = correct + 1
+            if groundtruth == 1 then
+                truePos = truePos + 1
+            else
+                trueNeg = trueNeg + 1
+            end
+        end
+        testScores:write(testProb[i], '\n')
+        testPredict:write(math.floor(testProb[i] + 0.5), '\n')
+        testDiff:write(groundtruth - math.floor(testProb[i] + 0.5), '\n')
     end
-    print('test accuracy: ' .. correct .. '/' .. nTest, 100*correct/nTest .. ' %')
     testScores:close()
     testTrue:close()
     testPredict:close()
-    
-    -- test accuracy by class
-    classPreds = {0, 0}
-    classPerformance = {0, 0}
-    classCounts = {0, 0}
-    for i = 1, nTest do
-        local groundtruth = testSet.labels[i] + 1
-        classCounts[groundtruth] = classCounts[groundtruth] + 1
-        local prediction = net:forward(testSet.data[i])
-        local confidences, indices = torch.sort(prediction, true)  -- true means sort in descending order
-        classPreds[indices[1] ] = classPreds[indices[1] ] + 1
-        if groundtruth == indices[1] then
-            classPerformance[groundtruth] = classPerformance[groundtruth] + 1
+    testDiff:close()
+    print('test accuracy: ' .. correct .. '/' .. nTest, 100*correct/nTest .. ' %')
+    print('test accuracy of class 0: ' .. trueNeg .. '/' .. nNeg, (trueNeg/nNeg) .. ' %')
+    print('test accuracy of class 1: ' .. truePos .. '/' .. nPos, (truePos/nPos) .. ' %')
+
+    if smooth then
+        testSmoothScores = io.open(resultsFile .. 'test_smooth_scores.txt', 'w')
+        testSmoothPredict = io.open(resultsFile .. 'test_smooth_predict.txt', 'w')
+        testSmoothDiff = io.open(resultsFile .. 'test_smooth_diff.txt', 'w')
+        testProbSmooth = {}
+        correct = 0
+        truePos = 0
+        trueNeg = 0
+        nPos = 0
+        nNeg = 0
+        local r = math.floor(#kernel/2)
+        for i = 1, nTest do 
+            local groundtruth = testSet.labels[i]
+            nPos = nPos + groundtruth
+            nNeg = nNeg - (groundtruth - 1)
+            testProbSmooth[i] = 0
+            for j = i - r, i + r do
+                if j >= 1 and j <= nTest then
+                    testProbSmooth[i] = testProbSmooth[i] + kernel[j-(i-r)+1]*testProb[j]
+                end
+            end
+            local predict = math.floor(testProbSmooth[i] + 0.5)
+            if groundtruth == predict then
+                correct = correct + 1
+                if groundtruth == 1 then
+                    truePos = truePos + 1
+                else
+                    trueNeg = trueNeg + 1
+                end
+            end
+            testSmoothScores:write(testProbSmooth[i], '\n')
+            testSmoothPredict:write(predict, '\n')
+            testSmoothDiff:write(groundtruth - math.floor(testProbSmooth[i] + 0.5), '\n')
         end
+        testSmoothScores:close()
+        testSmoothPredict:close()
+        testSmoothDiff:close()
+        print('test accuracy smoothed: ' .. correct .. '/' .. nTest, 100*correct/nTest .. ' %')
+        print('test accuracy smoothed of class 0: ' .. trueNeg .. '/' .. nNeg, (trueNeg/nNeg) .. ' %')
+        print('test accuracy smoothed of class 1: ' .. truePos .. '/' .. nPos, (truePos/nPos) .. ' %')
     end
-
-    for i = 1, 2 do
-        print('test accuracy of class ' .. (i-1) .. ': ' .. classPerformance[i] .. '/' .. classCounts[i], ((classCounts[i] == 0) and 100 or 100*classPerformance[i]/classCounts[i]) .. ' %')
-    end
-
-    --print(classPreds)
-    --print(classPerformance)
-    --print(classCounts)
     
     -- train accuracy
     correct = 0
