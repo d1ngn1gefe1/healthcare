@@ -9,7 +9,7 @@ directory = '/scail/scratch/group/vision/hospital/src/ap/'
 labelsFile = directory + fileName + '_'
 
 pfix = ['test_scores.txt', 'test_true.txt', 'train_scores.txt', 'train_true.txt']
-for i in range(0, 1):
+for i in range(0, 2):
     file1 = labelsFile + pfix[i*2]
     file2 = labelsFile + pfix[i*2+1]
     print(file1)
