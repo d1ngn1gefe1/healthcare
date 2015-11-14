@@ -31,9 +31,6 @@ testLabels = {}
 trainFilesSet = {}
 testFilesSet = {}
 
-nTrain = 0
-nTest = 0
-
 for k1, v1 in pairs(datasets) do
     local labelsPath = dataDir .. v1 .. '/labels.txt'
     local file = assert(io.open(labelsPath, 'r'))
@@ -42,8 +39,10 @@ for k1, v1 in pairs(datasets) do
     for line in file:lines() do
         nLines = nLines + 1
     end
-    nTest = math.floor(nLines*ratioTest)
-    nTrain = nLines - nTest
+    local nTest = math.floor(nLines*ratioTest)
+    local nTrain = nLines - nTest
+
+    print('calculated test vs train: ' .. nTest .. ', ' .. nTrain)
 
     local i = 0
     file:seek('set')
@@ -145,7 +144,6 @@ if setRatioPosTest then
     local nNeg = math.floor(nPos*(1 - ratioPosTest)/ratioPosTest)
     if nNeg < negIdx:size(1) then 
         print('test set after: ', nPos, nNeg)
-        nTest = nPos + nNeg
 
         local testLabelsTemp = {}
         local testFilesSetTemp = {}
@@ -189,7 +187,7 @@ print('test labels: ' .. testLabels:size(1))
 
 -- write path to all test images 
 testPath = assert(io.open(testPathFile .. 'test_path.txt', 'w'))
-for i = 1, nTest do 
+for i = 1, testLabels:size(1) do 
     testPath:write(testFilesSet[1][i], '\n')
 end
 testPath:close()

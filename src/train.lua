@@ -4,7 +4,7 @@ require 'cunn'
     
 -- parameters
 crop = true
-maxIter = 10
+maxIter = 20
 k = 1 -- k-fold cross-validation
 fileName = 'rgb_crop_19_21'
 -- end parameters
