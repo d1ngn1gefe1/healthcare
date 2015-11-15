@@ -4,7 +4,7 @@ import numpy as np
 dir = '/Users/alan/Documents/research/dataset/new/'
 origDir = '/scail/data/group/vision/u/syyeung/hospital/data/'
 fileName = 'rgb_crop_19_21'
-depth = true
+depth = True
 
 labelsPath = dir + 'ap/' + fileName + '_test_smooth_predict.txt'
 probPath = dir + 'ap/' + fileName + '_test_smooth_scores.txt'
@@ -42,19 +42,23 @@ text2 = 'Hand Hygiene!'
 num = labels.shape[0]
 for i in range(0, num):
     index = 3*i
+    if (depth):
+        test[i] = test[i].replace('rgb', 'd')
     img = Image.open(dir + test[i])
     #print(dir + test[i])
     assert (img != None)
     draw = ImageDraw.Draw(img)
-    draw.rectangle([(15, 15), (165, 30)], fill=(200, 200, 200))
-    draw.rectangle([(15, 15), (15+150*prob[i], 30)], fill=(100, 0, 0))
-    draw.line([(90, 15), (90, 30)], fill=(200, 0, 0))
-    draw.rectangle([(15, 15), (165, 30)], outline=(100, 100, 100))
     w1, h1 = draw.textsize(text1, font1)
-    draw.text((15+75-w1/2, 30), text1, font=font1, fill=(100, 0, 0))
+    if !depth:
+        draw.rectangle([(15, 15), (165, 30)], fill=(200, 200, 200))
+    draw.rectangle([(15, 15), (15+150*prob[i], 30)], fill=(100, 0, 0) if !depth else 255)
+    draw.line([(90, 15), (90, 30)], fill=(200, 0, 0) if !depth else 255)
+    draw.rectangle([(15, 15), (165, 30)], outline=(100, 100, 100) if !depth else 255)
+    draw.text((15+75-w1/2, 30), text1, font=font1, fill=(100, 0, 0) if !depth else 255)
     if labels[i] == 1:
         w2, h2 = draw.textsize(text2, font2)
-        draw.rectangle([(15+75-w2/2, 35+h1), (15++75+w2/2, 35+h1+h2)], fill=(200, 200, 200))
-        draw.text((15+75-w2/2, 35+h1), text2, font=font2, fill=(100, 0, 0))
+        if !depth:
+            draw.rectangle([(15+75-w2/2, 35+h1), (15++75+w2/2, 35+h1+h2)], fill=(200, 200, 200))
+        draw.text((15+75-w2/2, 35+h1), text2, font=font2, fill=(100, 0, 0) if !depth else 255)
     img.save(outDir + str(i) + '.jpg', 'JPEG', quality=90)
     #print(outDir + test[i].replace('/', '-'))
