@@ -6,3 +6,6 @@
 /src/*.log
 /hands/*
 /src/ap/*.txt
+*.mp4
+*.png
+*.jpg
