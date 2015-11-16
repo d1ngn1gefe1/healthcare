@@ -1,15 +1,21 @@
 from PIL import Image, ImageFont, ImageDraw
 import numpy as np
+import sys
+import os
+
+assert(len(sys.argv) == 2), 'arg: depth (t, f)'
+depth = True if sys.argv[1] == 't' else 'f'
 
 dir = '/Users/alan/Documents/research/dataset/new/'
 origDir = '/scail/data/group/vision/u/syyeung/hospital/data/'
 fileName = 'rgb_crop_19_21'
-depth = True
 
 labelsPath = dir + 'ap/' + fileName + '_test_smooth_predict.txt'
 probPath = dir + 'ap/' + fileName + '_test_smooth_scores.txt'
 testPath = dir + 'ap/' + fileName + '_test_path.txt'
-outDir = dir + 'out/' 
+outDir = dir + ('d/' if depth else 'rgb/')
+if not os.path.exists(outDir):
+    os.makedirs(outDir)
 
 # Read in labels
 labelsFile = open(labelsPath, 'r')
