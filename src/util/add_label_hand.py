@@ -30,25 +30,26 @@ for i in range(0,num1+num2):
     index = 3*i + offset1
   else:
     index = 3*(i-num1) + offset2
-  img = Image.open(imageType + '_19_21/' + imageType + '-' + str(index) + '.jpg')
-
-  draw = ImageDraw.Draw(img)
-  w1, h1 = draw.textsize(text1, font1)
-  draw.rectangle([(15, 15), (165, 30)], outline=(100, 100, 100))
-  if not depth:
-    draw.rectangle([(15, 15), (165, 30)], fill=(200, 200, 200))
-    draw.rectangle([(15, 2), (18+w1, 3+h1)], fill=(200, 200, 200))
-    draw.text((17, 2), text1, font=font1, fill=(0, 0, 0))
+  
+  if depth:
+    img = Image.open(imageType + '_19_21/' + imageType + '-' + str(index) + '.jpg').convert('RGB')
   else:
-    draw.text((17, 2), text1, font=font1, fill=(255, 255, 255))
+    img = Image.open(imageType + '_19_21/' + imageType + '-' + str(index) + '.jpg')
 
-  if labels[count] == 1:
-    print(count)
-    w2, h2 = draw.textsize(text2, font2)
-    if not depth:
-      draw.rectangle([(15+70-w2/2, 30+h1), (15+80+w2/2, 40+h1+h2)], fill=(200, 200, 200))
-    draw.rectangle([(15, 15), (165, 30)], fill=(204, 0, 0))
-    draw.text((15+75-w2/2, 35+h1), text2, font=font2, fill=(204, 0, 0))
+  draw = ImageDraw.Draw(img, 'RGBA')
+  w1, h1 = draw.textsize(text1, font1)
+  w2, h2 = draw.textsize(text2, font2)
+
+  draw.rectangle([(10, 5), (170, 30+h1+h2)], fill=(50, 50, 50, 200))
+  draw.text((15, 10), text1, font=font1, fill=(200, 200, 200))
     
-  img.save(imageType + '_hand_text_19_21/' + str(count) + '.jpg', 'JPEG', quality=90)
+  if labels[i] == 1:
+    print(count)
+    draw.rectangle([(15, 15+h1), (165, 30+h1)], fill=(255, 0, 0))
+    draw.text((15+75-w2/2, 30+h1), text2, font=font2, fill=(255, 0, 0))
+  else:
+    draw.rectangle([(15, 15+h1), (15, 30+h1)], fill=(200, 200, 200))
+
+  draw.rectangle([(15, 15+h1), (165, 30+h1)], outline=(100, 100, 100))    
+  img.save(imageType + '_hand_text_19_21/' + str(count) + '.png', 'PNG')
   count += 1
