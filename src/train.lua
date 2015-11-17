@@ -4,10 +4,10 @@ require 'cunn'
     
 -- parameters
 crop = true
-maxIter = 10
+maxIter = 15
 k = 1 -- k-fold cross-validation
 fileName = 'rgb_crop_19_21'
-kernel = {0.1, 0.15, 0.15, 0.2, 0.15, 0.15, 0.1}
+kernel = {0.00598, 0.060626, 0.241843, 0.383103, 0.241843, 0.060626, 0.00598} -- gaussian
 smooth = true
 -- end parameters
 
