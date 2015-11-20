@@ -22,9 +22,9 @@ def bwareaopen(img, area):
     	#img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
         #cv2.drawContours(img, contours, maxIdx, (0, 0, 255), 2)
         #cv2.drawContours(img, contours, maxIdx, 255, 2)
-    	return img, mask
+    	return img
     else:
-    	return mask, mask
+    	return None
 
 def removeZeros(img, mean, lowThred):
 	rows = img.shape[0]
@@ -44,21 +44,48 @@ def createFeatures(img, mask):
 	features = np.dstack((rows, cols, depth))[0]
 	#features[:, 0] = rows
 	#features[:, 1] = cols
-	            
+	       
+def goodExample(img):
+	if img == None:
+		return False
+	sum = 0
 
-imgDir = '/Users/alan/Documents/research/dataset/new/cvpr10-18-15morning/d/'
+	sums = np.sum(img, axis=0)
+	for i in range(0, 10) + range(len(sums) - 10, len(sums)):
+		sum = sum + sums[i]
+
+	sums = np.sum(img, axis=1)
+	for i in range(0, 10):
+		sum = sum + sums[i]
+
+	if sum > 0:
+		return False
+	else:
+		return True
+
+# parameters
+imgDir = '/Users/alan/Documents/research/dataset/new/'
+dataSets = {'cvpr10-18-15morning', 'cvpr10-19-15morning'}
+rename = False # rename in sequential
 ext = '.jpg'
+lowThred = 3 # solving the blackhole issue
+bgRatio = 0.5 # percentage of images used to calculate the background
+meanRatio = 0.7 # percentage of pixels used in each row to calculate the mean
+# end parameters
+
 outDir = imgDir + 'out/'
-lowThred = 3
-bgRatio = 0.5
-meanRatio = 0.7
 if not os.path.exists(outDir):
 	os.makedirs(outDir)
 
-imgFiles = [f for f in listdir(imgDir) if f.endswith(ext)]
-imgFiles.sort(key=lambda x: int(x.split('-')[1][:-len(ext)]))
-#print(imgFiles)
+imgFiles = []
+for dataSet in dataSets:
+	dataSetsDir = imgDir + dataSet + '/d/'
+	files = [f for f in listdir(dataSetsDir) if f.endswith(ext)]
+	files = [dataSet + '/d/' + i for i in files]
+	imgFiles = np.append(imgFiles, files)
 
+#imgFiles.sort(key=lambda x: int(x.split('-')[1][:-len(ext)]))
+#print(imgFiles)
 tmp = cv2.imread(imgDir + imgFiles[0], 0)
 sz = tmp.shape
 
@@ -85,6 +112,7 @@ bg = bg.astype(np.uint8)
 #print(np.amin(bg), np.amax(bg))
 cv2.imwrite(outDir + 'bg.jpg', bg, [cv2.IMWRITE_JPEG_QUALITY, 100])
 
+i = 0
 for imgFile in imgFiles:
 	img = cv2.imread(imgDir + imgFile, 0)
 	img = removeZeros(img, mean, lowThred)
@@ -94,10 +122,17 @@ for imgFile in imgFiles:
 	#img = cv2.erode(img, element)
 	#img = cv2.dilate(img, element)
 	#img = cv2.fastNlMeansDenoising(img, None, 5)
-	img, mask = bwareaopen(img, 500);
+	img = bwareaopen(img, 2000);
+	if not goodExample(img):
+		continue
 	#createFeatures(img, mask)
 	img = cv2.equalizeHist(img)
 
 	#cv2.imshow('img', img)
 	#cv2.waitKey()
-	cv2.imwrite(outDir + imgFile, img, [cv2.IMWRITE_JPEG_QUALITY, 100])
+	if rename:
+		cv2.imwrite(outDir + str(i) + ext, img, [cv2.IMWRITE_JPEG_QUALITY, 100])
+	else:
+		fileName = imgFile.replace('/d/', '-')
+		cv2.imwrite(outDir + fileName, img, [cv2.IMWRITE_JPEG_QUALITY, 100])
+	i = i + 1
