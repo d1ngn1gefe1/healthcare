@@ -28,6 +28,7 @@ trainRatio = 0.7
 
 (X,labels,images) = processData()
 m = X.shape[0]
+
 # this split doesn't work for very few images
 xTrain = X[0:m*trainRatio, :]
 xTest = X[m*trainRatio:m, :]
@@ -56,6 +57,7 @@ accuracy = 0.0
 accClass = np.zeros((5,2))
 for i in range(0,result.shape[0]):
     accClass[labelsTest[i]][1] += 1
+    print('Result: ' + str(result[i]))
     if result[i] == labelsTest[i]:
         accClass[result[i]][0] += 1
         accuracy += 1

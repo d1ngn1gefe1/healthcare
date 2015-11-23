@@ -3,10 +3,14 @@ from numpy import genfromtxt, savetxt
 from os import listdir
 
 csvDir = '/Users/Emma/Desktop/cvpr10-19-15morning/joint_data/'
-imgDir = '/Users/Emma/Desktop/cvpr10-19-15morning/d_19_21/'
+imgDir = '/Users/Emma/Desktop/cvpr10-19-15morning/d_19_21_processed/'
 ext = 'csv'
 pixelPerJoint = 200
 
+# Output:
+# X: each row [x1,x2,depthValue]
+# labels: labels[i] is the label for X[i]
+# images: images[i] indicates which image contains X[i] (name of image)
 def processData():
     files = [f for f in listdir(csvDir) if f.endswith(ext)] 
     X = []
