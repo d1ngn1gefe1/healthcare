@@ -8,7 +8,6 @@ dataFile = '/scail/scratch/group/vision/hospital/data/'
 resultsFile = '/scail/scratch/group/vision/hospital/src/ap/'
 fileName = 'rgb_crop_19_21'
 maxIter = 20
-volume = false
 
 -- load data file and labels file
 dataFile = dataFile .. fileName .. '.t7'
@@ -34,9 +33,10 @@ for t = 1, 1 do
     trainSet.labels = hh.train.labels
     nTrain = trainSet.labels:size(1)
     print(trainSet)
-    for i = 1, nTrain do
-      trainSet.labels[i] = trainSet.labels[i] + 1
-    end
+    --for i = 1, nTrain do
+    --  trainSet.labels[i] = trainSet.labels[i] + 1
+    --  print(trainSet.labels[i])
+    --end
 
     testSet.data = hh.test.data
     testSet.labels = hh.test.labels
@@ -50,6 +50,16 @@ for t = 1, 1 do
     pos = testSet.labels:nonzero()
     neg = torch.add(testSet.labels, -1):nonzero()
     print('test set: ', pos:size(1), neg:size(1), nTest)
+
+    -- labels convert to svm format
+    for i = 1, nTrain do
+      trainSet.labels[i] = trainSet.labels[i]*2 - 1
+      --print(trainSet.labels[i])
+    end
+    for i = 1, nTest do
+      testSet.labels[i] = testSet.labels[i]*2 - 1
+      --print(testSet.labels[i])
+    end
 
     setmetatable(trainSet, 
         {__index = function(t, i) 
@@ -73,36 +83,12 @@ for t = 1, 1 do
         return self.data:size(1) 
     end
     
-    -- logistic regression
-    print('logistic regression')
+    -- svm
+    print('svm')
 
     sz = trainSet.data[1][1]:size()
     trainSet.data:resize(trainSet.data:size(1), sz[1]*sz[2])
     testSet.data:resize(testSet.data:size(1), sz[1]*sz[2])
-
-    if volume == true then
-        trainData = torch.Tensor(trainSet.data:size(1), 1)
-        for i = 1, trainSet.data:size(1) do
-            local sum = 0
-            for j = 1, trainSet.data:size(2) do
-                sum = sum + trainSet.data[i][j]
-            end
-            trainData[i][1] = sum
-        end
-        trainSet.data = trainData
-        trainSet.data = trainSet.data:double()
-
-        testData = torch.Tensor(testSet.data:size(1), 1)
-        for i = 1, testSet.data:size(1) do
-            local sum = 0
-	        for j = 1, testSet.data:size(2) do
-                sum = sum + testSet.data[i][j]
-            end
-            testData[i][1] = sum
-        end
-        testSet.data = testData
-        testSet.data = testSet.data:double()
-    end
 
     print(trainSet.data:size())
     print(trainSet.labels:size())
@@ -111,14 +97,8 @@ for t = 1, 1 do
 
     -- model
     model = nn.Sequential()
-    if volume == true then
-        model:add(nn.Linear(1, 2))
-    else
-        model:add(nn.Linear(sz[1]*sz[2], 2))
-    end
-    model:add(nn.LogSoftMax())
-
-    criterion = nn.ClassNLLCriterion()
+    model:add(nn.Linear(sz[1]*sz[2], 1))
+    criterion = nn.MarginCriterion()
 
     x, dl_dx = model:getParameters()
     
@@ -132,7 +112,7 @@ for t = 1, 1 do
 
         local inputs = trainSet.data[_nidx_]
 
-        local target = trainSet.labels[_nidx_]
+        local target = torch.Tensor{trainSet.labels[_nidx_]}
 
         dl_dx:zero()
      
@@ -172,32 +152,30 @@ for t = 1, 1 do
     testScores = io.open(resultsFile .. 'test_scores.txt', 'w')
     testTrue = io.open(resultsFile .. 'test_true.txt', 'w') 
     for i = 1, nTest do 
-        local groundtruth = testSet.labels[i] + 1
+        local groundtruth = testSet.labels[i]
         local prediction = model:forward(testSet.data[i])
-        local confidences, indices = torch.sort(prediction, true)  -- true means sort in descending order
-        if groundtruth == indices[1] then
+        if groundtruth*prediction[1] > 0 then
             correct = correct + 1
         end
-        testProb[i] = (1/prediction[2])/(1/prediction[1]+1/prediction[2])
+        testProb[i] = prediction[1]
         testScores:write(testProb[i], '\n')
-        testTrue:write(testSet.labels[i], '\n')
+        testTrue:write((testSet.labels[i]+1)/2, '\n')
     end
     print('test accuracy: ' .. correct .. '/' .. nTest, 100*correct/nTest .. ' %')
     testScores:close()
     testTrue:close()   
-    
+
     -- test accuracy by class
     classPreds = {0, 0}
     classPerformance = {0, 0}
     classCounts = {0, 0}
     for i = 1, nTest do
-        local groundtruth = testSet.labels[i] + 1
-        classCounts[groundtruth] = classCounts[groundtruth] + 1
+        local groundtruth = testSet.labels[i]
+        local idx = (groundtruth+1)/2+1
+        classCounts[idx] = classCounts[idx] + 1
         local prediction = model:forward(testSet.data[i])
-        local confidences, indices = torch.sort(prediction, true)  -- true means sort in descending order
-        classPreds[indices[1] ] = classPreds[indices[1] ] + 1
-        if groundtruth == indices[1] then
-            classPerformance[groundtruth] = classPerformance[groundtruth] + 1
+        if groundtruth*prediction[1] > 0 then
+            classPerformance[idx] = classPerformance[idx] + 1
         end
     end
 
@@ -217,30 +195,28 @@ for t = 1, 1 do
     for i = 1, nTrain do
         local groundtruth = trainSet.labels[i]
         local prediction = model:forward(trainSet.data[i])
-        local confidences, indices = torch.sort(prediction, true)  -- true means sort in descending order
-        if groundtruth == indices[1] then
+        if groundtruth*prediction[1] > 0 then
             correct = correct + 1
         end
-        trainProb[i] = (1/prediction[2])/(1/prediction[1]+1/prediction[2])
+        trainProb[i] = prediction[1]
         trainScores:write(trainProb[i], '\n')
-        trainTrue:write(trainSet.labels[i]-1, '\n')
+        trainTrue:write((trainSet.labels[i]+1)/2, '\n')
     end
     print('train accuracy: ' .. correct .. '/' .. nTrain, 100*correct/nTrain .. ' %')
     trainScores:close()
     trainTrue:close()   
- 
+
     -- train accuracy by class
     classPreds = {0, 0}
     classPerformance = {0, 0}
     classCounts = {0, 0}
     for i = 1, trainSet:size() do
         local groundtruth = trainSet.labels[i]
-        classCounts[groundtruth] = classCounts[groundtruth] + 1
+        local idx = (groundtruth+1)/2+1
+        classCounts[idx] = classCounts[idx] + 1
         local prediction = model:forward(trainSet.data[i])
-        local confidences, indices = torch.sort(prediction, true)  -- true means sort in descending order
-        classPreds[indices[1] ] = classPreds[indices[1] ] + 1
-        if groundtruth == indices[1] then
-            classPerformance[groundtruth] = classPerformance[groundtruth] + 1
+        if groundtruth*prediction[1] > 0 then
+            classPerformance[idx] = classPerformance[idx] + 1
         end
     end
     

@@ -4,25 +4,14 @@ require 'cunn'
 require 'optim'
     
 -- parameters
-imageTypes = {'d'}
-dir = '/scail/scratch/group/vision/hospital/'
-crop = true
+dataFile = '/scail/scratch/group/vision/hospital/data/' 
+resultsFile = '/scail/scratch/group/vision/hospital/src/ap/'
+fileName = 'rgb_crop_19_21'
 maxIter = 20
-volume = false
 
 -- load data file and labels file
-dataFile = dir .. 'data/hh' 
-labelsFile = dir .. 'src/ap/'
-for i = 1, #imageTypes do
-    dataFile = dataFile .. '_' .. imageTypes[i]
-    labelsFile = labelsFile .. imageTypes[i] .. '_'
-end
-if crop then
-    dataFile = dataFile .. '_crop.t7'
-    labelsFile = labelsFile .. 'crop_baseline_'
-else
-    dataFile = dataFile .. '.t7'
-end
+dataFile = dataFile .. fileName .. '.t7'
+resultsFile = resultsFile .. fileName .. '_'
 
 hh = torch.load(dataFile)
 
@@ -83,8 +72,8 @@ for t = 1, 1 do
         return self.data:size(1) 
     end
     
-    -- logistic regression
-    print('logistic regression')
+    -- volume count
+    print('volume count')
    
     sz = trainSet.data[1][1]:size()
     trainSet.data:resize(trainSet.data:size(1), sz[1]*sz[2])
@@ -120,8 +109,8 @@ for t = 1, 1 do
     
     correct = 0
     testProb = {}
-    testScores = io.open(labelsFile .. 'test_scores.txt', 'w')
-    testTrue = io.open(labelsFile .. 'test_true.txt', 'w') 
+    testScores = io.open(resultsFile .. 'test_scores.txt', 'w')
+    testTrue = io.open(resultsFile .. 'test_true.txt', 'w') 
     for i = 1, nTest do 
         local groundtruth = testSet.labels[i] + 1
         local prediction = model:forward(testSet.data[i])
@@ -163,8 +152,8 @@ for t = 1, 1 do
     -- train accuracy
     correct = 0
     trainProb = {}
-    trainScores = io.open(labelsFile .. 'train_scores.txt', 'w')
-    trainTrue = io.open(labelsFile .. 'train_true.txt', 'w') 
+    trainScores = io.open(resultsFile .. 'train_scores.txt', 'w')
+    trainTrue = io.open(resultsFile .. 'train_true.txt', 'w') 
     for i = 1, nTrain do
         local groundtruth = trainSet.labels[i] - 1
         if groundtruth == trainSet.labels2[i] then

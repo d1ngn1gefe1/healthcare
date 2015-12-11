@@ -14,9 +14,9 @@ skip = 3
 
 ratioTest = 0.3 -- the ratio of examples used as the test set (the ratio will be different after dropping negative examples)
 setRatioPosTrain = true -- set the ratio of positive examples in training set, by dropping negative examples 
-setRatioPosTest = false -- set the ratio of positive examples in test set, by dropping negative examples 
-ratioPosTrain = 0.2
-ratioPosTest = 0.1
+setRatioPosTest = true -- set the ratio of positive examples in test set, by dropping negative examples 
+ratioPosTrain = 0.5
+ratioPosTest = 0.5
 
 dir = '/scail/scratch/group/vision/hospital/'
 dataDir = '/scail/data/group/vision/u/syyeung/hospital/data/'
