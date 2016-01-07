@@ -4,9 +4,11 @@ import cameraModel as cm
 dx = 0
 dy = 2e3
 dz = 2.7e3
-rx = math.radians(180)
-ry = math.radians(45)
-rz = math.radians(235)
+
+#Euler angles??
+rx = math.radians(0)
+ry = math.radians(180)
+rz = math.radians(135)
 
 frontJoints = np.loadtxt('joints.dat',delimiter=',')
 num = frontJoints.shape[0]
