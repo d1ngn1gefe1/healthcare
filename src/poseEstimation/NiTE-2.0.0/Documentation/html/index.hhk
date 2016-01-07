@@ -1,0 +1,676 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML><HEAD></HEAD><BODY>
+<OBJECT type="text/site properties">
+<param name="FrameName" value="right">
+</OBJECT>
+<UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#a5b5293bd58bba5f1fd9956a38f762892"><param name="Name" value="addNewFrameListener"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#a5b5293bd58bba5f1fd9956a38f762892"><param name="Name" value="nite::HandTracker"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#a942657c280029911a46605722430f4e1"><param name="Name" value="nite::UserTracker"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_array.html#add8db13ec9165b653727fd98df7214ca"><param name="Name" value="Array"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_bounding_box.html#a1b86223977f2576edf0ad2c331e35357"><param name="Name" value="BoundingBox"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="structnite_1_1_version.html#a075ebf818a4348349897310ba9add1a5"><param name="Name" value="build"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#aeffa51ae7c64795875fe187bf448c569"><param name="Name" value="convertDepthCoordinatesToHand"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#a2539a0a02da31b72e2beb6b9c7998a22"><param name="Name" value="convertDepthCoordinatesToJoint"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#aaaea4bd5f743f7ebd0c770798f2f43e9"><param name="Name" value="convertHandCoordinatesToDepth"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#ab890dad289cdcf21f11f50c685032a9c"><param name="Name" value="convertJointCoordinatesToDepth"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#a13e33adf632a08108fb39f1a0c6e39b6"><param name="Name" value="create"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#a13e33adf632a08108fb39f1a0c6e39b6"><param name="Name" value="nite::HandTracker"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#ac31ee2ca227434860004442b8a5e3cea"><param name="Name" value="nite::UserTracker"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#aee7f820ae48361880b02e53327a460c8"><param name="Name" value="destroy"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#aee7f820ae48361880b02e53327a460c8"><param name="Name" value="nite::HandTracker"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#a5cd9255badb1c92d9acd30319fc50a64"><param name="Name" value="nite::UserTracker"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#afe0c50ec0aff2315efa8998e6b839da4a4d6133a23c1c90b97e5cec1af490a28b"><param name="Name" value="GESTURE_CLICK"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#afe0c50ec0aff2315efa8998e6b839da4a4d6133a23c1c90b97e5cec1af490a28b"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a2a0c37051efa1205aa5aade68616c947aa27b2d55d9a516cdf2929680561b8beb"><param name="Name" value="NiteEnums.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#afe0c50ec0aff2315efa8998e6b839da4a18639f9b009cffefa380efeef4c2cb0f"><param name="Name" value="GESTURE_HAND_RAISE"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#afe0c50ec0aff2315efa8998e6b839da4a18639f9b009cffefa380efeef4c2cb0f"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a2a0c37051efa1205aa5aade68616c947aed5e133f71d1d57a6de1762bb6885c53"><param name="Name" value="NiteEnums.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#afe0c50ec0aff2315efa8998e6b839da4a1dd820e36195bde823d0c795bb77afa0"><param name="Name" value="GESTURE_WAVE"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#afe0c50ec0aff2315efa8998e6b839da4a1dd820e36195bde823d0c795bb77afa0"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a2a0c37051efa1205aa5aade68616c947ae552ed4d8419592557547a6a27a3c39a"><param name="Name" value="NiteEnums.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_data.html#a13fb45cb5bac36ca82c9ed8f194ec342"><param name="Name" value="getBoundingBox"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_data.html#a410eab52fceabb16d4d40a3c4a677948"><param name="Name" value="getCenterOfMass"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_gesture_data.html#acac1d39681fa2ea0f56bd65e620e32be"><param name="Name" value="getCurrentPosition"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_frame_ref.html#ac53cc9a1c067bb91d74630b08ca18df6"><param name="Name" value="getDepthFrame"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_frame_ref.html#ac53cc9a1c067bb91d74630b08ca18df6"><param name="Name" value="nite::HandTrackerFrameRef"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_frame_ref.html#a801b0bd0ca5d9da3f2d203653fe6e8a9"><param name="Name" value="nite::UserTrackerFrameRef"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_frame_ref.html#a96670042a84f95cee20b24820b41b963"><param name="Name" value="getFloor"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_frame_ref.html#ad1e9027724eeab64b105c966e5de499a"><param name="Name" value="getFloorConfidence"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_frame_ref.html#aa690e52858698da6e4e1cf724af9f564"><param name="Name" value="getFrameIndex"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_frame_ref.html#aa690e52858698da6e4e1cf724af9f564"><param name="Name" value="nite::HandTrackerFrameRef"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_frame_ref.html#afc2a71529df4a2f7de9c1922c79049a3"><param name="Name" value="nite::UserTrackerFrameRef"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_frame_ref.html#a52247e28ec131956df61a5862529be21"><param name="Name" value="getGestures"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_frame_ref.html#adcfdbda33075dea4dc7ecf8f374a1215"><param name="Name" value="getHands"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_map.html#a5401eeb91560f5e9839662788e4e8614"><param name="Name" value="getHeight"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_data.html#a25392b19a97070b92f1c68e34a61818a"><param name="Name" value="getId"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_data.html#a25392b19a97070b92f1c68e34a61818a"><param name="Name" value="nite::HandData"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_data.html#a69b39cb04778b3995b86e9b6892b8a42"><param name="Name" value="nite::UserData"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_skeleton.html#a0633611cf1f0a679fa150946f6e6aa72"><param name="Name" value="getJoint"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_skeleton_joint.html#aa4e08df7bbbb6febf51f67d614fe044f"><param name="Name" value="getOrientation"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_skeleton_joint.html#ace22b03587f20b57dba7adce1597b9a6"><param name="Name" value="getOrientationConfidence"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_map.html#a3058d59163ee859e7c136e6b769a5dce"><param name="Name" value="getPixels"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_data.html#ac4063552ef9bd88aeac70f8339ef2c35"><param name="Name" value="getPose"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_data.html#afe604c34571c895b055fafd8358e45a8"><param name="Name" value="getPosition"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_data.html#afe604c34571c895b055fafd8358e45a8"><param name="Name" value="nite::HandData"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_skeleton_joint.html#af6d5b2801c04bd8fd843fe936b21168e"><param name="Name" value="nite::SkeletonJoint"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_skeleton_joint.html#aed696e7ee510619786c3ca7f3773eea3"><param name="Name" value="getPositionConfidence"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_array.html#a09d7835d8e43b1459139bb78d0801ff1"><param name="Name" value="getSize"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_data.html#afa787ebdc5c8932c72f50cbb15a98f00"><param name="Name" value="getSkeleton"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#a51ccc3b8637ee7838bd576d3801ca352"><param name="Name" value="getSkeletonSmoothingFactor"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#a3b4f4f538c13105b3d857d7b1a394749"><param name="Name" value="getSmoothingFactor"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_skeleton.html#a388ee3b799d24841b2acb00cac8766cc"><param name="Name" value="getState"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_map.html#a8d4ededb41b0b72fde2fd8e506d848a8"><param name="Name" value="getStride"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_frame_ref.html#adfa65d736c5b18ab07cfa4afacba58f9"><param name="Name" value="getTimestamp"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_frame_ref.html#adfa65d736c5b18ab07cfa4afacba58f9"><param name="Name" value="nite::HandTrackerFrameRef"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_frame_ref.html#a4edbd52b5f75371c8265796b783b02e0"><param name="Name" value="nite::UserTrackerFrameRef"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_gesture_data.html#ac0e8ca71257b4c05347507ee00882589"><param name="Name" value="getType"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_gesture_data.html#ac0e8ca71257b4c05347507ee00882589"><param name="Name" value="nite::GestureData"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_pose_data.html#a6a727590b9edfabf7970f2ac2160258c"><param name="Name" value="nite::PoseData"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_skeleton_joint.html#a6e51f89601dd13a6c27829898f2fd838"><param name="Name" value="nite::SkeletonJoint"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_frame_ref.html#a3859d8d5856eef9829c1b91d4dbc661a"><param name="Name" value="getUserById"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_frame_ref.html#a42d7d4c3f3f34f4b0126d74251be5db4"><param name="Name" value="getUserMap"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_frame_ref.html#ab4cbdb698d9025c4887787f9c6b1919c"><param name="Name" value="getUsers"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_ni_t_e.html#a7f2cb5e7d4a84403f86e29386f5f56e1"><param name="Name" value="getVersion"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_map.html#aa7427c98546874090e5381766e70ba36"><param name="Name" value="getWidth"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a820607503a84de8a025c74d1d40d6733"><param name="Name" value="HandId"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a820607503a84de8a025c74d1d40d6733"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a820607503a84de8a025c74d1d40d6733"><param name="Name" value="NiTE.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#a0a86dbd07a0df756179890a8c75ee5fc"><param name="Name" value="HandTracker"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#a0a86dbd07a0df756179890a8c75ee5fc"><param name="Name" value="nite::HandTracker"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_1_1_new_frame_listener.html#af29ccdf6d2a1bc0eecd8edaf9779a5e7"><param name="Name" value="nite::HandTracker::NewFrameListener"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_frame_ref.html#af29ccdf6d2a1bc0eecd8edaf9779a5e7"><param name="Name" value="nite::HandTrackerFrameRef"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_frame_ref.html#aacca5de91331c2e8c85abe6589e84c75"><param name="Name" value="HandTrackerFrameRef"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_ni_t_e.html#a83f3a50a2b2c628b7a22fad4fc499486"><param name="Name" value="initialize"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_gesture_data.html#a7240ada3fe14592d84f51ba71967363d"><param name="Name" value="isComplete"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_array.html#a9320021e562dac48f021aa64c671f8bf"><param name="Name" value="isEmpty"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_pose_data.html#ab41a25baf450029f795269857d862e4d"><param name="Name" value="isEntered"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_pose_data.html#ab6d056de157530f6ce3fe0da07cd806c"><param name="Name" value="isExited"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_pose_data.html#a5c4f00efc5b2739d5d3dc54bad654135"><param name="Name" value="isHeld"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_gesture_data.html#ae4b333880d3dc73b8887f03267dc781f"><param name="Name" value="isInProgress"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_data.html#a7d5e8c2ccbf006f2a22767ba683d9a16"><param name="Name" value="isLost"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_data.html#a7d5e8c2ccbf006f2a22767ba683d9a16"><param name="Name" value="nite::HandData"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_data.html#a22537bb7c752f515bf28e2d097dff851"><param name="Name" value="nite::UserData"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_data.html#aa93cb4e13e0db6d6eaa9a04377aa242c"><param name="Name" value="isNew"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_data.html#aa93cb4e13e0db6d6eaa9a04377aa242c"><param name="Name" value="nite::HandData"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_data.html#aa5c7456ff48a90145ae352a63711cced"><param name="Name" value="nite::UserData"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_data.html#acbf474610bf7f1671fa77b681fd9c37d"><param name="Name" value="isTouchingFov"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_data.html#a6c43cf14f1ca7419d758e6708de18b3a"><param name="Name" value="isTracking"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#ae840f089c301ccde8295d1ac13faf83a"><param name="Name" value="isValid"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#ae840f089c301ccde8295d1ac13faf83a"><param name="Name" value="nite::HandTracker"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_frame_ref.html#a4bfced342659eec3e4066406a31abcc1"><param name="Name" value="nite::HandTrackerFrameRef"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#abed2e7705b898236251221c774ef6c53"><param name="Name" value="nite::UserTracker"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_frame_ref.html#a274d3480a1bb5a26abfe73e86ae7353a"><param name="Name" value="nite::UserTrackerFrameRef"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_data.html#ad92dc5a6662f1caec87e60e5f90da82d"><param name="Name" value="isVisible"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aacbd2707501c1faed6b191c5a4a028607"><param name="Name" value="JOINT_HEAD"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aacbd2707501c1faed6b191c5a4a028607"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#af92f943e3dc4a7d1fb537fa481094fa9a1ce5da4bc6ea2341c14c1d3bf5bbe7ad"><param name="Name" value="NiteEnums.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aa4af82c6c22a9df6c3879f0aebec3ed2e"><param name="Name" value="JOINT_LEFT_ELBOW"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aa4af82c6c22a9df6c3879f0aebec3ed2e"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#af92f943e3dc4a7d1fb537fa481094fa9a6ac4e892014718ca5570b8992c8fa36f"><param name="Name" value="NiteEnums.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aadffc5fa338512757e6240186b6b0ac71"><param name="Name" value="JOINT_LEFT_FOOT"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aadffc5fa338512757e6240186b6b0ac71"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#af92f943e3dc4a7d1fb537fa481094fa9aa4e8b9634712913435afe805ecf2a125"><param name="Name" value="NiteEnums.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aa8f3a46f4e5c93031e84e68e9b0d95c79"><param name="Name" value="JOINT_LEFT_HAND"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aa8f3a46f4e5c93031e84e68e9b0d95c79"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#af92f943e3dc4a7d1fb537fa481094fa9a1e735135c1d34ca1ed88f2b5b9611beb"><param name="Name" value="NiteEnums.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aa8b367ce6306a805afe34599ccfc2a372"><param name="Name" value="JOINT_LEFT_HIP"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aa8b367ce6306a805afe34599ccfc2a372"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#af92f943e3dc4a7d1fb537fa481094fa9a22e3f6078e6f26d42be73dd49312cb71"><param name="Name" value="NiteEnums.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aa4894168488114c05560b9aaa85782cd1"><param name="Name" value="JOINT_LEFT_KNEE"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aa4894168488114c05560b9aaa85782cd1"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#af92f943e3dc4a7d1fb537fa481094fa9af3ae71393f3af1ee1b4bb2c1af7dddee"><param name="Name" value="NiteEnums.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aa84681914bd43ff3eb0224e835df0a51f"><param name="Name" value="JOINT_LEFT_SHOULDER"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aa84681914bd43ff3eb0224e835df0a51f"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#af92f943e3dc4a7d1fb537fa481094fa9a61da172be258b5c651088c718553ad56"><param name="Name" value="NiteEnums.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aa404418628e3b58c26297649ea60c98bd"><param name="Name" value="JOINT_NECK"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aa404418628e3b58c26297649ea60c98bd"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#af92f943e3dc4a7d1fb537fa481094fa9aea50ffaf40cb81410c66a2fc7d4ed69e"><param name="Name" value="NiteEnums.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aa8f427251eeeb48de7c3fd63d30caad1b"><param name="Name" value="JOINT_RIGHT_ELBOW"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aa8f427251eeeb48de7c3fd63d30caad1b"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#af92f943e3dc4a7d1fb537fa481094fa9ab1582fdca1a9bfe33ad4729b497c896a"><param name="Name" value="NiteEnums.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aaf3416a3bdd77b889e32562bb1319d8ac"><param name="Name" value="JOINT_RIGHT_FOOT"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aaf3416a3bdd77b889e32562bb1319d8ac"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#af92f943e3dc4a7d1fb537fa481094fa9ae7f256a4f37158efcc7fa6c96a0965ae"><param name="Name" value="NiteEnums.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aaf03c239e37a5a7e518ece8611d74843c"><param name="Name" value="JOINT_RIGHT_HAND"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aaf03c239e37a5a7e518ece8611d74843c"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#af92f943e3dc4a7d1fb537fa481094fa9a6d6d939012248ff4af7c9a2d9963ae13"><param name="Name" value="NiteEnums.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aa1e9b2264ff3bee2897d4b07738f28342"><param name="Name" value="JOINT_RIGHT_HIP"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aa1e9b2264ff3bee2897d4b07738f28342"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#af92f943e3dc4a7d1fb537fa481094fa9a1eb25fbc50e706366a7614291c5b6700"><param name="Name" value="NiteEnums.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aac81beaa34b61f509f107668779a50984"><param name="Name" value="JOINT_RIGHT_KNEE"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aac81beaa34b61f509f107668779a50984"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#af92f943e3dc4a7d1fb537fa481094fa9aed14eec26adb1705866c5e2aab7fe6db"><param name="Name" value="NiteEnums.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aabd5601590ce667ec884c893b76c421cf"><param name="Name" value="JOINT_RIGHT_SHOULDER"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aabd5601590ce667ec884c893b76c421cf"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#af92f943e3dc4a7d1fb537fa481094fa9a753d97029b8a7dc3eb33c7cbe65d5055"><param name="Name" value="NiteEnums.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aa7178fb195a166dfc85efcf364f9ee12d"><param name="Name" value="JOINT_TORSO"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aa7178fb195a166dfc85efcf364f9ee12d"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#af92f943e3dc4a7d1fb537fa481094fa9abc8abde6c200cd99e62eb225df5e9986"><param name="Name" value="NiteEnums.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="structnite_1_1_version.html#a4384aca9c3d9f0fc406978855cceb52f"><param name="Name" value="maintenance"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="structnite_1_1_version.html#a6b46f5acbd203ae71a5cb7659dbcf0be"><param name="Name" value="major"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="struct_nite_bounding_box.html#a79cc737b5195bd6acc4802155938c098"><param name="Name" value="max"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="struct_nite_bounding_box.html#aa516517ce9ccd899fa1556c4d2239cb3"><param name="Name" value="min"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="structnite_1_1_version.html#a11e900316139fd1c4e83fb7e86b183b6"><param name="Name" value="minor"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_1_1_new_frame_listener.html#a4acb84895a1198a7596b83f1dce3b3c5"><param name="Name" value="NewFrameListener"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_1_1_new_frame_listener.html#a4acb84895a1198a7596b83f1dce3b3c5"><param name="Name" value="nite::HandTracker::NewFrameListener"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_1_1_new_frame_listener.html#a8212d90e9092dc075bdc6b573f723b96"><param name="Name" value="nite::UserTracker::NewFrameListener"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html"><param name="Name" value="nite"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="_ni_t_e_8h.html"><param name="Name" value="NiTE.h"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_ni_t_e_8h.html#a820607503a84de8a025c74d1d40d6733"><param name="Name" value="HandId"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_ni_t_e_8h.html#a4a15ac84af7a6cd035ce186c8a67daf6"><param name="Name" value="UserId"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_array.html"><param name="Name" value="nite::Array"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_array.html#add8db13ec9165b653727fd98df7214ca"><param name="Name" value="Array"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_array.html#a09d7835d8e43b1459139bb78d0801ff1"><param name="Name" value="getSize"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_array.html#a9320021e562dac48f021aa64c671f8bf"><param name="Name" value="isEmpty"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_array.html#ac509fcf968e963d2e7a9d1912f94d7b5"><param name="Name" value="operator[]"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_array.html#adced2d9d80713ed4593563d255722e83"><param name="Name" value="setData"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_bounding_box.html"><param name="Name" value="nite::BoundingBox"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_bounding_box.html#a1b86223977f2576edf0ad2c331e35357"><param name="Name" value="BoundingBox"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_gesture_data.html"><param name="Name" value="nite::GestureData"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_gesture_data.html#acac1d39681fa2ea0f56bd65e620e32be"><param name="Name" value="getCurrentPosition"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_gesture_data.html#ac0e8ca71257b4c05347507ee00882589"><param name="Name" value="getType"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_gesture_data.html#a7240ada3fe14592d84f51ba71967363d"><param name="Name" value="isComplete"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_gesture_data.html#ae4b333880d3dc73b8887f03267dc781f"><param name="Name" value="isInProgress"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_data.html"><param name="Name" value="nite::HandData"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_data.html#a25392b19a97070b92f1c68e34a61818a"><param name="Name" value="getId"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_data.html#afe604c34571c895b055fafd8358e45a8"><param name="Name" value="getPosition"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_data.html#a7d5e8c2ccbf006f2a22767ba683d9a16"><param name="Name" value="isLost"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_data.html#aa93cb4e13e0db6d6eaa9a04377aa242c"><param name="Name" value="isNew"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_data.html#acbf474610bf7f1671fa77b681fd9c37d"><param name="Name" value="isTouchingFov"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_data.html#a6c43cf14f1ca7419d758e6708de18b3a"><param name="Name" value="isTracking"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html"><param name="Name" value="nite::HandTracker"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_1_1_new_frame_listener.html"><param name="Name" value="nite::HandTracker::NewFrameListener"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_1_1_new_frame_listener.html#af29ccdf6d2a1bc0eecd8edaf9779a5e7"><param name="Name" value="HandTracker"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_1_1_new_frame_listener.html#a4acb84895a1198a7596b83f1dce3b3c5"><param name="Name" value="NewFrameListener"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_1_1_new_frame_listener.html#ac248978abe58c4e4f62445a5ced52f07"><param name="Name" value="onNewFrame"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html"><param name="Name" value="nite::HandTracker"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#a5b5293bd58bba5f1fd9956a38f762892"><param name="Name" value="addNewFrameListener"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#aeffa51ae7c64795875fe187bf448c569"><param name="Name" value="convertDepthCoordinatesToHand"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#aaaea4bd5f743f7ebd0c770798f2f43e9"><param name="Name" value="convertHandCoordinatesToDepth"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#a13e33adf632a08108fb39f1a0c6e39b6"><param name="Name" value="create"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#aee7f820ae48361880b02e53327a460c8"><param name="Name" value="destroy"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#a3b4f4f538c13105b3d857d7b1a394749"><param name="Name" value="getSmoothingFactor"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#a0a86dbd07a0df756179890a8c75ee5fc"><param name="Name" value="HandTracker"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#ae840f089c301ccde8295d1ac13faf83a"><param name="Name" value="isValid"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#a32dc5b57dda1d8273862b05fdfba9eff"><param name="Name" value="readFrame"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#a3a8152fe82d8223cb88efbda3aa814cd"><param name="Name" value="removeNewFrameListener"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#a0134ab380e121985b7a00c41999b3d20"><param name="Name" value="setSmoothingFactor"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#a54856665ceb067648810664513734cc5"><param name="Name" value="startGestureDetection"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#a3dc627225c06f3e74a1c9be2ebe82183"><param name="Name" value="startHandTracking"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#a960676008aaccc741bc4ca524c7db82b"><param name="Name" value="stopGestureDetection"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#adef12f62aa3ada080a73f5a591b8b3b9"><param name="Name" value="stopHandTracking"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#a02ba9b3d1ae978f6c7e7912c69f3dec5"><param name="Name" value="~HandTracker"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_frame_ref.html"><param name="Name" value="nite::HandTrackerFrameRef"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_frame_ref.html#ac53cc9a1c067bb91d74630b08ca18df6"><param name="Name" value="getDepthFrame"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_frame_ref.html#aa690e52858698da6e4e1cf724af9f564"><param name="Name" value="getFrameIndex"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_frame_ref.html#a52247e28ec131956df61a5862529be21"><param name="Name" value="getGestures"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_frame_ref.html#adcfdbda33075dea4dc7ecf8f374a1215"><param name="Name" value="getHands"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_frame_ref.html#adfa65d736c5b18ab07cfa4afacba58f9"><param name="Name" value="getTimestamp"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_frame_ref.html#af29ccdf6d2a1bc0eecd8edaf9779a5e7"><param name="Name" value="HandTracker"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_frame_ref.html#aacca5de91331c2e8c85abe6589e84c75"><param name="Name" value="HandTrackerFrameRef"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_frame_ref.html#a4bfced342659eec3e4066406a31abcc1"><param name="Name" value="isValid"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_frame_ref.html#af959fa0fdf8c42bc1087e16e4ee97de1"><param name="Name" value="operator="></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_frame_ref.html#abe197331250cdeed4641f1200e79e85d"><param name="Name" value="release"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_frame_ref.html#afbbbc2e58dd3946c9ae59ad346f1d4b9"><param name="Name" value="~HandTrackerFrameRef"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_ni_t_e.html"><param name="Name" value="nite::NiTE"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_ni_t_e.html#a7f2cb5e7d4a84403f86e29386f5f56e1"><param name="Name" value="getVersion"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_ni_t_e.html#a83f3a50a2b2c628b7a22fad4fc499486"><param name="Name" value="initialize"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_ni_t_e.html#ad9aeeb3628ed854b84baece4ee17365d"><param name="Name" value="shutdown"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_plane.html"><param name="Name" value="nite::Plane"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_plane.html#a2df238f3d6b809bc1b81c9f96494257b"><param name="Name" value="Plane"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_point3f.html"><param name="Name" value="nite::Point3f"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_point3f.html#a94f2fdc6c96eb1f0bd53893535d7639a"><param name="Name" value="operator!="></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_point3f.html#adc21e48f38eb45d25f85e4e2f056ae22"><param name="Name" value="operator="></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_point3f.html#a01db7451e125a90e3523c8a2239e258b"><param name="Name" value="operator=="></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_point3f.html#abdb534296e0702c09d5f4d44ed30bf98"><param name="Name" value="Point3f"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_point3f.html#a9c30147e94830d618c0e9280c2a0cd04"><param name="Name" value="set"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_pose_data.html"><param name="Name" value="nite::PoseData"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_pose_data.html#a6a727590b9edfabf7970f2ac2160258c"><param name="Name" value="getType"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_pose_data.html#ab41a25baf450029f795269857d862e4d"><param name="Name" value="isEntered"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_pose_data.html#ab6d056de157530f6ce3fe0da07cd806c"><param name="Name" value="isExited"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_pose_data.html#a5c4f00efc5b2739d5d3dc54bad654135"><param name="Name" value="isHeld"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_quaternion.html"><param name="Name" value="nite::Quaternion"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_quaternion.html#a9dcbc3ca0976e5192ae2f9db36ebfe47"><param name="Name" value="Quaternion"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_skeleton.html"><param name="Name" value="nite::Skeleton"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_skeleton.html#a0633611cf1f0a679fa150946f6e6aa72"><param name="Name" value="getJoint"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_skeleton.html#a388ee3b799d24841b2acb00cac8766cc"><param name="Name" value="getState"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_skeleton_joint.html"><param name="Name" value="nite::SkeletonJoint"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_skeleton_joint.html#aa4e08df7bbbb6febf51f67d614fe044f"><param name="Name" value="getOrientation"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_skeleton_joint.html#ace22b03587f20b57dba7adce1597b9a6"><param name="Name" value="getOrientationConfidence"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_skeleton_joint.html#af6d5b2801c04bd8fd843fe936b21168e"><param name="Name" value="getPosition"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_skeleton_joint.html#aed696e7ee510619786c3ca7f3773eea3"><param name="Name" value="getPositionConfidence"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_skeleton_joint.html#a6e51f89601dd13a6c27829898f2fd838"><param name="Name" value="getType"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_data.html"><param name="Name" value="nite::UserData"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_data.html#a13fb45cb5bac36ca82c9ed8f194ec342"><param name="Name" value="getBoundingBox"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_data.html#a410eab52fceabb16d4d40a3c4a677948"><param name="Name" value="getCenterOfMass"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_data.html#a69b39cb04778b3995b86e9b6892b8a42"><param name="Name" value="getId"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_data.html#ac4063552ef9bd88aeac70f8339ef2c35"><param name="Name" value="getPose"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_data.html#afa787ebdc5c8932c72f50cbb15a98f00"><param name="Name" value="getSkeleton"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_data.html#a22537bb7c752f515bf28e2d097dff851"><param name="Name" value="isLost"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_data.html#aa5c7456ff48a90145ae352a63711cced"><param name="Name" value="isNew"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_data.html#ad92dc5a6662f1caec87e60e5f90da82d"><param name="Name" value="isVisible"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_map.html"><param name="Name" value="nite::UserMap"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_map.html#a5401eeb91560f5e9839662788e4e8614"><param name="Name" value="getHeight"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_map.html#a3058d59163ee859e7c136e6b769a5dce"><param name="Name" value="getPixels"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_map.html#a8d4ededb41b0b72fde2fd8e506d848a8"><param name="Name" value="getStride"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_map.html#aa7427c98546874090e5381766e70ba36"><param name="Name" value="getWidth"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_map.html#a04133894638909cca86b5c54416ac467"><param name="Name" value="UserTrackerFrameRef"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html"><param name="Name" value="nite::UserTracker"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_1_1_new_frame_listener.html"><param name="Name" value="nite::UserTracker::NewFrameListener"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_1_1_new_frame_listener.html#a8212d90e9092dc075bdc6b573f723b96"><param name="Name" value="NewFrameListener"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_1_1_new_frame_listener.html#afea786019c2cb6b2f2fb69aae595b29c"><param name="Name" value="onNewFrame"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_1_1_new_frame_listener.html#ac6ca8c33edeecce50e0fd59b42ba507f"><param name="Name" value="UserTracker"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html"><param name="Name" value="nite::UserTracker"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#a942657c280029911a46605722430f4e1"><param name="Name" value="addNewFrameListener"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#a2539a0a02da31b72e2beb6b9c7998a22"><param name="Name" value="convertDepthCoordinatesToJoint"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#ab890dad289cdcf21f11f50c685032a9c"><param name="Name" value="convertJointCoordinatesToDepth"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#ac31ee2ca227434860004442b8a5e3cea"><param name="Name" value="create"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#a5cd9255badb1c92d9acd30319fc50a64"><param name="Name" value="destroy"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#a51ccc3b8637ee7838bd576d3801ca352"><param name="Name" value="getSkeletonSmoothingFactor"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#abed2e7705b898236251221c774ef6c53"><param name="Name" value="isValid"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#a1500c41a90c7a75ef77c1bd2b54ae4a5"><param name="Name" value="readFrame"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#a7023f0c5d2a1bbb7d1edb621b4f87930"><param name="Name" value="removeNewFrameListener"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#a517289a77e781a328e934555702f28d1"><param name="Name" value="setSkeletonSmoothingFactor"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#ad480ea9af94e5810b00535986616098e"><param name="Name" value="startPoseDetection"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#a3e2286c80c4ffb90644b91777f0994d6"><param name="Name" value="startSkeletonTracking"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#ae78398fc0dcf5d766f7283f5fd7c95fc"><param name="Name" value="stopPoseDetection"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#a2016118c28436faea6623e0b74400875"><param name="Name" value="stopSkeletonTracking"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#a5ce0e8b5d623d167aed0364b20bcca6f"><param name="Name" value="UserTracker"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#a22464a2560ae0ca14ce120dd56b6c01a"><param name="Name" value="~UserTracker"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_frame_ref.html"><param name="Name" value="nite::UserTrackerFrameRef"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_frame_ref.html#a801b0bd0ca5d9da3f2d203653fe6e8a9"><param name="Name" value="getDepthFrame"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_frame_ref.html#a96670042a84f95cee20b24820b41b963"><param name="Name" value="getFloor"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_frame_ref.html#ad1e9027724eeab64b105c966e5de499a"><param name="Name" value="getFloorConfidence"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_frame_ref.html#afc2a71529df4a2f7de9c1922c79049a3"><param name="Name" value="getFrameIndex"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_frame_ref.html#a4edbd52b5f75371c8265796b783b02e0"><param name="Name" value="getTimestamp"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_frame_ref.html#a3859d8d5856eef9829c1b91d4dbc661a"><param name="Name" value="getUserById"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_frame_ref.html#a42d7d4c3f3f34f4b0126d74251be5db4"><param name="Name" value="getUserMap"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_frame_ref.html#ab4cbdb698d9025c4887787f9c6b1919c"><param name="Name" value="getUsers"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_frame_ref.html#a274d3480a1bb5a26abfe73e86ae7353a"><param name="Name" value="isValid"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_frame_ref.html#a9afcd322527783df034ac333f605d952"><param name="Name" value="operator="></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_frame_ref.html#adf8779242c82ea67a0743273adc99b6b"><param name="Name" value="release"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_frame_ref.html#a38c437d9dcaefebe4efaf0edf00c45de"><param name="Name" value="User"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_frame_ref.html#ac6ca8c33edeecce50e0fd59b42ba507f"><param name="Name" value="UserTracker"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_frame_ref.html#a9c0320acd12e018446761997c33d2d80"><param name="Name" value="UserTrackerFrameRef"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_frame_ref.html#a4e9ba1af96a2de7c2fc315894d1bab2a"><param name="Name" value="~UserTrackerFrameRef"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="structnite_1_1_version.html"><param name="Name" value="nite::Version"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="structnite_1_1_version.html#a075ebf818a4348349897310ba9add1a5"><param name="Name" value="build"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="structnite_1_1_version.html#a4384aca9c3d9f0fc406978855cceb52f"><param name="Name" value="maintenance"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="structnite_1_1_version.html#a6b46f5acbd203ae71a5cb7659dbcf0be"><param name="Name" value="major"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="structnite_1_1_version.html#a11e900316139fd1c4e83fb7e86b183b6"><param name="Name" value="minor"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html"><param name="Name" value="nite"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#afe0c50ec0aff2315efa8998e6b839da4a4d6133a23c1c90b97e5cec1af490a28b"><param name="Name" value="GESTURE_CLICK"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#afe0c50ec0aff2315efa8998e6b839da4a18639f9b009cffefa380efeef4c2cb0f"><param name="Name" value="GESTURE_HAND_RAISE"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#afe0c50ec0aff2315efa8998e6b839da4a1dd820e36195bde823d0c795bb77afa0"><param name="Name" value="GESTURE_WAVE"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a820607503a84de8a025c74d1d40d6733"><param name="Name" value="HandId"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aacbd2707501c1faed6b191c5a4a028607"><param name="Name" value="JOINT_HEAD"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aa4af82c6c22a9df6c3879f0aebec3ed2e"><param name="Name" value="JOINT_LEFT_ELBOW"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aadffc5fa338512757e6240186b6b0ac71"><param name="Name" value="JOINT_LEFT_FOOT"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aa8f3a46f4e5c93031e84e68e9b0d95c79"><param name="Name" value="JOINT_LEFT_HAND"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aa8b367ce6306a805afe34599ccfc2a372"><param name="Name" value="JOINT_LEFT_HIP"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aa4894168488114c05560b9aaa85782cd1"><param name="Name" value="JOINT_LEFT_KNEE"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aa84681914bd43ff3eb0224e835df0a51f"><param name="Name" value="JOINT_LEFT_SHOULDER"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aa404418628e3b58c26297649ea60c98bd"><param name="Name" value="JOINT_NECK"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aa8f427251eeeb48de7c3fd63d30caad1b"><param name="Name" value="JOINT_RIGHT_ELBOW"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aaf3416a3bdd77b889e32562bb1319d8ac"><param name="Name" value="JOINT_RIGHT_FOOT"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aaf03c239e37a5a7e518ece8611d74843c"><param name="Name" value="JOINT_RIGHT_HAND"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aa1e9b2264ff3bee2897d4b07738f28342"><param name="Name" value="JOINT_RIGHT_HIP"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aac81beaa34b61f509f107668779a50984"><param name="Name" value="JOINT_RIGHT_KNEE"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aabd5601590ce667ec884c893b76c421cf"><param name="Name" value="JOINT_RIGHT_SHOULDER"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a185eaf9f496da7cc4bd0055d6a666d2aa7178fb195a166dfc85efcf364f9ee12d"><param name="Name" value="JOINT_TORSO"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#adf5339754d7e355a64676ad1635214b1a2b99189ad65252e516df07a9e31f108d"><param name="Name" value="POSE_CROSSED_HANDS"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#adf5339754d7e355a64676ad1635214b1acd67f8ad45caad4f719dac5fe35bcd9a"><param name="Name" value="POSE_PSI"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#ae02db96d434c74e7b8284c8e04da07f1acea622f59950a20c2767aa892460094f"><param name="Name" value="SKELETON_CALIBRATING"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#ae02db96d434c74e7b8284c8e04da07f1a6385c06f697c677bfd4051dca52526ae"><param name="Name" value="SKELETON_CALIBRATION_ERROR_HANDS"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#ae02db96d434c74e7b8284c8e04da07f1a5c377b9f1df7b06ac39673abd2f63303"><param name="Name" value="SKELETON_CALIBRATION_ERROR_HEAD"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#ae02db96d434c74e7b8284c8e04da07f1aa2ad8641e4f8873ee6664c09532ab29d"><param name="Name" value="SKELETON_CALIBRATION_ERROR_LEGS"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#ae02db96d434c74e7b8284c8e04da07f1ab64239de7fbcae893ef8c7e5b182d220"><param name="Name" value="SKELETON_CALIBRATION_ERROR_NOT_IN_POSE"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#ae02db96d434c74e7b8284c8e04da07f1a1353ddc18017a3f158ef2525cea174f6"><param name="Name" value="SKELETON_CALIBRATION_ERROR_TORSO"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#ae02db96d434c74e7b8284c8e04da07f1af5a598cff161c62b3b5c4659d0fe4534"><param name="Name" value="SKELETON_NONE"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#ae02db96d434c74e7b8284c8e04da07f1ac50b37d0017d3881f85239393619abe1"><param name="Name" value="SKELETON_TRACKED"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a462094ef424d8ac580ad58986cd8b7a9a52a251a4376ff4e78c91d345fc302de9"><param name="Name" value="STATUS_BAD_USER_ID"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a462094ef424d8ac580ad58986cd8b7a9a75e14bad45ca8e342c6fc7915e70e919"><param name="Name" value="STATUS_ERROR"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a462094ef424d8ac580ad58986cd8b7a9adb2e019efa6d4148e6e98746575119c2"><param name="Name" value="STATUS_OK"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a462094ef424d8ac580ad58986cd8b7a9a1827036e2c1921cefd36427eab37be29"><param name="Name" value="STATUS_OUT_OF_FLOW"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a4a15ac84af7a6cd035ce186c8a67daf6"><param name="Name" value="UserId"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_c_types_8h.html#a776fb404cd835f388d2b188203907726"><param name="Name" value="NITE_JOINT_COUNT"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_c_types_8h.html#adbb8802d5b48536dd1518228557ee0a7"><param name="Name" value="NITE_POSE_COUNT"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="struct_nite_bounding_box.html"><param name="Name" value="NiteBoundingBox"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="struct_nite_bounding_box.html#a79cc737b5195bd6acc4802155938c098"><param name="Name" value="max"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="struct_nite_bounding_box.html#aa516517ce9ccd899fa1556c4d2239cb3"><param name="Name" value="min"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_c_types_8h.html"><param name="Name" value="NiteCTypes.h"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_c_types_8h.html#a776fb404cd835f388d2b188203907726"><param name="Name" value="NITE_JOINT_COUNT"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_c_types_8h.html#adbb8802d5b48536dd1518228557ee0a7"><param name="Name" value="NITE_POSE_COUNT"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_c_types_8h.html#a3f15fa03a23b5f5754371a1a6298cb88"><param name="Name" value="NiteHandId"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_c_types_8h.html#ae781bfb700cf7cc19365cb01332e1079"><param name="Name" value="NiteHandTrackerHandle"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_c_types_8h.html#aee1abc2853060cb25de5c657a0d382e3"><param name="Name" value="NiteUserId"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_c_types_8h.html#ab7436624cc9273586316ff7f0914d235"><param name="Name" value="NiteUserTrackerHandle"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html"><param name="Name" value="NiteEnums.h"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a2a0c37051efa1205aa5aade68616c947aa27b2d55d9a516cdf2929680561b8beb"><param name="Name" value="GESTURE_CLICK"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a2a0c37051efa1205aa5aade68616c947aed5e133f71d1d57a6de1762bb6885c53"><param name="Name" value="GESTURE_HAND_RAISE"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a2a0c37051efa1205aa5aade68616c947ae552ed4d8419592557547a6a27a3c39a"><param name="Name" value="GESTURE_WAVE"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#af92f943e3dc4a7d1fb537fa481094fa9a1ce5da4bc6ea2341c14c1d3bf5bbe7ad"><param name="Name" value="JOINT_HEAD"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#af92f943e3dc4a7d1fb537fa481094fa9a6ac4e892014718ca5570b8992c8fa36f"><param name="Name" value="JOINT_LEFT_ELBOW"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#af92f943e3dc4a7d1fb537fa481094fa9aa4e8b9634712913435afe805ecf2a125"><param name="Name" value="JOINT_LEFT_FOOT"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#af92f943e3dc4a7d1fb537fa481094fa9a1e735135c1d34ca1ed88f2b5b9611beb"><param name="Name" value="JOINT_LEFT_HAND"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#af92f943e3dc4a7d1fb537fa481094fa9a22e3f6078e6f26d42be73dd49312cb71"><param name="Name" value="JOINT_LEFT_HIP"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#af92f943e3dc4a7d1fb537fa481094fa9af3ae71393f3af1ee1b4bb2c1af7dddee"><param name="Name" value="JOINT_LEFT_KNEE"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#af92f943e3dc4a7d1fb537fa481094fa9a61da172be258b5c651088c718553ad56"><param name="Name" value="JOINT_LEFT_SHOULDER"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#af92f943e3dc4a7d1fb537fa481094fa9aea50ffaf40cb81410c66a2fc7d4ed69e"><param name="Name" value="JOINT_NECK"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#af92f943e3dc4a7d1fb537fa481094fa9ab1582fdca1a9bfe33ad4729b497c896a"><param name="Name" value="JOINT_RIGHT_ELBOW"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#af92f943e3dc4a7d1fb537fa481094fa9ae7f256a4f37158efcc7fa6c96a0965ae"><param name="Name" value="JOINT_RIGHT_FOOT"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#af92f943e3dc4a7d1fb537fa481094fa9a6d6d939012248ff4af7c9a2d9963ae13"><param name="Name" value="JOINT_RIGHT_HAND"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#af92f943e3dc4a7d1fb537fa481094fa9a1eb25fbc50e706366a7614291c5b6700"><param name="Name" value="JOINT_RIGHT_HIP"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#af92f943e3dc4a7d1fb537fa481094fa9aed14eec26adb1705866c5e2aab7fe6db"><param name="Name" value="JOINT_RIGHT_KNEE"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#af92f943e3dc4a7d1fb537fa481094fa9a753d97029b8a7dc3eb33c7cbe65d5055"><param name="Name" value="JOINT_RIGHT_SHOULDER"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#af92f943e3dc4a7d1fb537fa481094fa9abc8abde6c200cd99e62eb225df5e9986"><param name="Name" value="JOINT_TORSO"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a8c33d11d876118f7799f0d7ae4545573a6f842c177d2d20713f348a4493f11af2"><param name="Name" value="POSE_CROSSED_HANDS"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a8c33d11d876118f7799f0d7ae4545573a4f157675b31e972017a732ce9f783a5e"><param name="Name" value="POSE_PSI"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a132d8a6506f21f1aea05b08ce0732212a61f0334d698db8941766cd4713e9a2a2"><param name="Name" value="SKELETON_CALIBRATING"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a132d8a6506f21f1aea05b08ce0732212a74dde9f36c060bdc044327e70ceb317f"><param name="Name" value="SKELETON_CALIBRATION_ERROR_HANDS"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a132d8a6506f21f1aea05b08ce0732212ac13443d1d766d90c2cee259c6121b7ca"><param name="Name" value="SKELETON_CALIBRATION_ERROR_HEAD"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a132d8a6506f21f1aea05b08ce0732212ab346ec66817b3dd1ea9b5587f5ab60c2"><param name="Name" value="SKELETON_CALIBRATION_ERROR_LEGS"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a132d8a6506f21f1aea05b08ce0732212ae7c4d4dd7db56e761ec73bea720082c9"><param name="Name" value="SKELETON_CALIBRATION_ERROR_NOT_IN_POSE"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a132d8a6506f21f1aea05b08ce0732212a6e4089519eeffd6b963d5877a476d7d9"><param name="Name" value="SKELETON_CALIBRATION_ERROR_TORSO"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a132d8a6506f21f1aea05b08ce0732212aecbb792f9e74c326cb5f45d425f9be7a"><param name="Name" value="SKELETON_NONE"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a132d8a6506f21f1aea05b08ce0732212aeedfcb92f9479d8a75d773cedeb41a9b"><param name="Name" value="SKELETON_TRACKED"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a67a0db04d321a74b7e7fcfd3f1a3f70ba7c8b8ff0fef55b876827d28129a3a1cb"><param name="Name" value="STATUS_BAD_USER_ID"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a67a0db04d321a74b7e7fcfd3f1a3f70ba5bde228d9506a863d51ffbc868ff67f7"><param name="Name" value="STATUS_ERROR"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a67a0db04d321a74b7e7fcfd3f1a3f70ba7e4a42e3b6dd63708c64cf3db6f69566"><param name="Name" value="STATUS_OK"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a67a0db04d321a74b7e7fcfd3f1a3f70bae49a09ae573904a34ffba89bbd2d908d"><param name="Name" value="STATUS_OUT_OF_FLOW"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_c_types_8h.html#a3f15fa03a23b5f5754371a1a6298cb88"><param name="Name" value="NiteHandId"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_c_types_8h.html#ae781bfb700cf7cc19365cb01332e1079"><param name="Name" value="NiteHandTrackerHandle"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="struct_nite_plane.html"><param name="Name" value="NitePlane"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="struct_nite_plane.html#ab4184f2fd5f527473c213308df6146b6"><param name="Name" value="normal"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="struct_nite_plane.html#ae841684a6e70832b7ab93678e5bd8a70"><param name="Name" value="point"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="struct_nite_point3f.html"><param name="Name" value="NitePoint3f"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="struct_nite_point3f.html#a142033cc71afb004e979ec26a21c50f1"><param name="Name" value="x"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="struct_nite_point3f.html#a66ea57d2a6afef9877d09b959f4d5345"><param name="Name" value="y"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="struct_nite_point3f.html#a45d9974b92b3bc18805788631d8c018b"><param name="Name" value="z"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="struct_nite_quaternion.html"><param name="Name" value="NiteQuaternion"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="struct_nite_quaternion.html#a921f946726b964989c5abfe49d903a5e"><param name="Name" value="w"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="struct_nite_quaternion.html#a780405a9d06e29d1bf4c9878e5bbf210"><param name="Name" value="x"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="struct_nite_quaternion.html#aecf86bce09fe44f0d18064656bf2351a"><param name="Name" value="y"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="struct_nite_quaternion.html#ab9f640da06219d3619d6d3769a05d1ac"><param name="Name" value="z"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_c_types_8h.html#aee1abc2853060cb25de5c657a0d382e3"><param name="Name" value="NiteUserId"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_c_types_8h.html#ab7436624cc9273586316ff7f0914d235"><param name="Name" value="NiteUserTrackerHandle"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="struct_nite_plane.html#ab4184f2fd5f527473c213308df6146b6"><param name="Name" value="normal"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_1_1_new_frame_listener.html#ac248978abe58c4e4f62445a5ced52f07"><param name="Name" value="onNewFrame"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_1_1_new_frame_listener.html#ac248978abe58c4e4f62445a5ced52f07"><param name="Name" value="nite::HandTracker::NewFrameListener"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_1_1_new_frame_listener.html#afea786019c2cb6b2f2fb69aae595b29c"><param name="Name" value="nite::UserTracker::NewFrameListener"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_point3f.html#a94f2fdc6c96eb1f0bd53893535d7639a"><param name="Name" value="operator!="></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_point3f.html#a01db7451e125a90e3523c8a2239e258b"><param name="Name" value="operator=="></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_frame_ref.html#af959fa0fdf8c42bc1087e16e4ee97de1"><param name="Name" value="operator="></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_frame_ref.html#af959fa0fdf8c42bc1087e16e4ee97de1"><param name="Name" value="nite::HandTrackerFrameRef"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_point3f.html#adc21e48f38eb45d25f85e4e2f056ae22"><param name="Name" value="nite::Point3f"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_frame_ref.html#a9afcd322527783df034ac333f605d952"><param name="Name" value="nite::UserTrackerFrameRef"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_array.html#ac509fcf968e963d2e7a9d1912f94d7b5"><param name="Name" value="operator[]"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_plane.html#a2df238f3d6b809bc1b81c9f96494257b"><param name="Name" value="Plane"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_point3f.html#abdb534296e0702c09d5f4d44ed30bf98"><param name="Name" value="Point3f"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="struct_nite_plane.html#ae841684a6e70832b7ab93678e5bd8a70"><param name="Name" value="point"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#adf5339754d7e355a64676ad1635214b1a2b99189ad65252e516df07a9e31f108d"><param name="Name" value="POSE_CROSSED_HANDS"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#adf5339754d7e355a64676ad1635214b1a2b99189ad65252e516df07a9e31f108d"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a8c33d11d876118f7799f0d7ae4545573a6f842c177d2d20713f348a4493f11af2"><param name="Name" value="NiteEnums.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#adf5339754d7e355a64676ad1635214b1acd67f8ad45caad4f719dac5fe35bcd9a"><param name="Name" value="POSE_PSI"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#adf5339754d7e355a64676ad1635214b1acd67f8ad45caad4f719dac5fe35bcd9a"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a8c33d11d876118f7799f0d7ae4545573a4f157675b31e972017a732ce9f783a5e"><param name="Name" value="NiteEnums.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_quaternion.html#a9dcbc3ca0976e5192ae2f9db36ebfe47"><param name="Name" value="Quaternion"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#a32dc5b57dda1d8273862b05fdfba9eff"><param name="Name" value="readFrame"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#a32dc5b57dda1d8273862b05fdfba9eff"><param name="Name" value="nite::HandTracker"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#a1500c41a90c7a75ef77c1bd2b54ae4a5"><param name="Name" value="nite::UserTracker"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_frame_ref.html#abe197331250cdeed4641f1200e79e85d"><param name="Name" value="release"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_frame_ref.html#abe197331250cdeed4641f1200e79e85d"><param name="Name" value="nite::HandTrackerFrameRef"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_frame_ref.html#adf8779242c82ea67a0743273adc99b6b"><param name="Name" value="nite::UserTrackerFrameRef"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#a3a8152fe82d8223cb88efbda3aa814cd"><param name="Name" value="removeNewFrameListener"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#a3a8152fe82d8223cb88efbda3aa814cd"><param name="Name" value="nite::HandTracker"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#a7023f0c5d2a1bbb7d1edb621b4f87930"><param name="Name" value="nite::UserTracker"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_point3f.html#a9c30147e94830d618c0e9280c2a0cd04"><param name="Name" value="set"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_array.html#adced2d9d80713ed4593563d255722e83"><param name="Name" value="setData"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#a517289a77e781a328e934555702f28d1"><param name="Name" value="setSkeletonSmoothingFactor"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#a0134ab380e121985b7a00c41999b3d20"><param name="Name" value="setSmoothingFactor"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_ni_t_e.html#ad9aeeb3628ed854b84baece4ee17365d"><param name="Name" value="shutdown"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#ae02db96d434c74e7b8284c8e04da07f1acea622f59950a20c2767aa892460094f"><param name="Name" value="SKELETON_CALIBRATING"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#ae02db96d434c74e7b8284c8e04da07f1acea622f59950a20c2767aa892460094f"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a132d8a6506f21f1aea05b08ce0732212a61f0334d698db8941766cd4713e9a2a2"><param name="Name" value="NiteEnums.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#ae02db96d434c74e7b8284c8e04da07f1a6385c06f697c677bfd4051dca52526ae"><param name="Name" value="SKELETON_CALIBRATION_ERROR_HANDS"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#ae02db96d434c74e7b8284c8e04da07f1a6385c06f697c677bfd4051dca52526ae"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a132d8a6506f21f1aea05b08ce0732212a74dde9f36c060bdc044327e70ceb317f"><param name="Name" value="NiteEnums.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#ae02db96d434c74e7b8284c8e04da07f1a5c377b9f1df7b06ac39673abd2f63303"><param name="Name" value="SKELETON_CALIBRATION_ERROR_HEAD"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#ae02db96d434c74e7b8284c8e04da07f1a5c377b9f1df7b06ac39673abd2f63303"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a132d8a6506f21f1aea05b08ce0732212ac13443d1d766d90c2cee259c6121b7ca"><param name="Name" value="NiteEnums.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#ae02db96d434c74e7b8284c8e04da07f1aa2ad8641e4f8873ee6664c09532ab29d"><param name="Name" value="SKELETON_CALIBRATION_ERROR_LEGS"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#ae02db96d434c74e7b8284c8e04da07f1aa2ad8641e4f8873ee6664c09532ab29d"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a132d8a6506f21f1aea05b08ce0732212ab346ec66817b3dd1ea9b5587f5ab60c2"><param name="Name" value="NiteEnums.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#ae02db96d434c74e7b8284c8e04da07f1ab64239de7fbcae893ef8c7e5b182d220"><param name="Name" value="SKELETON_CALIBRATION_ERROR_NOT_IN_POSE"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#ae02db96d434c74e7b8284c8e04da07f1ab64239de7fbcae893ef8c7e5b182d220"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a132d8a6506f21f1aea05b08ce0732212ae7c4d4dd7db56e761ec73bea720082c9"><param name="Name" value="NiteEnums.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#ae02db96d434c74e7b8284c8e04da07f1a1353ddc18017a3f158ef2525cea174f6"><param name="Name" value="SKELETON_CALIBRATION_ERROR_TORSO"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#ae02db96d434c74e7b8284c8e04da07f1a1353ddc18017a3f158ef2525cea174f6"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a132d8a6506f21f1aea05b08ce0732212a6e4089519eeffd6b963d5877a476d7d9"><param name="Name" value="NiteEnums.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#ae02db96d434c74e7b8284c8e04da07f1af5a598cff161c62b3b5c4659d0fe4534"><param name="Name" value="SKELETON_NONE"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#ae02db96d434c74e7b8284c8e04da07f1af5a598cff161c62b3b5c4659d0fe4534"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a132d8a6506f21f1aea05b08ce0732212aecbb792f9e74c326cb5f45d425f9be7a"><param name="Name" value="NiteEnums.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#ae02db96d434c74e7b8284c8e04da07f1ac50b37d0017d3881f85239393619abe1"><param name="Name" value="SKELETON_TRACKED"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#ae02db96d434c74e7b8284c8e04da07f1ac50b37d0017d3881f85239393619abe1"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a132d8a6506f21f1aea05b08ce0732212aeedfcb92f9479d8a75d773cedeb41a9b"><param name="Name" value="NiteEnums.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#a54856665ceb067648810664513734cc5"><param name="Name" value="startGestureDetection"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#a3dc627225c06f3e74a1c9be2ebe82183"><param name="Name" value="startHandTracking"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#ad480ea9af94e5810b00535986616098e"><param name="Name" value="startPoseDetection"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#a3e2286c80c4ffb90644b91777f0994d6"><param name="Name" value="startSkeletonTracking"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a462094ef424d8ac580ad58986cd8b7a9a52a251a4376ff4e78c91d345fc302de9"><param name="Name" value="STATUS_BAD_USER_ID"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a462094ef424d8ac580ad58986cd8b7a9a52a251a4376ff4e78c91d345fc302de9"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a67a0db04d321a74b7e7fcfd3f1a3f70ba7c8b8ff0fef55b876827d28129a3a1cb"><param name="Name" value="NiteEnums.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a462094ef424d8ac580ad58986cd8b7a9a75e14bad45ca8e342c6fc7915e70e919"><param name="Name" value="STATUS_ERROR"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a462094ef424d8ac580ad58986cd8b7a9a75e14bad45ca8e342c6fc7915e70e919"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a67a0db04d321a74b7e7fcfd3f1a3f70ba5bde228d9506a863d51ffbc868ff67f7"><param name="Name" value="NiteEnums.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a462094ef424d8ac580ad58986cd8b7a9adb2e019efa6d4148e6e98746575119c2"><param name="Name" value="STATUS_OK"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a462094ef424d8ac580ad58986cd8b7a9adb2e019efa6d4148e6e98746575119c2"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a67a0db04d321a74b7e7fcfd3f1a3f70ba7e4a42e3b6dd63708c64cf3db6f69566"><param name="Name" value="NiteEnums.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a462094ef424d8ac580ad58986cd8b7a9a1827036e2c1921cefd36427eab37be29"><param name="Name" value="STATUS_OUT_OF_FLOW"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a462094ef424d8ac580ad58986cd8b7a9a1827036e2c1921cefd36427eab37be29"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="_nite_enums_8h.html#a67a0db04d321a74b7e7fcfd3f1a3f70bae49a09ae573904a34ffba89bbd2d908d"><param name="Name" value="NiteEnums.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#a960676008aaccc741bc4ca524c7db82b"><param name="Name" value="stopGestureDetection"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#adef12f62aa3ada080a73f5a591b8b3b9"><param name="Name" value="stopHandTracking"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#ae78398fc0dcf5d766f7283f5fd7c95fc"><param name="Name" value="stopPoseDetection"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#a2016118c28436faea6623e0b74400875"><param name="Name" value="stopSkeletonTracking"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_frame_ref.html#a38c437d9dcaefebe4efaf0edf00c45de"><param name="Name" value="User"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a4a15ac84af7a6cd035ce186c8a67daf6"><param name="Name" value="UserId"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a4a15ac84af7a6cd035ce186c8a67daf6"><param name="Name" value="nite"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="namespacenite.html#a4a15ac84af7a6cd035ce186c8a67daf6"><param name="Name" value="NiTE.h"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#a5ce0e8b5d623d167aed0364b20bcca6f"><param name="Name" value="UserTracker"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#a5ce0e8b5d623d167aed0364b20bcca6f"><param name="Name" value="nite::UserTracker"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_1_1_new_frame_listener.html#ac6ca8c33edeecce50e0fd59b42ba507f"><param name="Name" value="nite::UserTracker::NewFrameListener"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_frame_ref.html#ac6ca8c33edeecce50e0fd59b42ba507f"><param name="Name" value="nite::UserTrackerFrameRef"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_map.html#a04133894638909cca86b5c54416ac467"><param name="Name" value="UserTrackerFrameRef"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_map.html#a04133894638909cca86b5c54416ac467"><param name="Name" value="nite::UserMap"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_frame_ref.html#a9c0320acd12e018446761997c33d2d80"><param name="Name" value="nite::UserTrackerFrameRef"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="struct_nite_quaternion.html#a921f946726b964989c5abfe49d903a5e"><param name="Name" value="w"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="struct_nite_point3f.html#a142033cc71afb004e979ec26a21c50f1"><param name="Name" value="x"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="struct_nite_point3f.html#a142033cc71afb004e979ec26a21c50f1"><param name="Name" value="NitePoint3f"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="struct_nite_quaternion.html#a780405a9d06e29d1bf4c9878e5bbf210"><param name="Name" value="NiteQuaternion"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="struct_nite_point3f.html#a66ea57d2a6afef9877d09b959f4d5345"><param name="Name" value="y"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="struct_nite_point3f.html#a66ea57d2a6afef9877d09b959f4d5345"><param name="Name" value="NitePoint3f"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="struct_nite_quaternion.html#aecf86bce09fe44f0d18064656bf2351a"><param name="Name" value="NiteQuaternion"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="struct_nite_point3f.html#a45d9974b92b3bc18805788631d8c018b"><param name="Name" value="z"></OBJECT>
+  <UL>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="struct_nite_point3f.html#a45d9974b92b3bc18805788631d8c018b"><param name="Name" value="NitePoint3f"></OBJECT>
+    <LI><OBJECT type="text/sitemap"><param name="Local" value="struct_nite_quaternion.html#ab9f640da06219d3619d6d3769a05d1ac"><param name="Name" value="NiteQuaternion"></OBJECT>
+  </UL>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker.html#a02ba9b3d1ae978f6c7e7912c69f3dec5"><param name="Name" value="~HandTracker"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_hand_tracker_frame_ref.html#afbbbc2e58dd3946c9ae59ad346f1d4b9"><param name="Name" value="~HandTrackerFrameRef"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker.html#a22464a2560ae0ca14ce120dd56b6c01a"><param name="Name" value="~UserTracker"></OBJECT>
+  <LI><OBJECT type="text/sitemap"><param name="Local" value="classnite_1_1_user_tracker_frame_ref.html#a4e9ba1af96a2de7c2fc315894d1bab2a"><param name="Name" value="~UserTrackerFrameRef"></OBJECT>
+</UL>
+</BODY>
+</HTML>
