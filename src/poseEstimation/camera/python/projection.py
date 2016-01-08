@@ -17,6 +17,6 @@ topJoints = np.zeros((num,3))
 for i in range(0,num):
     topJoints[i] = (cm.rigidBodyMotion(frontJoints[i][0:3],dx,dy,dz,vx,vy,vz)).reshape(3)
 
-np.savetxt('data/topJoints2.txt',topJoints,delimiter=',',newline='\n')
+np.savetxt('data/topJoints2.dat',topJoints,delimiter=',',newline='\n')
 
 
