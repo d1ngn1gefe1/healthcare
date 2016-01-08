@@ -81,11 +81,11 @@ void projection(float front[][5], float top[][3], int num) {
 }
 
 int main() {
-	float front[2][5] = {{-27.8104,411.304,3073.35,157.42,81.8357}, {-26.568,190.717,3092.72,157.55,102.415}};
-	float top[2][3];
-	projection(front,top,2);
+	float front[15][5] = {{-27.8104,411.304,3073.35,157.42,81.8357}, {-26.568,190.717,3092.72,157.55,102.415}};
+	float top[15][3];
+	projection(front,top,15);
 
-	for (int i = 0; i < 2; i++) {
+	for (int i = 0; i < 15; i++) {
 		for (int j = 0; j < 3; j++) {
 			cout << top[i][j] << " ";
 		}

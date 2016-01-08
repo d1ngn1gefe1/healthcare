@@ -39,8 +39,8 @@ bool g_saveImg = false;
 
 int nFrame = 0;
 
-float jointsSide[N_JOINTS][5];
-float jointsTop[N_JOINTS][5];
+float sideJoints[N_JOINTS][5];
+float topJoints[N_JOINTS][5];
 int *depth, *label;
 
 int g_nXRes = 0, g_nYRes = 0;
@@ -318,13 +318,16 @@ std::string getJointName(nite::JointType jointType) {
     return name;
 }
 
-void SaveJoint(nite::UserTracker* pUserTracker, const nite::UserData& userData, nite::JointType jointType, float joints[][5]) {
+void SaveJoint(nite::UserTracker* pUserTracker, const nite::UserData& userData, nite::JointType jointType) {
     nite::Point3f joint = userData.getSkeleton().getJoint(jointType).getPosition();
-    joints[jointType][0] = joint.x;
-    joints[jointType][1] = joint.y;
-    joints[jointType][2] = joint.z;
+    sideJoints[jointType][0] = joint.x;
+    sideJoints[jointType][1] = joint.y;
+    sideJoints[jointType][2] = joint.z;
     
-    pUserTracker->convertJointCoordinatesToDepth(joint.x, joint.y, joint.z, &joints[jointType][4], &joints[jointType][5]);
+    side2top(sideJoints, topJoints);
+    
+    pUserTracker->convertJointCoordinatesToDepth(joint.x, joint.y, joint.z, &sideJoints[jointType][3], &sideJoints[jointType][4]);
+    pUserTracker->convertJointCoordinatesToDepth(topJoints[jointType][0], topJoints[jointType][1], topJoints[jointType][2], &topJoints[jointType][3], &topJoints[jointType][4]);
 }
 
 void DrawLimb(nite::UserTracker* pUserTracker, const nite::SkeletonJoint& joint1, const nite::SkeletonJoint& joint2, int color)
@@ -405,21 +408,21 @@ void DrawSkeleton(nite::UserTracker* pUserTracker, const nite::UserData& userDat
 	DrawLimb(pUserTracker, userData.getSkeleton().getJoint(nite::JOINT_RIGHT_KNEE), userData.getSkeleton().getJoint(nite::JOINT_RIGHT_FOOT), userData.getId() % colorCount);
     
     if (g_capture) {
-        SaveJoint(pUserTracker, userData, nite::JOINT_HEAD, jointsSide);
-        SaveJoint(pUserTracker, userData, nite::JOINT_NECK, jointsSide);
-        SaveJoint(pUserTracker, userData, nite::JOINT_LEFT_SHOULDER, jointsSide);
-        SaveJoint(pUserTracker, userData, nite::JOINT_RIGHT_SHOULDER, jointsSide);
-        SaveJoint(pUserTracker, userData, nite::JOINT_LEFT_ELBOW, jointsSide);
-        SaveJoint(pUserTracker, userData, nite::JOINT_RIGHT_ELBOW, jointsSide);
-        SaveJoint(pUserTracker, userData, nite::JOINT_LEFT_HAND, jointsSide);
-        SaveJoint(pUserTracker, userData, nite::JOINT_RIGHT_HAND, jointsSide);
-        SaveJoint(pUserTracker, userData, nite::JOINT_TORSO, jointsSide);
-        SaveJoint(pUserTracker, userData, nite::JOINT_LEFT_HIP, jointsSide);
-        SaveJoint(pUserTracker, userData, nite::JOINT_RIGHT_HIP, jointsSide);
-        SaveJoint(pUserTracker, userData, nite::JOINT_LEFT_KNEE, jointsSide);
-        SaveJoint(pUserTracker, userData, nite::JOINT_RIGHT_KNEE, jointsSide);
-        SaveJoint(pUserTracker, userData, nite::JOINT_LEFT_FOOT, jointsSide);
-        SaveJoint(pUserTracker, userData, nite::JOINT_RIGHT_FOOT, jointsSide);
+        SaveJoint(pUserTracker, userData, nite::JOINT_HEAD);
+        SaveJoint(pUserTracker, userData, nite::JOINT_NECK);
+        SaveJoint(pUserTracker, userData, nite::JOINT_LEFT_SHOULDER);
+        SaveJoint(pUserTracker, userData, nite::JOINT_RIGHT_SHOULDER);
+        SaveJoint(pUserTracker, userData, nite::JOINT_LEFT_ELBOW);
+        SaveJoint(pUserTracker, userData, nite::JOINT_RIGHT_ELBOW);
+        SaveJoint(pUserTracker, userData, nite::JOINT_LEFT_HAND);
+        SaveJoint(pUserTracker, userData, nite::JOINT_RIGHT_HAND);
+        SaveJoint(pUserTracker, userData, nite::JOINT_TORSO);
+        SaveJoint(pUserTracker, userData, nite::JOINT_LEFT_HIP);
+        SaveJoint(pUserTracker, userData, nite::JOINT_RIGHT_HIP);
+        SaveJoint(pUserTracker, userData, nite::JOINT_LEFT_KNEE);
+        SaveJoint(pUserTracker, userData, nite::JOINT_RIGHT_KNEE);
+        SaveJoint(pUserTracker, userData, nite::JOINT_LEFT_FOOT);
+        SaveJoint(pUserTracker, userData, nite::JOINT_RIGHT_FOOT);
     }
 }
 
@@ -672,14 +675,27 @@ void SampleViewer::Display()
     if (g_capture) {
         std::ofstream file;
             
-        file.open(outDir + "/joints" + std::to_string(nFrame) + ".dat");
+        file.open(outDir + "/joints-side" + std::to_string(nFrame) + ".dat");
         if (!file.is_open()) {
-            printf("can't open joints");
+            printf("can't open joints-side");
             return;
         }
         for (int i = 0; i < N_JOINTS; i++) {
             for (int j = 0; j < 5; j++) {
-                file << jointsSide[i][j] << " ";
+                file << sideJoints[i][j] << " ";
+            }
+            file << std::endl;
+        }
+        file.close();
+        
+        file.open(outDir + "/joints-top" + std::to_string(nFrame) + ".dat");
+        if (!file.is_open()) {
+            printf("can't open joints-top");
+            return;
+        }
+        for (int i = 0; i < N_JOINTS; i++) {
+            for (int j = 0; j < 5; j++) {
+                file << topJoints[i][j] << " ";
             }
             file << std::endl;
         }
