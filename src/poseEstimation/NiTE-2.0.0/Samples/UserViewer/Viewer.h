@@ -9,6 +9,7 @@
 #define _NITE_USER_VIEWER_H_
 
 #include "NiTE.h"
+#include "helper.hpp"
 
 #include <vector>
 #include <iostream>

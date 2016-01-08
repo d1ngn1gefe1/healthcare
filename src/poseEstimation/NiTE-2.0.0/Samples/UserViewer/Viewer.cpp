@@ -35,9 +35,16 @@ bool g_drawDepth = true;
 bool g_drawFrameId = false;
 bool g_pause = false;
 bool g_capture = false;
+bool g_saveImg = false;
+
+int nFrame = 0;
+
+float jointsSide[N_JOINTS][5];
+float jointsTop[N_JOINTS][5];
+int *depth, *label;
 
 int g_nXRes = 0, g_nYRes = 0;
-std::string outDir = "/Users/alan/Documents/research/healthcare/src/poseEstimation/NiTE-2.0.0/Samples/UserViewer";
+std::string outDir = "/Users/alan/Documents/research/healthcare/src/poseEstimation/NiTE-2.0.0/Samples/UserViewer/data";
 
 // time to hold in pose to exit program. In milliseconds.
 const int g_poseTimeoutToExit = 2000;
@@ -311,18 +318,13 @@ std::string getJointName(nite::JointType jointType) {
     return name;
 }
 
-void PrintJoint(nite::UserTracker* pUserTracker, const nite::UserData& userData, nite::JointType jointType, std::ofstream &file) {
+void SaveJoint(nite::UserTracker* pUserTracker, const nite::UserData& userData, nite::JointType jointType, float joints[][5]) {
     nite::Point3f joint = userData.getSkeleton().getJoint(jointType).getPosition();
-    std::string name = getJointName(jointType);
-    float coordinates[2] = {0};
-    pUserTracker->convertJointCoordinatesToDepth(joint.x, joint.y, joint.z, &coordinates[0], &coordinates[1]);
-    //coordinates[0] *= GL_WIN_SIZE_X/g_nXRes;
-    //coordinates[1] *= GL_WIN_SIZE_Y/g_nYRes;
+    joints[jointType][0] = joint.x;
+    joints[jointType][1] = joint.y;
+    joints[jointType][2] = joint.z;
     
-    std::cout << name << std::endl;
-    //printf("(%f, %f, %f), (%f, %f)\n", joint.x, joint.y, joint.z, coordinates[0], coordinates[1]);
-    printf("(%f, %f, %f)\n", joint.x, joint.y, joint.z);
-    file << joint.x << "," << joint.y << "," << joint.z << "," << coordinates[0] << "," << coordinates[1] << std::endl;
+    pUserTracker->convertJointCoordinatesToDepth(joint.x, joint.y, joint.z, &joints[jointType][4], &joints[jointType][5]);
 }
 
 void DrawLimb(nite::UserTracker* pUserTracker, const nite::SkeletonJoint& joint1, const nite::SkeletonJoint& joint2, int color)
@@ -403,30 +405,21 @@ void DrawSkeleton(nite::UserTracker* pUserTracker, const nite::UserData& userDat
 	DrawLimb(pUserTracker, userData.getSkeleton().getJoint(nite::JOINT_RIGHT_KNEE), userData.getSkeleton().getJoint(nite::JOINT_RIGHT_FOOT), userData.getId() % colorCount);
     
     if (g_capture) {
-        std::ofstream file;
-        file.open(outDir + "/joints.dat");
-        if (!file.is_open()) {
-            printf("can't open joints.dat");
-            return;
-        }
-
-        PrintJoint(pUserTracker, userData, nite::JOINT_HEAD, file);
-        PrintJoint(pUserTracker, userData, nite::JOINT_NECK, file);
-        PrintJoint(pUserTracker, userData, nite::JOINT_LEFT_SHOULDER, file);
-        PrintJoint(pUserTracker, userData, nite::JOINT_RIGHT_SHOULDER, file);
-        PrintJoint(pUserTracker, userData, nite::JOINT_LEFT_ELBOW, file);
-        PrintJoint(pUserTracker, userData, nite::JOINT_RIGHT_ELBOW, file);
-        PrintJoint(pUserTracker, userData, nite::JOINT_LEFT_HAND, file);
-        PrintJoint(pUserTracker, userData, nite::JOINT_RIGHT_HAND, file);
-        PrintJoint(pUserTracker, userData, nite::JOINT_TORSO, file);
-        PrintJoint(pUserTracker, userData, nite::JOINT_LEFT_HIP, file);
-        PrintJoint(pUserTracker, userData, nite::JOINT_RIGHT_HIP, file);
-        PrintJoint(pUserTracker, userData, nite::JOINT_LEFT_KNEE, file);
-        PrintJoint(pUserTracker, userData, nite::JOINT_RIGHT_KNEE, file);
-        PrintJoint(pUserTracker, userData, nite::JOINT_LEFT_FOOT, file);
-        PrintJoint(pUserTracker, userData, nite::JOINT_RIGHT_FOOT, file);
-        
-        file.close();
+        SaveJoint(pUserTracker, userData, nite::JOINT_HEAD, jointsSide);
+        SaveJoint(pUserTracker, userData, nite::JOINT_NECK, jointsSide);
+        SaveJoint(pUserTracker, userData, nite::JOINT_LEFT_SHOULDER, jointsSide);
+        SaveJoint(pUserTracker, userData, nite::JOINT_RIGHT_SHOULDER, jointsSide);
+        SaveJoint(pUserTracker, userData, nite::JOINT_LEFT_ELBOW, jointsSide);
+        SaveJoint(pUserTracker, userData, nite::JOINT_RIGHT_ELBOW, jointsSide);
+        SaveJoint(pUserTracker, userData, nite::JOINT_LEFT_HAND, jointsSide);
+        SaveJoint(pUserTracker, userData, nite::JOINT_RIGHT_HAND, jointsSide);
+        SaveJoint(pUserTracker, userData, nite::JOINT_TORSO, jointsSide);
+        SaveJoint(pUserTracker, userData, nite::JOINT_LEFT_HIP, jointsSide);
+        SaveJoint(pUserTracker, userData, nite::JOINT_RIGHT_HIP, jointsSide);
+        SaveJoint(pUserTracker, userData, nite::JOINT_LEFT_KNEE, jointsSide);
+        SaveJoint(pUserTracker, userData, nite::JOINT_RIGHT_KNEE, jointsSide);
+        SaveJoint(pUserTracker, userData, nite::JOINT_LEFT_FOOT, jointsSide);
+        SaveJoint(pUserTracker, userData, nite::JOINT_RIGHT_FOOT, jointsSide);
     }
 }
 
@@ -439,6 +432,7 @@ void SampleViewer::Display()
 	nite::UserTrackerFrameRef userTrackerFrame;
 	openni::VideoFrameRef depthFrame;
 	nite::Status rc = m_pUserTracker->readFrame(&userTrackerFrame);
+
 	if (rc != nite::STATUS_OK)
 	{
 		printf("GetNextData failed\n");
@@ -481,21 +475,30 @@ void SampleViewer::Display()
 		openni::RGB888Pixel* pTexRow = m_pTexMap + depthFrame.getCropOriginY() * m_nTexMapX;
 		int rowSize = depthFrame.getStrideInBytes() / sizeof(openni::DepthPixel);
 
-        std::vector<int> depth;
-        std::vector<int> label;
+        int height = depthFrame.getHeight();
+        int width = depthFrame.getWidth();
         
-		for (int y = 0; y < depthFrame.getHeight(); ++y)
+        if (!depth) {
+            depth = (int *)malloc(height*width*sizeof(int));
+        }
+        if (!label) {
+            label = (int *)malloc(height*width*sizeof(int));
+        }
+        
+		for (int y = 0; y < height; ++y)
 		{
 			const openni::DepthPixel* pDepth = pDepthRow;
 			openni::RGB888Pixel* pTex = pTexRow + depthFrame.getCropOriginX();
 
-			for (int x = 0; x < depthFrame.getWidth(); ++x, ++pDepth, ++pTex, ++pLabels)
+			for (int x = 0; x < width; ++x, ++pDepth, ++pTex, ++pLabels)
 			{
                 //printf("%u, %hu\n", (unsigned int)(*pDepth), *pLabels);
-                if (g_capture) {
-                    depth.push_back(*pDepth);
-                    label.push_back(*pLabels);
+                if (g_capture && g_saveImg) {
+                    int i = y*width + x;
+                    depth[i] = *pDepth;
+                    label[i] = *pLabels;
                 }
+                
 				if (*pDepth != 0)
 				{
 					if (*pLabels == 0)
@@ -535,26 +538,27 @@ void SampleViewer::Display()
 
 			pDepthRow += rowSize;
 			pTexRow += m_nTexMapX;
+            
+            if (g_capture && g_saveImg) {
+                std::ofstream file;
+                file.open(outDir + "/depth" + std::to_string(nFrame) + ".dat");
+                if (!file.is_open())
+                    printf("can't open depth");
+                for (int i = 0; i < width*height; i++) {
+                    file << depth[i] << std::endl;
+                }
+                file.close();
+                
+                file.open(outDir + "/label" + std::to_string(nFrame) + ".dat");
+                if (!file.is_open())
+                    printf("can't open label");
+                for (int i = 0; i < width*height; i++) {
+                    file << label[i] << std::endl;
+                }
+                file.close();
+                //printf("(%d, %d)\n", depthFrame.getWidth(), depthFrame.getHeight());
+            }
 		}
-        
-        if (g_capture) {
-            std::ofstream file;
-            file.open(outDir + "/depth.dat");
-            if (!file.is_open())
-                printf("can't open depth.dat");
-            for (int i = 0; i < depth.size(); i++) {
-                file << depth[i] << std::endl;
-            }
-            file.close();
-            file.open(outDir + "/label.dat");
-            if (!file.is_open())
-                printf("can't open label.dat");
-            for (int i = 0; i < label.size(); i++) {
-                file << label[i] << std::endl;
-            }
-            file.close();
-            printf("(%d, %d)\n", depthFrame.getWidth(), depthFrame.getHeight());
-        }
 	}
 
 	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
@@ -665,11 +669,27 @@ void SampleViewer::Display()
 		glPrintString(GLUT_BITMAP_HELVETICA_18, msg);
 	}
 
-    g_capture = false;
-
+    if (g_capture) {
+        std::ofstream file;
+            
+        file.open(outDir + "/joints" + std::to_string(nFrame) + ".dat");
+        if (!file.is_open()) {
+            printf("can't open joints");
+            return;
+        }
+        for (int i = 0; i < N_JOINTS; i++) {
+            for (int j = 0; j < 5; j++) {
+                file << jointsSide[i][j] << " ";
+            }
+            file << std::endl;
+        }
+        file.close();
+        
+        nFrame++;
+    }
+    
     // Swap the OpenGL display buffers
 	glutSwapBuffers();
-
 }
 
 void SampleViewer::OnKey(unsigned char key, int /*x*/, int /*y*/)
