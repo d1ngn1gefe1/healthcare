@@ -26,11 +26,12 @@ end
 
 function[] = visualizeOne()
     jointsSide = importdata(strcat('data/joints-side', int2str(0), '.dat'));
-    figure;
     plot3d(jointsSide(:, 1:3), [-1000 1000 -1000 1000 2000 4000], false);
+    plotProj(jointsSide(:, 4:5), [0 320 0 240]);
+    
     jointsTop = importdata(strcat('data/joints-top', int2str(0), '.dat'));
-    figure;
-    plot3d(jointsTop(:, 1:3), [-1000 1000 -1000 1000], false);
+    plot3d(jointsTop(:, 1:3), [-1000 1000 -1000 1000 0 2000], false);
+    plotProj(jointsTop(:, 4:5), [0 320 0 240]);
 end
 
 function [] = plot2d(img, mat)
@@ -41,6 +42,8 @@ function [] = plot2d(img, mat)
 end
 
 function [] = plot3d(mat, limits, fill)
+    figure;
+
 	pts = [mat(1,:); mat(2,:)]; % JOINT_HEAD, JOINT_NECK 
 	plot3(pts(:,1), pts(:,2), pts(:,3));
     if fill

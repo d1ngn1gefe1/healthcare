@@ -15,8 +15,8 @@
 
 #include "../Common/NiteSampleUtilities.h"
 
-#define GL_WIN_SIZE_X	1280
-#define GL_WIN_SIZE_Y	1024
+#define GL_WIN_SIZE_X	320
+#define GL_WIN_SIZE_Y	240
 #define TEXTURE_SIZE	512
 
 #define DEFAULT_DISPLAY_MODE	DISPLAY_MODE_DEPTH
@@ -43,8 +43,11 @@ float sideJoints[N_JOINTS][5];
 float topJoints[N_JOINTS][5];
 int *depth, *label;
 
+Mat sideSkel;
+Mat topSkel;
+
 int g_nXRes = 0, g_nYRes = 0;
-std::string outDir = "/Users/alan/Documents/research/healthcare/src/poseEstimation/NiTE-2.0.0/Samples/UserViewer/data";
+string outDir = "/Users/alan/Documents/research/healthcare/src/poseEstimation/NiTE-2.0.0/Samples/UserViewer/data";
 
 // time to hold in pose to exit program. In milliseconds.
 const int g_poseTimeoutToExit = 2000;
@@ -121,10 +124,15 @@ openni::Status SampleViewer::Init(int argc, char **argv)
 	{
 		return openni::STATUS_ERROR;
 	}
-
-
-	return InitOpenGL(argc, argv);
-
+    
+    rc = InitOpenGL(argc, argv);
+    
+    sideSkel = Mat::zeros(GL_WIN_SIZE_Y, GL_WIN_SIZE_X, CV_8UC3);
+    topSkel = Mat::zeros(GL_WIN_SIZE_Y, GL_WIN_SIZE_X, CV_8UC3);
+    namedWindow("Side", WINDOW_AUTOSIZE);
+    namedWindow("Top", WINDOW_AUTOSIZE);
+    
+	return rc;
 }
 
 openni::Status SampleViewer::Run()	//Does not return
@@ -266,8 +274,8 @@ void DrawBoundingBox(const nite::UserData& user)
 
 }
 
-std::string getJointName(nite::JointType jointType) {
-    std::string name;
+string getJointName(nite::JointType jointType) {
+    string name;
     switch (jointType) {
         case nite::JOINT_HEAD:
             name = "JOINT_HEAD";
@@ -407,7 +415,7 @@ void DrawSkeleton(nite::UserTracker* pUserTracker, const nite::UserData& userDat
 	DrawLimb(pUserTracker, userData.getSkeleton().getJoint(nite::JOINT_RIGHT_HIP), userData.getSkeleton().getJoint(nite::JOINT_RIGHT_KNEE), userData.getId() % colorCount);
 	DrawLimb(pUserTracker, userData.getSkeleton().getJoint(nite::JOINT_RIGHT_KNEE), userData.getSkeleton().getJoint(nite::JOINT_RIGHT_FOOT), userData.getId() % colorCount);
     
-    if (g_capture) {
+    //if (g_capture) {
         SaveJoint(pUserTracker, userData, nite::JOINT_HEAD);
         SaveJoint(pUserTracker, userData, nite::JOINT_NECK);
         SaveJoint(pUserTracker, userData, nite::JOINT_LEFT_SHOULDER);
@@ -423,7 +431,7 @@ void DrawSkeleton(nite::UserTracker* pUserTracker, const nite::UserData& userDat
         SaveJoint(pUserTracker, userData, nite::JOINT_RIGHT_KNEE);
         SaveJoint(pUserTracker, userData, nite::JOINT_LEFT_FOOT);
         SaveJoint(pUserTracker, userData, nite::JOINT_RIGHT_FOOT);
-    }
+    //}
 }
 
 
@@ -543,20 +551,20 @@ void SampleViewer::Display()
 			pTexRow += m_nTexMapX;
             
             if (g_capture && g_saveImg) {
-                std::ofstream file;
-                file.open(outDir + "/depth" + std::to_string(nFrame) + ".dat");
+                ofstream file;
+                file.open(outDir + "/depth" + to_string(nFrame) + ".dat");
                 if (!file.is_open())
                     printf("can't open depth");
                 for (int i = 0; i < width*height; i++) {
-                    file << depth[i] << std::endl;
+                    file << depth[i] << endl;
                 }
                 file.close();
                 
-                file.open(outDir + "/label" + std::to_string(nFrame) + ".dat");
+                file.open(outDir + "/label" + to_string(nFrame) + ".dat");
                 if (!file.is_open())
                     printf("can't open label");
                 for (int i = 0; i < width*height; i++) {
-                    file << label[i] << std::endl;
+                    file << label[i] << endl;
                 }
                 file.close();
                 //printf("(%d, %d)\n", depthFrame.getWidth(), depthFrame.getHeight());
@@ -596,6 +604,12 @@ void SampleViewer::Display()
 	glDisable(GL_TEXTURE_2D);
 
 	const nite::Array<nite::UserData>& users = userTrackerFrame.getUsers();
+    if (users.getSize() > 0) {
+        sideSkel.setTo(Scalar(0, 0, 0));
+        drawSkeleton(sideSkel, sideJoints);
+        topSkel.setTo(Scalar(0, 0, 0));
+        drawSkeleton(topSkel, topJoints);
+    }
 	for (int i = 0; i < users.getSize(); ++i)
 	{
 		const nite::UserData& user = users[i];
@@ -673,9 +687,9 @@ void SampleViewer::Display()
 	}
 
     if (g_capture) {
-        std::ofstream file;
+        ofstream file;
             
-        file.open(outDir + "/joints-side" + std::to_string(nFrame) + ".dat");
+        file.open(outDir + "/joints-side" + to_string(nFrame) + ".dat");
         if (!file.is_open()) {
             printf("can't open joints-side");
             return;
@@ -684,11 +698,11 @@ void SampleViewer::Display()
             for (int j = 0; j < 5; j++) {
                 file << sideJoints[i][j] << " ";
             }
-            file << std::endl;
+            file << endl;
         }
         file.close();
         
-        file.open(outDir + "/joints-top" + std::to_string(nFrame) + ".dat");
+        file.open(outDir + "/joints-top" + to_string(nFrame) + ".dat");
         if (!file.is_open()) {
             printf("can't open joints-top");
             return;
@@ -697,12 +711,15 @@ void SampleViewer::Display()
             for (int j = 0; j < 5; j++) {
                 file << topJoints[i][j] << " ";
             }
-            file << std::endl;
+            file << endl;
         }
         file.close();
         
         nFrame++;
     }
+    
+    imshow("Side", sideSkel);
+    imshow("Top", topSkel);
     
     // Swap the OpenGL display buffers
 	glutSwapBuffers();
