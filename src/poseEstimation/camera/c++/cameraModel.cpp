@@ -6,7 +6,7 @@ float dx = 0;
 float dy = 1.04e3;
 float dz = 3.52e3;
 
-float unitVectors[4][4] = {{-1,0,0,0}, {0,0,-1,0}, {0,-1,0,0}, {0,0,0,1}};
+float unitVectors[4][4] = {{1,0,0,0}, {0,0,1,0}, {0,-1,0,0}, {0,0,0,1}};
 
 float* rigidBodyMotion(float frontJoint[4], float dx, float dy, float dz, float unitVectors[4][4]) {
 	float rotation[4][4];
