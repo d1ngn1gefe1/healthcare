@@ -35,7 +35,7 @@ bool g_drawDepth = true;
 bool g_drawFrameId = false;
 bool g_pause = false;
 bool g_capture = false;
-bool g_saveImg = false;
+bool g_saveImg = true;
 
 int nFrame = 0;
 
@@ -415,23 +415,21 @@ void DrawSkeleton(nite::UserTracker* pUserTracker, const nite::UserData& userDat
 	DrawLimb(pUserTracker, userData.getSkeleton().getJoint(nite::JOINT_RIGHT_HIP), userData.getSkeleton().getJoint(nite::JOINT_RIGHT_KNEE), userData.getId() % colorCount);
 	DrawLimb(pUserTracker, userData.getSkeleton().getJoint(nite::JOINT_RIGHT_KNEE), userData.getSkeleton().getJoint(nite::JOINT_RIGHT_FOOT), userData.getId() % colorCount);
     
-    //if (g_capture) {
-        SaveJoint(pUserTracker, userData, nite::JOINT_HEAD);
-        SaveJoint(pUserTracker, userData, nite::JOINT_NECK);
-        SaveJoint(pUserTracker, userData, nite::JOINT_LEFT_SHOULDER);
-        SaveJoint(pUserTracker, userData, nite::JOINT_RIGHT_SHOULDER);
-        SaveJoint(pUserTracker, userData, nite::JOINT_LEFT_ELBOW);
-        SaveJoint(pUserTracker, userData, nite::JOINT_RIGHT_ELBOW);
-        SaveJoint(pUserTracker, userData, nite::JOINT_LEFT_HAND);
-        SaveJoint(pUserTracker, userData, nite::JOINT_RIGHT_HAND);
-        SaveJoint(pUserTracker, userData, nite::JOINT_TORSO);
-        SaveJoint(pUserTracker, userData, nite::JOINT_LEFT_HIP);
-        SaveJoint(pUserTracker, userData, nite::JOINT_RIGHT_HIP);
-        SaveJoint(pUserTracker, userData, nite::JOINT_LEFT_KNEE);
-        SaveJoint(pUserTracker, userData, nite::JOINT_RIGHT_KNEE);
-        SaveJoint(pUserTracker, userData, nite::JOINT_LEFT_FOOT);
-        SaveJoint(pUserTracker, userData, nite::JOINT_RIGHT_FOOT);
-    //}
+    SaveJoint(pUserTracker, userData, nite::JOINT_HEAD);
+    SaveJoint(pUserTracker, userData, nite::JOINT_NECK);
+    SaveJoint(pUserTracker, userData, nite::JOINT_LEFT_SHOULDER);
+    SaveJoint(pUserTracker, userData, nite::JOINT_RIGHT_SHOULDER);
+    SaveJoint(pUserTracker, userData, nite::JOINT_LEFT_ELBOW);
+    SaveJoint(pUserTracker, userData, nite::JOINT_RIGHT_ELBOW);
+    SaveJoint(pUserTracker, userData, nite::JOINT_LEFT_HAND);
+    SaveJoint(pUserTracker, userData, nite::JOINT_RIGHT_HAND);
+    SaveJoint(pUserTracker, userData, nite::JOINT_TORSO);
+    SaveJoint(pUserTracker, userData, nite::JOINT_LEFT_HIP);
+    SaveJoint(pUserTracker, userData, nite::JOINT_RIGHT_HIP);
+    SaveJoint(pUserTracker, userData, nite::JOINT_LEFT_KNEE);
+    SaveJoint(pUserTracker, userData, nite::JOINT_RIGHT_KNEE);
+    SaveJoint(pUserTracker, userData, nite::JOINT_LEFT_FOOT);
+    SaveJoint(pUserTracker, userData, nite::JOINT_RIGHT_FOOT);
 }
 
 
