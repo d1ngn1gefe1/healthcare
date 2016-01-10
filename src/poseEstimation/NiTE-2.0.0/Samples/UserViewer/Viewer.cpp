@@ -719,6 +719,8 @@ void SampleViewer::Display()
     imshow("Side", sideSkel);
     imshow("Top", topSkel);
     
+    g_capture = false;
+    
     // Swap the OpenGL display buffers
 	glutSwapBuffers();
 }
