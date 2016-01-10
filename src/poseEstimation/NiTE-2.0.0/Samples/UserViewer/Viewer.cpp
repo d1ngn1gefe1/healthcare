@@ -547,27 +547,27 @@ void SampleViewer::Display()
 
 			pDepthRow += rowSize;
 			pTexRow += m_nTexMapX;
-            
-            if (g_capture && g_saveImg) {
-                ofstream file;
-                file.open(outDir + "/depth" + to_string(nFrame) + ".dat");
-                if (!file.is_open())
-                    printf("can't open depth");
-                for (int i = 0; i < width*height; i++) {
-                    file << depth[i] << endl;
-                }
-                file.close();
-                
-                file.open(outDir + "/label" + to_string(nFrame) + ".dat");
-                if (!file.is_open())
-                    printf("can't open label");
-                for (int i = 0; i < width*height; i++) {
-                    file << label[i] << endl;
-                }
-                file.close();
-                //printf("(%d, %d)\n", depthFrame.getWidth(), depthFrame.getHeight());
-            }
 		}
+
+		if (g_capture && g_saveImg) {
+            ofstream file;
+            file.open(outDir + "/depth" + to_string(nFrame) + ".dat");
+            if (!file.is_open())
+                printf("can't open depth");
+            for (int i = 0; i < width*height; i++) {
+                file << depth[i] << endl;
+            }
+            file.close();
+            
+            file.open(outDir + "/label" + to_string(nFrame) + ".dat");
+            if (!file.is_open())
+                printf("can't open label");
+            for (int i = 0; i < width*height; i++) {
+                file << label[i] << endl;
+            }
+            file.close();
+            //printf("(%d, %d)\n", depthFrame.getWidth(), depthFrame.getHeight());
+        }
 	}
 
 	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
