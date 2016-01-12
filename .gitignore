@@ -13,5 +13,5 @@
 *.dat
 *.m~
 *.swp
-/src/poseEstimation/NiTE-2.0.0/Samples/UserViewer/UserViewer/UserViewer.xcodeproj
+/src/poseEstimation/NiTE-2.0.0/Samples/UserViewer/UserViewer/UserViewer.xcodeproj/*
 /src/poseEstimation/NiTE-2.0.0/Samples/UserViewer/UserViewer/build/*

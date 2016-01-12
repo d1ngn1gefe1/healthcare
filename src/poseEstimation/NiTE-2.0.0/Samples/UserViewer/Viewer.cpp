@@ -29,7 +29,7 @@ SampleViewer* SampleViewer::ms_self = NULL;
 bool g_drawSkeleton = true;
 bool g_drawCenterOfMass = false;
 bool g_drawStatusLabel = true;
-bool g_drawBoundingBox = false;
+bool g_drawBoundingBox = true;
 bool g_drawBackground = true;
 bool g_drawDepth = true;
 bool g_drawFrameId = false;
@@ -88,6 +88,8 @@ void SampleViewer::Finalize()
 	delete m_pUserTracker;
 	nite::NiTE::shutdown();
 	openni::OpenNI::shutdown();
+    m_deviceSide.close();
+    m_deviceTop.close();
 }
 
 openni::Status SampleViewer::Init(int argc, char **argv)
@@ -101,6 +103,15 @@ openni::Status SampleViewer::Init(int argc, char **argv)
 		return rc;
 	}
 
+    openni::Array<openni::DeviceInfo> deviceInfoList;
+    openni::OpenNI::enumerateDevices(&deviceInfoList);
+    
+    for (int i = 0; i < deviceInfoList.getSize(); ++i) {
+        const openni::DeviceInfo &info = deviceInfoList[i];
+        string uri = info.getUri();
+    }
+    
+    /*
 	const char* deviceUri = openni::ANY_DEVICE;
 	for (int i = 1; i < argc-1; ++i)
 	{
@@ -110,27 +121,40 @@ openni::Status SampleViewer::Init(int argc, char **argv)
 			break;
 		}
 	}
+    */
+    
+    assert(deviceInfoList.getSize() <= 2);
 
-	rc = m_device.open(deviceUri);
-	if (rc != openni::STATUS_OK)
-	{
+	rc = m_deviceSide.open(deviceInfoList[0].getUri());
+	if (rc != openni::STATUS_OK) {
 		printf("Failed to open device\n%s\n", openni::OpenNI::getExtendedError());
 		return rc;
 	}
+    if (deviceInfoList.getSize() == 2) {
+        rc = m_deviceTop.open(deviceInfoList[1].getUri());
+        if (rc != openni::STATUS_OK) {
+            printf("Failed to open device\n%s\n", openni::OpenNI::getExtendedError());
+            return rc;
+        }
+    }
 
 	nite::NiTE::initialize();
 
-	if (m_pUserTracker->create(&m_device) != nite::STATUS_OK)
+	if (m_pUserTracker->create(&m_deviceSide) != nite::STATUS_OK)
 	{
 		return openni::STATUS_ERROR;
 	}
     
     rc = InitOpenGL(argc, argv);
     
+    rc = depthStreamTop.create(m_deviceTop, openni::SENSOR_DEPTH);
+    rc = depthStreamTop.start();
+    
     sideSkel = Mat::zeros(GL_WIN_SIZE_Y, GL_WIN_SIZE_X, CV_8UC3);
     topSkel = Mat::zeros(GL_WIN_SIZE_Y, GL_WIN_SIZE_X, CV_8UC3);
     namedWindow("Side", WINDOW_AUTOSIZE);
     namedWindow("Top", WINDOW_AUTOSIZE);
+    namedWindow("DepthTop", WINDOW_AUTOSIZE);
     
 	return rc;
 }
@@ -246,6 +270,13 @@ void DrawCenterOfMass(nite::UserTracker* pUserTracker, const nite::UserData& use
 	glVertexPointer(3, GL_FLOAT, 0, coordinates);
 	glDrawArrays(GL_POINTS, 0, 1);
 
+}
+
+float getSize(const nite::UserData& user) {
+    float dx = user.getBoundingBox().max.x - user.getBoundingBox().min.x;
+    float dy = user.getBoundingBox().max.y - user.getBoundingBox().min.y;
+    
+    return dx*dy;
 }
 
 void DrawBoundingBox(const nite::UserData& user)
@@ -439,22 +470,28 @@ void SampleViewer::Display()
         return;
     
 	nite::UserTrackerFrameRef userTrackerFrame;
-	openni::VideoFrameRef depthFrame;
-	nite::Status rc = m_pUserTracker->readFrame(&userTrackerFrame);
-
-	if (rc != nite::STATUS_OK)
+	openni::VideoFrameRef depthFrameSide;
+    nite::Status rc1 = m_pUserTracker->readFrame(&userTrackerFrame);
+	if (rc1 != nite::STATUS_OK)
+	{
+		printf("GetNextData failed\n");
+		return;
+	}
+	depthFrameSide = userTrackerFrame.getDepthFrame();
+    
+    openni::VideoFrameRef depthFrameTop;
+    openni::Status rc2 = depthStreamTop.readFrame(&depthFrameTop);
+	if (rc2 != openni::STATUS_OK)
 	{
 		printf("GetNextData failed\n");
 		return;
 	}
 
-	depthFrame = userTrackerFrame.getDepthFrame();
-
 	if (m_pTexMap == NULL)
 	{
 		// Texture map init
-		m_nTexMapX = MIN_CHUNKS_SIZE(depthFrame.getVideoMode().getResolutionX(), TEXTURE_SIZE);
-		m_nTexMapY = MIN_CHUNKS_SIZE(depthFrame.getVideoMode().getResolutionY(), TEXTURE_SIZE);
+		m_nTexMapX = MIN_CHUNKS_SIZE(depthFrameSide.getVideoMode().getResolutionX(), TEXTURE_SIZE);
+		m_nTexMapY = MIN_CHUNKS_SIZE(depthFrameSide.getVideoMode().getResolutionY(), TEXTURE_SIZE);
 		m_pTexMap = new openni::RGB888Pixel[m_nTexMapX * m_nTexMapY];
 	}
 
@@ -467,25 +504,25 @@ void SampleViewer::Display()
 	glLoadIdentity();
 	glOrtho(0, GL_WIN_SIZE_X, GL_WIN_SIZE_Y, 0, -1.0, 1.0);
 
-	if (depthFrame.isValid() && g_drawDepth)
+	if (depthFrameSide.isValid() && g_drawDepth)
 	{
-		calculateHistogram(m_pDepthHist, MAX_DEPTH, depthFrame);
+		calculateHistogram(m_pDepthHist, MAX_DEPTH, depthFrameSide);
 	}
 
 	memset(m_pTexMap, 0, m_nTexMapX*m_nTexMapY*sizeof(openni::RGB888Pixel));
 
 	float factor[3] = {1, 1, 1};
 	// check if we need to draw depth frame to texture
-	if (depthFrame.isValid() && g_drawDepth)
+	if (depthFrameSide.isValid() && g_drawDepth)
 	{
 		const nite::UserId* pLabels = userLabels.getPixels();
 
-		const openni::DepthPixel* pDepthRow = (const openni::DepthPixel*)depthFrame.getData();
-		openni::RGB888Pixel* pTexRow = m_pTexMap + depthFrame.getCropOriginY() * m_nTexMapX;
-		int rowSize = depthFrame.getStrideInBytes() / sizeof(openni::DepthPixel);
+		const openni::DepthPixel* pDepthRow = (const openni::DepthPixel*)depthFrameSide.getData();
+		openni::RGB888Pixel* pTexRow = m_pTexMap + depthFrameSide.getCropOriginY() * m_nTexMapX;
+		int rowSize = depthFrameSide.getStrideInBytes() / sizeof(openni::DepthPixel);
 
-        int height = depthFrame.getHeight();
-        int width = depthFrame.getWidth();
+        int height = depthFrameSide.getHeight();
+        int width = depthFrameSide.getWidth();
         
         if (!depth) {
             depth = (int *)malloc(height*width*sizeof(int));
@@ -497,7 +534,7 @@ void SampleViewer::Display()
 		for (int y = 0; y < height; ++y)
 		{
 			const openni::DepthPixel* pDepth = pDepthRow;
-			openni::RGB888Pixel* pTex = pTexRow + depthFrame.getCropOriginX();
+			openni::RGB888Pixel* pTex = pTexRow + depthFrameSide.getCropOriginX();
 
 			for (int x = 0; x < width; ++x, ++pDepth, ++pTex, ++pLabels)
 			{
@@ -566,9 +603,17 @@ void SampleViewer::Display()
                 file << label[i] << endl;
             }
             file.close();
-            //printf("(%d, %d)\n", depthFrame.getWidth(), depthFrame.getHeight());
+            //printf("(%d, %d)\n", depthFrameSide.getWidth(), depthFrameSide.getHeight());
         }
 	}
+    
+    Mat imgTop;
+    const openni::DepthPixel *imageBuffer = (const openni::DepthPixel *)depthFrameTop.getData();
+    imgTop.create(depthFrameTop.getHeight(), depthFrameTop.getWidth(), CV_16U);
+    memcpy(imgTop.data, imageBuffer, depthFrameTop.getHeight()*depthFrameTop.getWidth()*sizeof(uint16_t));
+    imgTop.convertTo(imgTop, CV_8UC3, 1.0/256);
+    equalizeHist(imgTop, imgTop);
+    cvtColor(imgTop, imgTop, CV_GRAY2RGB);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -582,8 +627,8 @@ void SampleViewer::Display()
 	glBegin(GL_QUADS);
 
     // 320x240
-	g_nXRes = depthFrame.getVideoMode().getResolutionX();
-	g_nYRes = depthFrame.getVideoMode().getResolutionY();
+	g_nXRes = depthFrameSide.getVideoMode().getResolutionX();
+	g_nYRes = depthFrameSide.getVideoMode().getResolutionY();
 
 	// upper left
 	glTexCoord2f(0, 0);
@@ -602,15 +647,26 @@ void SampleViewer::Display()
 	glDisable(GL_TEXTURE_2D);
 
 	const nite::Array<nite::UserData>& users = userTrackerFrame.getUsers();
-    if (users.getSize() > 0) {
-        sideSkel.setTo(Scalar(0, 0, 0));
-        drawSkeleton(sideSkel, sideJoints);
-        topSkel.setTo(Scalar(0, 0, 0));
-        drawSkeleton(topSkel, topJoints);
+    float maxSize = -1;
+    int maxIdx = -1;
+    
+    for (int i = 0; i < users.getSize(); ++i) {
+        const nite::UserData &user = users[i];
+        
+        if (!user.isVisible())
+            continue;
+        
+        if (getSize(user) > maxSize) {
+            maxSize = getSize(user);
+            maxIdx = i;
+        }
+        //printf("user %d: size=%f\n, lost=%d, new=%d, visible=%d\n",
+        //       i, getSize(user), user.isLost(), user.isNew(), user.isVisible());
     }
+    
 	for (int i = 0; i < users.getSize(); ++i)
 	{
-		const nite::UserData& user = users[i];
+		const nite::UserData &user = users[i];
 
 		updateUserState(user, userTrackerFrame.getTimestamp());
 		if (user.isNew())
@@ -620,25 +676,31 @@ void SampleViewer::Display()
 		}
 		else if (!user.isLost())
 		{
-			if (g_drawStatusLabel)
-			{
+			if (g_drawStatusLabel) {
 				DrawStatusLabel(m_pUserTracker, user);
 			}
-			if (g_drawCenterOfMass)
-			{
+            
+            if (g_drawCenterOfMass) {
 				DrawCenterOfMass(m_pUserTracker, user);
 			}
-			if (g_drawBoundingBox)
-			{
+            
+			if (g_drawBoundingBox) {
 				DrawBoundingBox(user);
 			}
 
-			if (users[i].getSkeleton().getState() == nite::SKELETON_TRACKED && g_drawSkeleton)
-			{
-				DrawSkeleton(m_pUserTracker, user);
+			if (users[i].getSkeleton().getState() == nite::SKELETON_TRACKED && g_drawSkeleton) {
+                if (maxIdx == i) {
+                    DrawSkeleton(m_pUserTracker, user);
+                    sideSkel.setTo(Scalar(0, 0, 0));
+                    drawSkeleton(sideSkel, sideJoints);
+                    topSkel.setTo(Scalar(0, 0, 0));
+                    drawSkeleton(topSkel, topJoints);
+                    drawSkeleton(imgTop, topJoints);
+                }
 			}
 		}
 
+        // exit the program after a few seconds if PoseType == POSE_CROSSED_HANDS
 		if (m_poseUser == 0 || m_poseUser == user.getId())
 		{
 			const nite::PoseData& pose = user.getPose(nite::POSE_CROSSED_HANDS);
@@ -718,6 +780,7 @@ void SampleViewer::Display()
     
     imshow("Side", sideSkel);
     imshow("Top", topSkel);
+    imshow("DepthTop", imgTop);
     
     g_capture = false;
     

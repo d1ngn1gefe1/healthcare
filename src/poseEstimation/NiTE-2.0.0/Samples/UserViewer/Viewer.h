@@ -52,8 +52,12 @@ private:
 	unsigned int		m_nTexMapX;
 	unsigned int		m_nTexMapY;
 
-	openni::Device		m_device;
+	openni::Device		m_deviceSide;
 	nite::UserTracker* m_pUserTracker;
+    
+    // for top
+    openni::Device		m_deviceTop;
+    openni::VideoStream depthStreamTop;
 
 	nite::UserId m_poseUser;
 	uint64_t m_poseTime;
