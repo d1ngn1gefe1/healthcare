@@ -8,7 +8,6 @@
 #ifndef _NITE_USER_VIEWER_H_
 #define _NITE_USER_VIEWER_H_
 
-#include "NiTE.h"
 #include "helper.hpp"
 
 #include <vector>
@@ -46,7 +45,7 @@ private:
 	static void glutDisplay();
 	static void glutKeyboard(unsigned char key, int x, int y);
 
-	float				m_pDepthHist[MAX_DEPTH];
+	float				m_pDepthHistSide[MAX_DEPTH];
 	char			m_strSampleName[ONI_MAX_STR];
 	openni::RGB888Pixel*		m_pTexMap;
 	unsigned int		m_nTexMapX;
@@ -58,6 +57,7 @@ private:
     // for top
     openni::Device		m_deviceTop;
     openni::VideoStream depthStreamTop;
+    float				m_pDepthHistTop[MAX_DEPTH];
 
 	nite::UserId m_poseUser;
 	uint64_t m_poseTime;

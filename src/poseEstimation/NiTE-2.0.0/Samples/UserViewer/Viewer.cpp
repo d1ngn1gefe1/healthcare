@@ -45,6 +45,8 @@ int *depth, *label;
 
 Mat sideSkel;
 Mat topSkel;
+Mat pxLabel;
+Mat imgTop;
 
 int g_nXRes = 0, g_nYRes = 0;
 string outDir = "/Users/alan/Documents/research/healthcare/src/poseEstimation/NiTE-2.0.0/Samples/UserViewer/data";
@@ -155,6 +157,7 @@ openni::Status SampleViewer::Init(int argc, char **argv)
     namedWindow("Side", WINDOW_AUTOSIZE);
     namedWindow("Top", WINDOW_AUTOSIZE);
     namedWindow("DepthTop", WINDOW_AUTOSIZE);
+    namedWindow("Label", WINDOW_AUTOSIZE);
     
 	return rc;
 }
@@ -506,7 +509,7 @@ void SampleViewer::Display()
 
 	if (depthFrameSide.isValid() && g_drawDepth)
 	{
-		calculateHistogram(m_pDepthHist, MAX_DEPTH, depthFrameSide);
+		calculateHistogram(m_pDepthHistSide, MAX_DEPTH, depthFrameSide);
 	}
 
 	memset(m_pTexMap, 0, m_nTexMapX*m_nTexMapY*sizeof(openni::RGB888Pixel));
@@ -573,7 +576,7 @@ void SampleViewer::Display()
 // 						factor[0] = factor[2] = 0;
 // 					}
 
-					int nHistValue = m_pDepthHist[*pDepth];
+					int nHistValue = m_pDepthHistSide[*pDepth];
 					pTex->r = nHistValue*factor[0];
 					pTex->g = nHistValue*factor[1];
 					pTex->b = nHistValue*factor[2];
@@ -607,13 +610,21 @@ void SampleViewer::Display()
         }
 	}
     
-    Mat imgTop;
     const openni::DepthPixel *imageBuffer = (const openni::DepthPixel *)depthFrameTop.getData();
-    imgTop.create(depthFrameTop.getHeight(), depthFrameTop.getWidth(), CV_16U);
-    memcpy(imgTop.data, imageBuffer, depthFrameTop.getHeight()*depthFrameTop.getWidth()*sizeof(uint16_t));
-    imgTop.convertTo(imgTop, CV_8UC3, 1.0/256);
-    equalizeHist(imgTop, imgTop);
-    cvtColor(imgTop, imgTop, CV_GRAY2RGB);
+    calculateHistogram(m_pDepthHistTop, MAX_DEPTH, depthFrameTop);
+    imgTop = Mat(depthFrameTop.getHeight(), depthFrameTop.getWidth(), CV_8UC3);
+    for (int i = 0; i < imgTop.rows; i++) {
+        for (int j = 0; j < imgTop.cols; j++) {
+            int val = (int)m_pDepthHistTop[imageBuffer[j + i*imgTop.cols]];
+            imgTop.at<Vec3b>(i, j).val[0] = val;
+            imgTop.at<Vec3b>(i, j).val[1] = val;
+            imgTop.at<Vec3b>(i, j).val[2] = val;
+        }
+    }
+    
+    //imgTop.convertTo(imgTop, CV_8UC3, 1.0/256);
+    //equalizeHist(imgTop, imgTop);
+    //cvtColor(imgTop, imgTop, CV_GRAY2RGB);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -778,9 +789,12 @@ void SampleViewer::Display()
         nFrame++;
     }
     
+    knnsearch(topJoints, imageBuffer, pxLabel, 320, 240);
+    
     imshow("Side", sideSkel);
     imshow("Top", topSkel);
     imshow("DepthTop", imgTop);
+    imshow("Label", pxLabel);
     
     g_capture = false;
     

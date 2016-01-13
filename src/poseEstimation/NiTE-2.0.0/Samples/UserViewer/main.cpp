@@ -21,7 +21,7 @@ int main(int argc, char** argv)
 	}
 	sampleViewer.Run();
 }
-#else
+#elif 0
 int main() {
     float sideJoints[N_JOINTS][5] = {
         {837.6,397.825,2808.27,245.056,79.6021},
@@ -40,15 +40,14 @@ int main() {
         {574.635,-1011.4,3065.73,213.452,214.08},
         {935.145,-1080.45,2898.44,252.007,226.303}
     };
-
-    float topJoints[N_JOINTS][5] = {0};
-    side2top(sideJoints, topJoints);
-    for (int i = 0; i < N_JOINTS; i++) {
-        for (int j = 0; j < 5; j++) {
-            std::cout << topJoints[i][j] << " ";
-        }
-        std::cout << std::endl;
-    }
+    return 0;
+}
+#elif 1
+int main() {
+    float arr[10] = {1,2,3,4,5,6,7,8,9,10};
+    Mat img(10, 1, CV_32FC1, arr);
+    img = img.reshape(0, 2);
+    printf("%d, %d\n", img.rows, img.cols);
     return 0;
 }
 #endif
