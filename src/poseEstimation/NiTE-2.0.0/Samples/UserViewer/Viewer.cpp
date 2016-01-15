@@ -34,19 +34,14 @@ bool g_drawBackground = true;
 bool g_drawDepth = true;
 bool g_drawFrameId = false;
 bool g_pause = false;
-bool g_capture = false;
-bool g_saveImg = true;
+bool g_capture = false; // only capture 1 frame
+bool g_getBackground = true;
 
 int nFrame = 0;
 
 float sideJoints[N_JOINTS][5];
 float topJoints[N_JOINTS][5];
 int *depth, *label;
-
-Mat sideSkel;
-Mat topSkel;
-Mat pxLabel;
-Mat imgTop;
 
 int g_nXRes = 0, g_nYRes = 0;
 string outDir = "/Users/alan/Documents/research/healthcare/src/poseEstimation/NiTE-2.0.0/Samples/UserViewer/data";
@@ -74,6 +69,7 @@ SampleViewer::SampleViewer(const char* strSampleName) : m_poseUser(0)
 	ms_self = this;
 	strncpy(m_strSampleName, strSampleName, ONI_MAX_STR);
 	m_pUserTracker = new nite::UserTracker;
+    bgSubtractor = new BgSubtractor(320, 240);
 }
 
 SampleViewer::~SampleViewer()
@@ -158,6 +154,7 @@ openni::Status SampleViewer::Init(int argc, char **argv)
     namedWindow("Top", WINDOW_AUTOSIZE);
     namedWindow("DepthTop", WINDOW_AUTOSIZE);
     namedWindow("Label", WINDOW_AUTOSIZE);
+    namedWindow("Mask", WINDOW_AUTOSIZE);
     
 	return rc;
 }
@@ -542,7 +539,7 @@ void SampleViewer::Display()
 			for (int x = 0; x < width; ++x, ++pDepth, ++pTex, ++pLabels)
 			{
                 //printf("%u, %hu\n", (unsigned int)(*pDepth), *pLabels);
-                if (g_capture && g_saveImg) {
+                if (g_capture) {
                     int i = y*width + x;
                     depth[i] = *pDepth;
                     label[i] = *pLabels;
@@ -589,7 +586,7 @@ void SampleViewer::Display()
 			pTexRow += m_nTexMapX;
 		}
 
-		if (g_capture && g_saveImg) {
+		if (g_capture) {
             ofstream file;
             file.open(outDir + "/depth" + to_string(nFrame) + ".dat");
             if (!file.is_open())
@@ -613,6 +610,7 @@ void SampleViewer::Display()
     const openni::DepthPixel *imageBuffer = (const openni::DepthPixel *)depthFrameTop.getData();
     calculateHistogram(m_pDepthHistTop, MAX_DEPTH, depthFrameTop);
     imgTop = Mat(depthFrameTop.getHeight(), depthFrameTop.getWidth(), CV_8UC3);
+    Mat(depthFrameTop.getHeight(), depthFrameTop.getWidth(), CV_16U, (void *)imageBuffer).convertTo(depthTop, CV_8U, 1.0/256);
     for (int i = 0; i < imgTop.rows; i++) {
         for (int j = 0; j < imgTop.cols; j++) {
             int val = (int)m_pDepthHistTop[imageBuffer[j + i*imgTop.cols]];
@@ -621,10 +619,10 @@ void SampleViewer::Display()
             imgTop.at<Vec3b>(i, j).val[2] = val;
         }
     }
-    
-    //imgTop.convertTo(imgTop, CV_8UC3, 1.0/256);
-    //equalizeHist(imgTop, imgTop);
-    //cvtColor(imgTop, imgTop, CV_GRAY2RGB);
+    if (g_getBackground)
+        bgSubtractor->processImages(depthTop);
+    bgSubtractor->getMask(depthTop, mask);
+    imshow("Mask", mask);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -787,16 +785,18 @@ void SampleViewer::Display()
         file.close();
         
         nFrame++;
+        
+        g_capture = false;
     }
-    
-    knnsearch(topJoints, imageBuffer, pxLabel, 320, 240);
-    
+
     imshow("Side", sideSkel);
     imshow("Top", topSkel);
     imshow("DepthTop", imgTop);
-    imshow("Label", pxLabel);
     
-    g_capture = false;
+    if (!g_getBackground) {
+        knnsearch(topJoints, imageBuffer, mask, pxLabel, 320, 240);
+        imshow("Label", pxLabel);
+    }
     
     // Swap the OpenGL display buffers
 	glutSwapBuffers();
@@ -841,9 +841,13 @@ void SampleViewer::OnKey(unsigned char key, int /*x*/, int /*y*/)
         // Pause
         g_pause = !g_pause;
         break;
-    case 'a':
+    case '1':
         // Capture
         g_capture = !g_capture;
+        break;
+    case '2':
+        // Get background
+        g_getBackground = false;
         break;
     }
 }

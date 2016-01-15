@@ -35,7 +35,10 @@ dependencies: \
   /usr/local/include/opencv2/highgui/highgui_c.h \
   /usr/local/include/opencv2/imgcodecs/imgcodecs_c.h \
   /usr/local/include/opencv2/videoio/videoio_c.h \
-  /usr/local/include/opencv2/ml.hpp ../../../Include/NiTE.h \
+  /usr/local/include/opencv2/ml.hpp \
+  /usr/local/include/opencv2/video/background_segm.hpp \
+  /usr/local/include/opencv2/photo.hpp \
+  /usr/local/include/opencv2/photo/photo_c.h ../../../Include/NiTE.h \
   ../../../Include/NiteCAPI.h \
   ../../../../OpenNI-MacOSX-x64-2.2/Include/OniPlatform.h \
   ../../../../OpenNI-MacOSX-x64-2.2/Include/MacOSX/OniPlatformMacOSX.h \

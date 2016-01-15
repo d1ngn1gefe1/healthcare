@@ -10,11 +10,11 @@
 
 float dx = 0;
 float dy = 1.5e3;
-float dz = 2.6e3;
+float dz = 2.8e3;
 
 float unitVectors[4][4] = {{1,0,0,0}, {0,0,1,0}, {0,-1,0,0}, {0,0,0,1}};
 
-float s = 1;//4.74;
+float s = 4.74;
 
 Scalar colorMap[16] = {
     Scalar(255, 0, 0), Scalar(0, 255, 0), Scalar(0, 0, 255), Scalar(0, 255, 255),
@@ -23,7 +23,23 @@ Scalar colorMap[16] = {
     Scalar(0, 128, 255), Scalar(128, 0, 255), Scalar(128, 255, 0), Scalar(255, 128, 0)
                       };
 
-
+string jointMap[15] {
+    "HEAD",
+    "NECK",
+    "LEFT SHOULDER",
+    "RIGHT SHOULDER",
+    "LEFT ELBOW",
+    "RIGHT ELBOW",
+    "LEFT HAND",
+    "RIGHT HAND",
+    "TORSO",
+    "LEFT HIP",
+    "RIGHT HIP",
+    "LEFT KNEE",
+    "RIGHT KNEE",
+    "LEFT FOOT",
+    "RIGHT FOOT"
+};
 
 void rigidBodyMotion(float sideJoint[4], float topJoint[4], float dx, float dy, float dz, float unitVectors[4][4]) {
     float rotation[4][4];
@@ -95,47 +111,120 @@ void drawSkeleton(Mat &img, float side[][5]) {
     line(img, pt[12], pt[14], colorMap[15], 2);
 }
 
-void knnsearch(float skeleton[][5], const openni::DepthPixel *imageBuffer, Mat &out, int width, int height) {
+void getInfo(Mat &img) {
+    Scalar mean;
+    Scalar stddev;
+    double min;
+    double max;
+    
+    meanStdDev(img.col(0), mean, stddev);
+    minMaxLoc(img.col(0), &min, &max);
+    printf("x: %d, %d, %lf, %lf\n", (int)(mean.val[0]), (int)(stddev.val[0]), min, max);
+    meanStdDev(img.col(1), mean, stddev);
+    minMaxLoc(img.col(1), &min, &max);
+    printf("y: %d, %d, %lf, %lf\n", (int)(mean.val[0]), (int)(stddev.val[0]), min, max);
+    meanStdDev(img.col(2), mean, stddev);
+    minMaxLoc(img.col(2), &min, &max);
+    printf("z: %d, %d, %lf, %lf\n", (int)(mean.val[0]), (int)(stddev.val[0]), min, max);
+}
+
+#define ACTUAL_SKEL 0
+#define TEXT_W 100
+
+void drawText(Mat &img, int width, int height) {
+    for (int i = 0; i < N_JOINTS; i++) {
+        putText(img, jointMap[i], Point(width, (float)height*(i+1)/N_JOINTS-5), FONT_HERSHEY_SIMPLEX, 0.3, colorMap[i]);
+    }
+}
+
+void knnsearch(float skeleton[][5], const openni::DepthPixel *imageBuffer, Mat &mask, Mat &out, int width, int height) {
     Ptr<ml::KNearest> knn(ml::KNearest::create());
 
-    Mat tmp1(N_JOINTS, 5, CV_32FC1, skeleton);
-    Mat tmp2, tmp3;
-    tmp1(Range(0, tmp1.rows), Range(3, 5)).copyTo(tmp2);
-    tmp1(Range(0, tmp1.rows), Range(2, 3)).copyTo(tmp3);
-    hconcat(tmp2, tmp3/s, tmp1);
+    // make train features and train labels
+    Mat skel(N_JOINTS, 5, CV_32FC1, skeleton);
+    Mat skel1, skel2;
+    skel(Range(0, skel.rows), Range(3, 5)).copyTo(skel1);
+    skel(Range(0, skel.rows), Range(2, 3)).copyTo(skel2);
+    hconcat(skel1, skel2, skel);
     
-    Mat_<float> trainFeatures = (Mat_<float> &)tmp1;
+    Mat_<float> trainFeatures = (Mat_<float> &)skel;
     
     Mat_<int> trainLabels(1, N_JOINTS);
     trainLabels << 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14;
     
+    // train knn
     knn->train(trainFeatures, ml::ROW_SAMPLE, trainLabels);
     
-    //
-    
-    float img[width*height][3];
+    // make test features
+    int n = 0;
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
-            img[j + i*width][0] = i;
-            img[j + i*width][1] = j;
-            img[j + i*width][2] = ((float)imageBuffer[j + i*width])/s;
+            if (mask.at<uchar>(i, j) != 0 && imageBuffer[j + i*width] != 0) {
+                n++;
+            }
         }
     }
     
-    Mat testFeatureTmp = Mat(width*height, 3, CV_32FC1, img);
+#if ACTUAL_SKEL
+    float actualSkelFl[N_JOINTS][2] = {0};
+#endif
+    
+    int idx = 0;
+    float testFeatureFl[n][3];
+    for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width; j++) {
+            if (mask.at<uchar>(i, j) == 0 || imageBuffer[j + i*width] == 0) {
+                continue;
+            }
+            
+#if ACTUAL_SKEL
+            for (int k = 0; k < N_JOINTS; k++) {
+                if (j < (int)skel.at<float>(k, 0)+5 && j > (int)skel.at<float>(k, 0)-5 &&
+                    i < (int)skel.at<float>(k, 1)+5 && i > (int)skel.at<float>(k, 1)-5) {
+                    actualSkelFl[k][0] += (float)imageBuffer[j + i*width];
+                    actualSkelFl[k][1] += 1;
+                }
+            }
+#endif
+            
+            testFeatureFl[idx][0] = j;
+            testFeatureFl[idx][1] = i;
+            testFeatureFl[idx][2] = (float)imageBuffer[j + i*width];
+            idx++;
+        }
+    }
+    
+#if ACTUAL_SKEL
+    for (int k = 0; k < N_JOINTS; k++) {
+        if (actualSkelFl[k][1] != 0) {
+            actualSkelFl[k][0] /= actualSkelFl[k][1];
+        }
+        printf("joint %d: %f vs %f\n", k, actualSkelFl[k][0], skeleton[k][2]);
+    }
+#endif
+    
+    assert(n == idx);
+    
+    Mat testFeatureTmp = Mat(n, 3, CV_32FC1, testFeatureFl);
     Mat_<float> testFeature = (Mat_<float> &)testFeatureTmp;
+    
+    getInfo(skel);
+    getInfo(testFeatureTmp);
+    printf("\n\n");
     
     Mat results;
     knn->findNearest(testFeature, 1, results);
-    results = results.reshape(0, height);
-    out.create(height, width, CV_8UC3);
+    out = Mat::zeros(height, width + TEXT_W, CV_8UC3);
     
-    for (int i = 0; i < results.rows; i++) {
-        for (int j = 0; j < results.cols; j++) {
-            int idx = (int)results.at<float>(i,j);
-            out.at<Vec3b>(i, j).val[0] = colorMap[idx][0];
-            out.at<Vec3b>(i, j).val[1] = colorMap[idx][2];
-            out.at<Vec3b>(i, j).val[2] = colorMap[idx][3];
-        }
+    // visualize the result
+    for (int i = 0; i < n; i++) {
+        int x = (int)testFeatureFl[i][0];
+        int y = (int)testFeatureFl[i][1];
+        int z = results.at<float>(i, 0);
+        out.at<Vec3b>(y, x).val[0] = colorMap[z][0];
+        out.at<Vec3b>(y, x).val[1] = colorMap[z][1];
+        out.at<Vec3b>(y, x).val[2] = colorMap[z][2];
     }
+    
+    drawText(out, width, height);
 }

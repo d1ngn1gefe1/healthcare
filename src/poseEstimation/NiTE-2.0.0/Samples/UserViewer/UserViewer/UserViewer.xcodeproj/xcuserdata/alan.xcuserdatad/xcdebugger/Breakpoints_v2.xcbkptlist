@@ -6,15 +6,15 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "../Viewer.cpp"
-            timestampString = "474360926.160623"
+            timestampString = "474509916.98417"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "361"
-            endingLineNumber = "361"
+            startingLineNumber = "358"
+            endingLineNumber = "358"
             landmarkName = "getJointName(nite::JointType jointType)"
             landmarkType = "7">
          </BreakpointContent>
@@ -26,12 +26,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "UserViewer/helper.cpp"
-            timestampString = "474366700.164294"
+            timestampString = "474594761.072176"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "126"
-            endingLineNumber = "126"
-            landmarkName = "knnsearch(float skeleton[][5], const openni::DepthPixel *imageBuffer, Mat &amp;out, int width, int height)"
+            startingLineNumber = "210"
+            endingLineNumber = "210"
+            landmarkName = "knnsearch(float skeleton[][5], const openni::DepthPixel *imageBuffer, Mat &amp;mask, Mat &amp;out, int width, int height)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -74,11 +74,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "../Viewer.cpp"
-            timestampString = "474366012.342515"
+            timestampString = "474509916.98417"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "614"
-            endingLineNumber = "614"
+            startingLineNumber = "611"
+            endingLineNumber = "611"
             landmarkName = "SampleViewer::Display()"
             landmarkType = "5">
          </BreakpointContent>
@@ -90,13 +90,61 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "UserViewer/helper.cpp"
-            timestampString = "474366700.164294"
+            timestampString = "474594761.072176"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "128"
-            endingLineNumber = "128"
-            landmarkName = "knnsearch(float skeleton[][5], const openni::DepthPixel *imageBuffer, Mat &amp;out, int width, int height)"
+            startingLineNumber = "215"
+            endingLineNumber = "215"
+            landmarkName = "knnsearch(float skeleton[][5], const openni::DepthPixel *imageBuffer, Mat &amp;mask, Mat &amp;out, int width, int height)"
             landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "UserViewer/bgSubtractor.cpp"
+            timestampString = "474451997.864542"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "21"
+            endingLineNumber = "21"
+            landmarkName = "BgSubtractor::processImages(Mat &amp;img)"
+            landmarkType = "5">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "UserViewer/bgSubtractor.cpp"
+            timestampString = "474452575.9272"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "22"
+            endingLineNumber = "22"
+            landmarkName = "BgSubtractor::processImages(Mat &amp;img)"
+            landmarkType = "5">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../Viewer.cpp"
+            timestampString = "474509916.98417"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "623"
+            endingLineNumber = "623"
+            landmarkName = "SampleViewer::Display()"
+            landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

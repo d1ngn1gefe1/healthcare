@@ -36,7 +36,10 @@ dependencies: \
   /usr/local/include/opencv2/highgui/highgui_c.h \
   /usr/local/include/opencv2/imgcodecs/imgcodecs_c.h \
   /usr/local/include/opencv2/videoio/videoio_c.h \
-  /usr/local/include/opencv2/ml.hpp ../../../Include/NiTE.h \
+  /usr/local/include/opencv2/ml.hpp \
+  /usr/local/include/opencv2/video/background_segm.hpp \
+  /usr/local/include/opencv2/photo.hpp \
+  /usr/local/include/opencv2/photo/photo_c.h ../../../Include/NiTE.h \
   ../../../Include/NiteCAPI.h \
   ../../../../OpenNI-MacOSX-x64-2.2/Include/OniPlatform.h \
   ../../../../OpenNI-MacOSX-x64-2.2/Include/MacOSX/OniPlatformMacOSX.h \
@@ -51,4 +54,5 @@ dependencies: \
   ../../../../OpenNI-MacOSX-x64-2.2/Include/OpenNI.h \
   ../../../../OpenNI-MacOSX-x64-2.2/Include/OniProperties.h \
   ../../../../OpenNI-MacOSX-x64-2.2/Include/OniEnums.h \
-  ../../../Include/NiteEnums.h
+  ../../../Include/NiteEnums.h \
+  /Users/alan/Documents/research/healthcare/src/poseEstimation/NiTE-2.0.0/Samples/UserViewer/UserViewer/UserViewer/bgSubtractor.hpp

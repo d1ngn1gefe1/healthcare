@@ -9,6 +9,7 @@
 #define _NITE_USER_VIEWER_H_
 
 #include "helper.hpp"
+#include "bgSubtractor.hpp"
 
 #include <vector>
 #include <iostream>
@@ -58,6 +59,11 @@ private:
     openni::Device		m_deviceTop;
     openni::VideoStream depthStreamTop;
     float				m_pDepthHistTop[MAX_DEPTH];
+    
+    BgSubtractor *bgSubtractor;
+    Mat mask;
+    
+    Mat sideSkel, topSkel, pxLabel, imgTop, depthTop;
 
 	nite::UserId m_poseUser;
 	uint64_t m_poseTime;
