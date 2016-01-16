@@ -14,7 +14,7 @@ float dz = 2.8e3;
 
 float unitVectors[4][4] = {{1,0,0,0}, {0,0,1,0}, {0,-1,0,0}, {0,0,0,1}};
 
-float s = 4.74;
+float s = 4;
 
 Scalar colorMap[16] = {
     Scalar(255, 0, 0), Scalar(0, 255, 0), Scalar(0, 0, 255), Scalar(0, 255, 255),
@@ -24,21 +24,10 @@ Scalar colorMap[16] = {
                       };
 
 string jointMap[15] {
-    "HEAD",
-    "NECK",
-    "LEFT SHOULDER",
-    "RIGHT SHOULDER",
-    "LEFT ELBOW",
-    "RIGHT ELBOW",
-    "LEFT HAND",
-    "RIGHT HAND",
-    "TORSO",
-    "LEFT HIP",
-    "RIGHT HIP",
-    "LEFT KNEE",
-    "RIGHT KNEE",
-    "LEFT FOOT",
-    "RIGHT FOOT"
+    "HEAD", "NECK", "LEFT SHOULDER", "RIGHT SHOULDER",
+    "LEFT ELBOW", "RIGHT ELBOW", "LEFT HAND", "RIGHT HAND",
+    "TORSO", "LEFT HIP", "RIGHT HIP", "LEFT KNEE",
+    "RIGHT KNEE", "LEFT FOOT", "RIGHT FOOT"
 };
 
 void rigidBodyMotion(float sideJoint[4], float topJoint[4], float dx, float dy, float dz, float unitVectors[4][4]) {
@@ -145,7 +134,7 @@ void knnsearch(float skeleton[][5], const openni::DepthPixel *imageBuffer, Mat &
     Mat skel1, skel2;
     skel(Range(0, skel.rows), Range(3, 5)).copyTo(skel1);
     skel(Range(0, skel.rows), Range(2, 3)).copyTo(skel2);
-    hconcat(skel1, skel2, skel);
+    hconcat(skel1, skel2/s, skel);
     
     Mat_<float> trainFeatures = (Mat_<float> &)skel;
     
@@ -189,7 +178,7 @@ void knnsearch(float skeleton[][5], const openni::DepthPixel *imageBuffer, Mat &
             
             testFeatureFl[idx][0] = j;
             testFeatureFl[idx][1] = i;
-            testFeatureFl[idx][2] = (float)imageBuffer[j + i*width];
+            testFeatureFl[idx][2] = (float)imageBuffer[j + i*width]/s;
             idx++;
         }
     }

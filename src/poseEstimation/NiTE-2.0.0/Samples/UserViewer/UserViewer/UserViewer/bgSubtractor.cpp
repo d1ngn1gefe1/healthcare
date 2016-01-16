@@ -60,7 +60,7 @@ void BgSubtractor::getMask(Mat &img, Mat &mask) {
     //GaussianBlur(bg, bg, Size(5, 5), 10);
     //GaussianBlur(img, img, Size(5, 5), 10);
     absdiff(img, bg, mask);
-    threshold(mask, mask, 3, 255, THRESH_BINARY);
+    threshold(mask, mask, 1, 255, THRESH_BINARY);
     equalizeHist(mask, mask);
     Mat element = getStructuringElement(MORPH_ELLIPSE, Size(3, 3));
     erode(mask, mask, element);
