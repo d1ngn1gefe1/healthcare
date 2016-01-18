@@ -10,11 +10,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "../Viewer.cpp"
-            timestampString = "474509916.98417"
+            timestampString = "474840002.609449"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "358"
-            endingLineNumber = "358"
+            startingLineNumber = "363"
+            endingLineNumber = "363"
             landmarkName = "getJointName(nite::JointType jointType)"
             landmarkType = "7">
          </BreakpointContent>
@@ -26,12 +26,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "UserViewer/helper.cpp"
-            timestampString = "474594761.072176"
+            timestampString = "474841796.80346"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "210"
-            endingLineNumber = "210"
-            landmarkName = "knnsearch(float skeleton[][5], const openni::DepthPixel *imageBuffer, Mat &amp;mask, Mat &amp;out, int width, int height)"
+            startingLineNumber = "208"
+            endingLineNumber = "208"
+            landmarkName = "makeTestFeatures(const openni::DepthPixel *imageBuffer, Mat &amp;mask, Mat &amp;testFeature, vector&lt;Point&gt; &amp;pts, float skeleton[][5], int width, int height, Normalization method)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -57,28 +57,12 @@
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "../main.cpp"
-            timestampString = "474360544.768829"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "51"
-            endingLineNumber = "51"
-            landmarkName = "main()"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
             filePath = "../Viewer.cpp"
-            timestampString = "474509916.98417"
+            timestampString = "474840002.609449"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "611"
-            endingLineNumber = "611"
+            startingLineNumber = "616"
+            endingLineNumber = "616"
             landmarkName = "SampleViewer::Display()"
             landmarkType = "5">
          </BreakpointContent>
@@ -90,12 +74,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "UserViewer/helper.cpp"
-            timestampString = "474594761.072176"
+            timestampString = "474841796.80346"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "215"
-            endingLineNumber = "215"
-            landmarkName = "knnsearch(float skeleton[][5], const openni::DepthPixel *imageBuffer, Mat &amp;mask, Mat &amp;out, int width, int height)"
+            startingLineNumber = "213"
+            endingLineNumber = "213"
+            landmarkName = "makeTrainFeatures(float skeleton[][5], Mat &amp;trainFeatures, Normalization method)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -138,11 +122,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "../Viewer.cpp"
-            timestampString = "474509916.98417"
+            timestampString = "474840002.609449"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "623"
-            endingLineNumber = "623"
+            startingLineNumber = "628"
+            endingLineNumber = "628"
             landmarkName = "SampleViewer::Display()"
             landmarkType = "5">
          </BreakpointContent>
@@ -154,11 +138,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "UserViewer/helper.cpp"
-            timestampString = "474595293.419911"
+            timestampString = "474833832.148943"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "31"
-            endingLineNumber = "31">
+            startingLineNumber = "30"
+            endingLineNumber = "30">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

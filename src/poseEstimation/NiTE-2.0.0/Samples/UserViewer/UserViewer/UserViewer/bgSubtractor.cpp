@@ -51,7 +51,6 @@ void removeSmallBlobs(Mat& im, double size)
         if (area >= 0 && area <= size)
             drawContours(im, contours, i, 0, -1);
     }
-    printf("\n");
 }
 
 void BgSubtractor::getMask(Mat &img, Mat &mask) {

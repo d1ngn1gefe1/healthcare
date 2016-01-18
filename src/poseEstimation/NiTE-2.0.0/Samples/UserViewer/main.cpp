@@ -44,10 +44,24 @@ int main() {
 }
 #elif 1
 int main() {
-    float arr[10] = {1,2,3,4,5,6,7,8,9,10};
-    Mat img(10, 1, CV_32FC1, arr);
-    img = img.reshape(0, 2);
-    printf("%d, %d\n", img.rows, img.cols);
+    int r = 3;
+    int c = 4;
+    vector<float> Vf;
+    
+    int cnt = 0;
+    for(int i = 0; i < r; ++i) {
+        for(int j = 0; j < c; ++j) {
+            Vf.push_back(cnt);
+            cnt++;
+        }
+    }
+    
+    Mat M = Mat(r, c, CV_32FC1, (void *)&Vf[0]);
+    cout << M << endl;
+    M.col(0) = M.col(0) / 2;
+    cout << M << endl;
+
+    
     return 0;
 }
 #endif

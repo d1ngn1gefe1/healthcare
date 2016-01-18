@@ -63,7 +63,7 @@ private:
     BgSubtractor *bgSubtractor;
     Mat mask;
     
-    Mat sideSkel, topSkel, pxLabel, imgTop, depthTop;
+    Mat sideSkel, topSkel, labelTop, imgTop, depthTop;
 
 	nite::UserId m_poseUser;
 	uint64_t m_poseTime;

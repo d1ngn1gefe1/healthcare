@@ -34,14 +34,16 @@ bool g_drawBackground = true;
 bool g_drawDepth = true;
 bool g_drawFrameId = false;
 bool g_pause = false;
-bool g_capture = false; // only capture 1 frame
+bool g_capture1 = false; // only capture 1 frame
+bool g_capture2 = false; // capture continuously
 bool g_getBackground = true;
 
 int nFrame = 0;
 
+int *label;
+
 float sideJoints[N_JOINTS][5];
 float topJoints[N_JOINTS][5];
-int *depth, *label;
 
 int g_nXRes = 0, g_nYRes = 0;
 string outDir = "/Users/alan/Documents/research/healthcare/src/poseEstimation/NiTE-2.0.0/Samples/UserViewer/data";
@@ -151,10 +153,15 @@ openni::Status SampleViewer::Init(int argc, char **argv)
     sideSkel = Mat::zeros(GL_WIN_SIZE_Y, GL_WIN_SIZE_X, CV_8UC3);
     topSkel = Mat::zeros(GL_WIN_SIZE_Y, GL_WIN_SIZE_X, CV_8UC3);
     namedWindow("Side", WINDOW_AUTOSIZE);
+    moveWindow("Side", 0, 600);
     namedWindow("Top", WINDOW_AUTOSIZE);
+    moveWindow("Top", 0, 0);
     namedWindow("DepthTop", WINDOW_AUTOSIZE);
+    moveWindow("DepthTop", 1120, 600);
     namedWindow("Label", WINDOW_AUTOSIZE);
+    moveWindow("Label", 300, 200);
     namedWindow("Mask", WINDOW_AUTOSIZE);
+    moveWindow("Mask", 1120, 0);
     
 	return rc;
 }
@@ -470,19 +477,23 @@ void SampleViewer::Display()
         return;
     
 	nite::UserTrackerFrameRef userTrackerFrame;
-	openni::VideoFrameRef depthFrameSide;
     nite::Status rc1 = m_pUserTracker->readFrame(&userTrackerFrame);
-	if (rc1 != nite::STATUS_OK)
-	{
+	if (rc1 != nite::STATUS_OK) {
 		printf("GetNextData failed\n");
 		return;
 	}
-	depthFrameSide = userTrackerFrame.getDepthFrame();
+    
+	openni::VideoFrameRef depthFrameSide = userTrackerFrame.getDepthFrame();
+    int height = depthFrameSide.getHeight();
+    int width = depthFrameSide.getWidth();
+
+    if (!label) {
+    	label = (int *)malloc(width*height*sizeof(int));
+    }
     
     openni::VideoFrameRef depthFrameTop;
     openni::Status rc2 = depthStreamTop.readFrame(&depthFrameTop);
-	if (rc2 != openni::STATUS_OK)
-	{
+	if (rc2 != openni::STATUS_OK) {
 		printf("GetNextData failed\n");
 		return;
 	}
@@ -520,16 +531,6 @@ void SampleViewer::Display()
 		const openni::DepthPixel* pDepthRow = (const openni::DepthPixel*)depthFrameSide.getData();
 		openni::RGB888Pixel* pTexRow = m_pTexMap + depthFrameSide.getCropOriginY() * m_nTexMapX;
 		int rowSize = depthFrameSide.getStrideInBytes() / sizeof(openni::DepthPixel);
-
-        int height = depthFrameSide.getHeight();
-        int width = depthFrameSide.getWidth();
-        
-        if (!depth) {
-            depth = (int *)malloc(height*width*sizeof(int));
-        }
-        if (!label) {
-            label = (int *)malloc(height*width*sizeof(int));
-        }
         
 		for (int y = 0; y < height; ++y)
 		{
@@ -538,13 +539,6 @@ void SampleViewer::Display()
 
 			for (int x = 0; x < width; ++x, ++pDepth, ++pTex, ++pLabels)
 			{
-                //printf("%u, %hu\n", (unsigned int)(*pDepth), *pLabels);
-                if (g_capture) {
-                    int i = y*width + x;
-                    depth[i] = *pDepth;
-                    label[i] = *pLabels;
-                }
-                
 				if (*pDepth != 0)
 				{
 					if (*pLabels == 0)
@@ -585,40 +579,22 @@ void SampleViewer::Display()
 			pDepthRow += rowSize;
 			pTexRow += m_nTexMapX;
 		}
-
-		if (g_capture) {
-            ofstream file;
-            file.open(outDir + "/depth" + to_string(nFrame) + ".dat");
-            if (!file.is_open())
-                printf("can't open depth");
-            for (int i = 0; i < width*height; i++) {
-                file << depth[i] << endl;
-            }
-            file.close();
-            
-            file.open(outDir + "/label" + to_string(nFrame) + ".dat");
-            if (!file.is_open())
-                printf("can't open label");
-            for (int i = 0; i < width*height; i++) {
-                file << label[i] << endl;
-            }
-            file.close();
-            //printf("(%d, %d)\n", depthFrameSide.getWidth(), depthFrameSide.getHeight());
-        }
 	}
     
-    const openni::DepthPixel *imageBuffer = (const openni::DepthPixel *)depthFrameTop.getData();
+    const openni::DepthPixel *imgBufferTop = (const openni::DepthPixel *)depthFrameTop.getData();
     calculateHistogram(m_pDepthHistTop, MAX_DEPTH, depthFrameTop);
     imgTop = Mat(depthFrameTop.getHeight(), depthFrameTop.getWidth(), CV_8UC3);
-    Mat(depthFrameTop.getHeight(), depthFrameTop.getWidth(), CV_16U, (void *)imageBuffer).convertTo(depthTop, CV_8U, 1.0/256);
+    Mat(depthFrameTop.getHeight(), depthFrameTop.getWidth(), CV_16U, (void *)imgBufferTop).convertTo(depthTop, CV_8U, 1.0/256);
+    
     for (int i = 0; i < imgTop.rows; i++) {
         for (int j = 0; j < imgTop.cols; j++) {
-            int val = (int)m_pDepthHistTop[imageBuffer[j + i*imgTop.cols]];
+            int val = (int)m_pDepthHistTop[imgBufferTop[j + i*imgTop.cols]];
             imgTop.at<Vec3b>(i, j).val[0] = val;
             imgTop.at<Vec3b>(i, j).val[1] = val;
             imgTop.at<Vec3b>(i, j).val[2] = val;
         }
     }
+    
     if (g_getBackground)
         bgSubtractor->processImages(depthTop);
     bgSubtractor->getMask(depthTop, mask);
@@ -755,47 +731,31 @@ void SampleViewer::Display()
 		glPrintString(GLUT_BITMAP_HELVETICA_18, msg);
 	}
 
-    if (g_capture) {
-        ofstream file;
-            
-        file.open(outDir + "/joints-side" + to_string(nFrame) + ".dat");
-        if (!file.is_open()) {
-            printf("can't open joints-side");
-            return;
-        }
-        for (int i = 0; i < N_JOINTS; i++) {
-            for (int j = 0; j < 5; j++) {
-                file << sideJoints[i][j] << " ";
-            }
-            file << endl;
-        }
-        file.close();
-        
-        file.open(outDir + "/joints-top" + to_string(nFrame) + ".dat");
-        if (!file.is_open()) {
-            printf("can't open joints-top");
-            return;
-        }
-        for (int i = 0; i < N_JOINTS; i++) {
-            for (int j = 0; j < 5; j++) {
-                file << topJoints[i][j] << " ";
-            }
-            file << endl;
-        }
-        file.close();
-        
-        nFrame++;
-        
-        g_capture = false;
-    }
-
     imshow("Side", sideSkel);
     imshow("Top", topSkel);
     imshow("DepthTop", imgTop);
     
     if (!g_getBackground) {
-        knnsearch(topJoints, imageBuffer, mask, pxLabel, 320, 240);
-        imshow("Label", pxLabel);
+        knnsearch(topJoints, imgBufferTop, mask, labelTop, label, 320, 240);
+        cv::resize(labelTop, labelTop, Size(), 2, 2);
+        imshow("Label", labelTop);
+        
+        if (g_capture2) {
+            ofstream file;
+            file.open(outDir + "/depth" + to_string(nFrame) + ".dat");
+            for (int i = 0; i < width*height; i++) {
+                file << imgBufferTop[i] << endl;
+            }
+            file.close();
+
+            file.open(outDir + "/label" + to_string(nFrame) + ".dat");
+            for (int i = 0; i < width*height; i++) {
+                file << label[i] << endl;
+            }
+            file.close();
+            
+            nFrame++;
+        }
     }
     
     // Swap the OpenGL display buffers
@@ -842,12 +802,21 @@ void SampleViewer::OnKey(unsigned char key, int /*x*/, int /*y*/)
         g_pause = !g_pause;
         break;
     case '1':
-        // Capture
-        g_capture = !g_capture;
+        // Capture 1 frame
+        g_capture1 = !g_capture1;
         break;
     case '2':
+        // Capture continuous frames
+        g_capture2 = !g_capture2;
+        if (g_capture2)
+            printf("Start collecting frames\n");
+        else
+            printf("Done collecting frames\n");
+        break;
+    case '3':
         // Get background
         g_getBackground = false;
+        printf("Done collecting background\n");
         break;
     }
 }

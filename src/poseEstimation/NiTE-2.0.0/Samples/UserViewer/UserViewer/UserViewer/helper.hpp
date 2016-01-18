@@ -10,6 +10,7 @@
 #define helper_hpp
 
 #include <stdio.h>
+#include <vector>
 #include "opencv2/core/core.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
@@ -25,6 +26,6 @@ using namespace std;
 
 void side2top(float side[][5], float top[][5]);
 void drawSkeleton(Mat &img, float side[][5]);
-void knnsearch(float skeleton[][5], const openni::DepthPixel *imageBuffer, Mat &mask, Mat &out, int width, int height);
+void knnsearch(float skeleton[][5], const openni::DepthPixel *imageBuffer, Mat &mask, Mat &out, int *label, int width, int height);
 
 #endif /* helper_hpp */

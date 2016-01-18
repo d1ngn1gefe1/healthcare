@@ -14,8 +14,6 @@ float dz = 2.8e3;
 
 float unitVectors[4][4] = {{1,0,0,0}, {0,0,1,0}, {0,-1,0,0}, {0,0,0,1}};
 
-float s = 4;
-
 Scalar colorMap[16] = {
     Scalar(255, 0, 0), Scalar(0, 255, 0), Scalar(0, 0, 255), Scalar(0, 255, 255),
     Scalar(255, 0, 255), Scalar(255, 255, 0), Scalar(0, 128, 128), Scalar(128, 0, 128),
@@ -119,101 +117,173 @@ void getInfo(Mat &img) {
 
 #define ACTUAL_SKEL 0
 #define TEXT_W 100
+#define SLOPE 0.2 // important tuning parameter
+#define SHIFT 0
 
-void drawText(Mat &img, int width, int height) {
-    for (int i = 0; i < N_JOINTS; i++) {
-        putText(img, jointMap[i], Point(width, (float)height*(i+1)/N_JOINTS-5), FONT_HERSHEY_SIMPLEX, 0.3, colorMap[i]);
+enum Normalization {NONE, Z_ONLY, XYZ, SKELETON};
+
+void makeTestFeatures(const openni::DepthPixel *imageBuffer, Mat &mask, Mat &testFeature, vector<Point> &pts, float skeleton[][5], int width, int height, Normalization method) {
+    vector<float> testFeatureVtr;
+
+    if (method == NONE) {
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                if (mask.at<uchar>(i, j) && imageBuffer[j + i*width]) {
+                    pts.push_back(Point(j, i));
+                    testFeatureVtr.push_back(j); // x
+                    testFeatureVtr.push_back(i); // y
+                    testFeatureVtr.push_back((float)imageBuffer[j + i*width]); // z                   
+                }
+            }
+        }
     }
+    else if (method == Z_ONLY) {
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                if (mask.at<uchar>(i, j) && imageBuffer[j + i*width]) {
+                    pts.push_back(Point(j, i));
+                    testFeatureVtr.push_back(j);
+                    testFeatureVtr.push_back(i);
+                    testFeatureVtr.push_back(((float)imageBuffer[j + i*width]+SHIFT)*SLOPE);
+                }
+            }
+        }
+    }
+    else if (method == XYZ) {
+        Mat tmp(width*height, 1, CV_16UC1, (void *)imageBuffer);
+        double min, max;
+        minMaxLoc(tmp, &min, &max);
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                if (mask.at<uchar>(i, j) && imageBuffer[j + i*width]) {
+                    pts.push_back(Point(j, i));
+                    testFeatureVtr.push_back((float)j/width);
+                    testFeatureVtr.push_back((float)i/height);
+                    testFeatureVtr.push_back(((float)imageBuffer[j + i*width] - min)/(max - min));                 
+                }
+            }
+        }
+    }
+    else if (method == SKELETON) {    
+        float actualSkelDepth[N_JOINTS][2] = {0};
+      
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                if (mask.at<uchar>(i, j) && imageBuffer[j + i*width]) {
+                    pts.push_back(Point(j, i));
+                    testFeatureVtr.push_back(j);
+                    testFeatureVtr.push_back(i);
+                    testFeatureVtr.push_back((float)imageBuffer[j + i*width]);
+                    
+                    for (int k = 0; k < N_JOINTS; k++) {
+                        if (j < skeleton[k][3] + 5 && j > skeleton[k][3] - 5 &&
+                            i < skeleton[k][4] + 5 && i > skeleton[k][4] - 5) {
+                            actualSkelDepth[k][0] += (float)imageBuffer[j + i*width];
+                            actualSkelDepth[k][1] += 1;
+                        }
+                    }
+                }
+            }
+        }
+
+        for (int k = 0; k < N_JOINTS; k++) {
+            if (actualSkelDepth[k][1] != 0) {
+                actualSkelDepth[k][0] /= actualSkelDepth[k][1];
+            };
+        }
+
+        // normalize according to "HEAD" (0), "LEFT SHOULDER" (2), and "RIGHT SHOULDER" (3)
+        //float shift = (skeleton[0][2] - actualSkelDepth[0][0]) +
+        //              (skeleton[2][2] - actualSkelDepth[3][0]) +
+        //              (skeleton[2][2] - actualSkelDepth[3][0]);
+        //shift /= 3;
+        float shift = (skeleton[0][2] - actualSkelDepth[0][0]);
+        //printf("shift: %lf\n", shift);
+        for (vector<float>::iterator it = testFeatureVtr.begin() + 2; it < testFeatureVtr.end(); it += 3) {
+            *it += shift;
+            *it *= SLOPE;
+        }
+    }
+
+    testFeature = Mat(testFeatureVtr.size()/3, 3, CV_32FC1, (void *)&testFeatureVtr[0]);
 }
 
-void knnsearch(float skeleton[][5], const openni::DepthPixel *imageBuffer, Mat &mask, Mat &out, int width, int height) {
-    Ptr<ml::KNearest> knn(ml::KNearest::create());
-
-    // make train features and train labels
-    Mat skel(N_JOINTS, 5, CV_32FC1, skeleton);
+void makeTrainFeatures(float skeleton[][5],  Mat &trainFeatures, Normalization method) {
+    Mat skel(N_JOINTS, 5, CV_32FC1, (void *)skeleton);
     Mat skel1, skel2;
     skel(Range(0, skel.rows), Range(3, 5)).copyTo(skel1);
     skel(Range(0, skel.rows), Range(2, 3)).copyTo(skel2);
-    hconcat(skel1, skel2/s, skel);
+
+    if (method == NONE) {
+        hconcat(skel1, skel2, trainFeatures); // x, y, z
+    }
+    else if (method == Z_ONLY || method == SKELETON) {
+        hconcat(skel1, skel2*SLOPE, trainFeatures);
+    }
+    else if(method == XYZ) {
+        double min, max;
+        minMaxLoc(skel1.col(0), &min, &max);
+        skel1.col(0) = (skel1.col(0) - min)/(max - min);
+        
+        minMaxLoc(skel1.col(1), &min, &max);
+        skel1.col(1) = (skel1.col(1) - min)/(max - min);
+        
+        minMaxLoc(skel2.col(0), &min, &max);
+        assert(min >= 0);
+        skel2.col(0) = (skel2.col(0) - min)/(max - min);
+        
+        hconcat(skel1, skel2, trainFeatures);
+    }
+}
+
+void knnsearch(float skeleton[][5], const openni::DepthPixel *imageBuffer, Mat &mask, Mat &out, int *label, int width, int height) {
+    // skeleton: x real world, y real world, z real world, x depth, y depth
     
-    Mat_<float> trainFeatures = (Mat_<float> &)skel;
+    Ptr<ml::KNearest> knn(ml::KNearest::create());
+    Normalization method = SKELETON;
+    memset(label, -1, width*height*sizeof(int));
     
+    // make train labels
     Mat_<int> trainLabels(1, N_JOINTS);
     trainLabels << 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14;
+
+    // make train features 
+    Mat trainFeaturesTmp;
+    makeTrainFeatures(skeleton, trainFeaturesTmp, method);
+    Mat_<float> trainFeatures = (Mat_<float> &)trainFeaturesTmp;
+
+    // make test features   
+    Mat testFeaturesTmp;
+    vector<Point> pts;
+    makeTestFeatures(imageBuffer, mask, testFeaturesTmp, pts, skeleton, width, height, method);
+    Mat_<float> testFeatures = (Mat_<float> &)testFeaturesTmp;
     
     // train knn
     knn->train(trainFeatures, ml::ROW_SAMPLE, trainLabels);
     
-    // make test features
-    int n = 0;
-    for (int i = 0; i < height; i++) {
-        for (int j = 0; j < width; j++) {
-            if (mask.at<uchar>(i, j) != 0 && imageBuffer[j + i*width] != 0) {
-                n++;
-            }
-        }
-    }
+    // check
+    //getInfo(trainFeaturesTmp);
+    //getInfo(testFeaturesTmp);
+    //printf("\n\n");
     
-#if ACTUAL_SKEL
-    float actualSkelFl[N_JOINTS][2] = {0};
-#endif
-    
-    int idx = 0;
-    float testFeatureFl[n][3];
-    for (int i = 0; i < height; i++) {
-        for (int j = 0; j < width; j++) {
-            if (mask.at<uchar>(i, j) == 0 || imageBuffer[j + i*width] == 0) {
-                continue;
-            }
-            
-#if ACTUAL_SKEL
-            for (int k = 0; k < N_JOINTS; k++) {
-                if (j < (int)skel.at<float>(k, 0)+5 && j > (int)skel.at<float>(k, 0)-5 &&
-                    i < (int)skel.at<float>(k, 1)+5 && i > (int)skel.at<float>(k, 1)-5) {
-                    actualSkelFl[k][0] += (float)imageBuffer[j + i*width];
-                    actualSkelFl[k][1] += 1;
-                }
-            }
-#endif
-            
-            testFeatureFl[idx][0] = j;
-            testFeatureFl[idx][1] = i;
-            testFeatureFl[idx][2] = (float)imageBuffer[j + i*width]/s;
-            idx++;
-        }
-    }
-    
-#if ACTUAL_SKEL
-    for (int k = 0; k < N_JOINTS; k++) {
-        if (actualSkelFl[k][1] != 0) {
-            actualSkelFl[k][0] /= actualSkelFl[k][1];
-        }
-        printf("joint %d: %f vs %f\n", k, actualSkelFl[k][0], skeleton[k][2]);
-    }
-#endif
-    
-    assert(n == idx);
-    
-    Mat testFeatureTmp = Mat(n, 3, CV_32FC1, testFeatureFl);
-    Mat_<float> testFeature = (Mat_<float> &)testFeatureTmp;
-    
-    getInfo(skel);
-    getInfo(testFeatureTmp);
-    printf("\n\n");
-    
+    // get results
     Mat results;
-    knn->findNearest(testFeature, 1, results);
+    knn->findNearest(testFeatures, 1, results);
     out = Mat::zeros(height, width + TEXT_W, CV_8UC3);
     
-    // visualize the result
-    for (int i = 0; i < n; i++) {
-        int x = (int)testFeatureFl[i][0];
-        int y = (int)testFeatureFl[i][1];
+    // visualize the result by mapping label to color
+    for (int i = 0; i < pts.size(); i++) {
+        int x = pts[i].x;
+        int y = pts[i].y;
         int z = results.at<float>(i, 0);
         out.at<Vec3b>(y, x).val[0] = colorMap[z][0];
         out.at<Vec3b>(y, x).val[1] = colorMap[z][1];
         out.at<Vec3b>(y, x).val[2] = colorMap[z][2];
+        label[y*width + x] = (int)z;
     }
     
-    drawText(out, width, height);
+    // draw text
+    for (int i = 0; i < N_JOINTS; i++) {
+        putText(out, jointMap[i], Point(width, (float)height*(i+1)/N_JOINTS-5), FONT_HERSHEY_SIMPLEX, 0.3, colorMap[i]);
+    }
 }
