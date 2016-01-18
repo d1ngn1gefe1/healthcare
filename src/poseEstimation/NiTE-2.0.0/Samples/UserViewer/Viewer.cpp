@@ -741,6 +741,9 @@ void SampleViewer::Display()
         imshow("Label", labelTop);
         
         if (g_capture2) {
+            
+            // c++ style
+            /*
             ofstream file;
             file.open(outDir + "/depth" + to_string(nFrame) + ".dat");
             for (int i = 0; i < width*height; i++) {
@@ -753,6 +756,22 @@ void SampleViewer::Display()
                 file << label[i] << endl;
             }
             file.close();
+            */
+            
+            // c style
+            string path = outDir + "/depth" + to_string(nFrame) + ".dat";
+            FILE *f = fopen(path.c_str(), "w");
+            for (int i = 0; i < width*height; i++) {
+                fprintf(f, "%u\n", imgBufferTop[i]);
+            }
+            fclose(f);
+        
+            path = outDir + "/label" + to_string(nFrame) + ".dat";
+            f = fopen(path.c_str(), "w");
+            for (int i = 0; i < width*height; i++) {
+                fprintf(f, "%d\n", label[i]);
+            }
+            fclose(f);
             
             nFrame++;
         }
