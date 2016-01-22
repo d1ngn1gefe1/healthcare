@@ -46,7 +46,7 @@ float sideJoints[N_JOINTS][5];
 float topJoints[N_JOINTS][5];
 
 int g_nXRes = 0, g_nYRes = 0;
-string outDir = "/Users/alan/Documents/research/healthcare/src/poseEstimation/NiTE-2.0.0/Samples/UserViewer/data";
+string outDir = "/Users/Emma/GitHub/healthcare/src/poseEstimation/NiTE-2.0.0/Samples/UserViewer/data";
 
 // time to hold in pose to exit program. In milliseconds.
 const int g_poseTimeoutToExit = 2000;
