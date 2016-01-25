@@ -1,9 +1,13 @@
 import numpy as np
-from os import listdir
+from os import listdir, path
 from sklearn.metrics import confusion_matrix
 
 data_dir = '../data/'
-out_file = './out/matrix.npy'
+out_path = './out/'
+out_file = out_path + 'matrix.npy'
+out_X = out_path + 'X.npy'
+out_images = out_path + 'images.npy'
+out_labels = out_path + 'labels.npy'
 width = 320
 height = 240
 
@@ -29,6 +33,16 @@ def load_data():
 
 # data is 1068 x 320 x 240 x 2, numJoint = 14
 def processData(data, numJoint, pixelPerJoint):
+  saved_X = path.isfile(out_X)
+  saved_images = path.isfile(out_images)
+  saved_labels = path.isfile(out_labels)
+
+  if saved_X and saved_images and saved_labels:
+    X = np.load(out_X)
+    images = np.load(out_images)
+    labels = np.load(out_labels)
+    return (images, X, labels)
+
   numImage = data.shape[0]
   image = data[:,:,:,0]
   labelAll = data[:,:,:,1]
@@ -60,11 +74,12 @@ def processData(data, numJoint, pixelPerJoint):
   depth = depth.reshape(depth.shape[0], 1)
   index_image = np.array(index_image)
   index_image = index_image.reshape(index_image.shape[0], 1)
-  np.save('index_image.npy', index_image)
 
   X = np.append(np.append(X, depth, axis=1), index_image, axis=1) # each row of X: (x,y,depth,#image)
   label = np.array(label)
-  np.save('X.npy', X)
+  np.save(out_X, X)
+  np.save(out_images, image)
+  np.save(out_labels, label)
   return (image, X, label)
 
 def part_to_joint(X, label, prob, num_data, num_joints):
@@ -79,12 +94,9 @@ def part_to_joint(X, label, prob, num_data, num_joints):
 	  joints[i, j] = -1 # if the i-th image doesn't have pixels labeled as the jth joint, the joint coords will be (-1,-1,-1)
         else:
           joint_coords = X[indices_joint][:,:3]
-	  print('Joint coords shape: ' + str(joint_coords.shape))
           joint_probs = prob[indices_joint, j].reshape(indices_joint.size, 1)
-      	  print('Joint prob shape: ' + str(joint_probs.shape))
 	  print(str(j) + 'th joint prob: ' + str(joint_probs))
           normalize = np.sum(joint_probs)
-	  print('Normalize: ' + str(normalize))
 	  if (normalize > 0):
             joints[i, j] = np.sum(joint_coords * joint_probs) / normalize
 	  else:

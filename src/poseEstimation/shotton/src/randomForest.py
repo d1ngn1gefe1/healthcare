@@ -1,26 +1,22 @@
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
-from process_data import load_data, processData, part_to_joint
-from map_features import map_features
+from util import load_data, processData
 
 # parameters
 numJoints = 14
 pixelPerJoint = 140
-num_features = 2000 # dimension of feature vector after feature mapping
-maxOffset = 100 # max offset for u and v
 trainRatio = 0.7
-out_file = './out/matrix.npy'
-feature_train_path = './out/feature_train.npy'
-feature_test_path = './out/feature_test.npy'
+out_path = './out/'
+data_file = out_path + 'matrix.npy'
+feature_path = out_path + 'features_all.npy'
 
-saved = True
-mapped = False
+data_saved = True
 
 # load data
-if not saved:
+if not data_saved:
     data = load_data()
 else:
-    data = np.load(out_file)
+    data = np.load(data_file)
     print('Data loaded!')
 
 # data = data[:100]
@@ -32,55 +28,38 @@ print images.shape
 print X.shape
 print labels.shape
 
-# split all pixels into training and testing sets
-num_pixels = X.shape[0]
+# load features
+features = np.load(feature_path)
+
+# split all features into training and testing sets
+num_pixels = features.shape[0]
 num_pixel_train = round(num_pixels * trainRatio)
 print('num_pixels: ' + str(num_pixels) + ' num_pixel_train: ' + str(num_pixel_train))
 
-xTrain = X[:num_pixel_train]
-xTest = X[num_pixel_train:]
+feature_train = features[:num_pixel_train]
+feature_test = features[num_pixel_train:]
 
-labelsTrain = labels[:num_pixel_train]
-labelsTest = labels[num_pixel_train:]
-np.save('./out/true_label.npy', labelsTest)
-
-# phi = (theta, tau)
-thetaU = np.random.randint(maxOffset, size=(num_features,2)) # each row is (u1,u2)
-thetaV = np.random.randint(maxOffset, size=(num_features,2)) # each row is (v1,v2)
-tau = np.random.rand(num_features)
-
-# feature mapping
-if mapped:
-  features = map_features(xTrain, thetaU, thetaV, images)
-  np.save(feature_train_path, features)
-else:
-  features = np.load(feature_train_path)
-print(features.shape)
+labels_train = labels[:num_pixel_train]
+labels_test = labels[num_pixel_train:]
+np.save(out_path + 'true_label.npy', labels_test)
 
 # train a random forest classifier
 rf = RandomForestClassifier(n_estimators=3, criterion='entropy', max_depth=20)
-rf.fit(features, labelsTrain)
+rf.fit(feature_train, labels_train)
 
 # prediction
-if mapped:
-  test_features = map_features(xTest, thetaU, thetaV, images)
-  np.save(feature_test_path, test_features)
-else:
-  test_features = np.load(feature_test_path)
-print(test_features.shape)
-
-pred_label = rf.predict(test_features)
-pred_prob = rf.predict_proba(test_features)
-np.save('./out/pred_label_1000.npy', pred_label)
-np.save('./out/pred_prob_1000.npy', pred_prob)
+pred_label = rf.predict(feature_test)
+pred_prob = rf.predict_proba(feature_test)
+np.save(out_path + 'pred_label_1000.npy', pred_label)
+np.save(out_path + 'pred_prob_1000.npy', pred_prob)
 
 # accuracy
 accuracy = 0.0
 accClass = np.zeros((numJoints,2))
 for i in range(0,pred_label.shape[0]):
-    accClass[labelsTest[i]][1] += 1
+    accClass[labels_test[i]][1] += 1
     print(str(i) + 'th test data label & prob: ' + str(pred_label[i]) + ' ' + str(pred_prob[i]))
-    if pred_label[i] == labelsTest[i]:
+    if pred_label[i] == labels_test[i]:
         accClass[pred_label[i]][0] += 1
         accuracy += 1
 accuracy /= float(pred_label.shape[0])
@@ -89,11 +68,5 @@ for i in range(0,numJoints):
     print('Class ' + str(i) + ': ' + str(accClass[i][0]) + '/' + str(accClass[i][1]))
 print('Total accuracy: ' + str(accuracy))  
 
-score = rf.score(test_features, labelsTest)
+score = rf.score(feature_test, labels_test)
 print('Score: ' + str(score))
-
-# body parts to joints
-joints = part_to_joint(xTest, labelsTest, pred_prob, numData, numJoints)
-print('Joints: ')
-print(joints.shape)
-

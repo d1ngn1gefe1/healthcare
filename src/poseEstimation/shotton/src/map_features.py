@@ -1,15 +1,11 @@
 import numpy as np
-import thread
+# from threading import Thread as worker
+from multiprocessing import Process as worker 
 
 num_threads = 20
-out_dir = './out/threads/'
+out_dir = './features/'
 
-def map_features_thread(X, theta_u, theta_v, images):
-  X_split = np.array_split(X, num_threads)
-  for i in range(num_threads):
-    thread.start(map_features(X_split[i], theta_u, theta_v, images, i))
-
-def map_features(X, theta_u, theta_v, images):
+def map_features(X, theta_u, theta_v, images, thread_index):
     normalize = 100
     m = X.shape[0]
     num_features = theta_u.shape[0]
@@ -31,6 +27,20 @@ def map_features(X, theta_u, theta_v, images):
             if (i % 100 == 0):
               print(' left: ' + str(left_new) + ' right: ' + str(right_new))
               print('image[i][left]: ' + str(images[index][left_new[0], left_new[1]]) + ' image[i][right]: ' + str(images[index][right_new[0], right_new[1]]))
+    np.save(out_dir + str(thread_index) + '.npy', features)
     return features
 
+def map_features_thread(X, theta_u, theta_v, images):
+  X_split = np.array_split(X, num_threads)
+  processes = []
 
+  for i in range(num_threads):
+    processes.append(
+      worker(
+        target = map_features,
+        name="Thread #%d" % i,
+        args=(X_split[i], theta_u, theta_v, images, i)
+      )  
+    )
+  [t.start() for t in processes]
+  [t.join() for t in processes]
