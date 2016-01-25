@@ -276,6 +276,7 @@
 					"../../../../OpenNI-MacOSX-x64-2.2/Redist",
 					/usr/local/lib,
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				OTHER_LDFLAGS = (
 					"-lopencv_calib3d",
 					"-lopencv_core",
@@ -313,6 +314,7 @@
 					"../../../../OpenNI-MacOSX-x64-2.2/Redist",
 					/usr/local/lib,
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				OTHER_LDFLAGS = (
 					"-lopencv_calib3d",
 					"-lopencv_core",
