@@ -2,6 +2,7 @@ import numpy as np
 import process_data as pd
 from scipy.stats import multivariate_normal
 
+'''
 N = 3 # number of epochs
 T = 4 # number of iterations
 K = 4 # number of joints
@@ -10,11 +11,9 @@ M = 2 # number of images
 D = 2 # dimensions of joints
 W = 224 # width of input image
 H = 224 # height of input image
+'''
 
 cov = [[1, 0], [0, 1]] # covariance matrix for Gaussian heatmaps
-
-y0 = np.zeros((K, 2)) # initial mean pose
-I = np.zeros((M, 3, H, W)) # training images 
 
 '''
 Input:
@@ -22,7 +21,7 @@ Input:
 Output: 
 - heatmaps: A numpy array of shape K x H x W
 '''
-def joints2Heatmaps(joints):
+def joints2Heatmaps(joints, H, W, K, D):
 	pair = np.nonzero(np.ones((H, W)))
 	idx = np.array(zip(pair[0], pair[1])).reshape(H, W, D)
 	heatmaps = []
@@ -42,7 +41,7 @@ Input:
 Output: 
 - epsilon: M x K x D
 '''
-def getTargetBoundedCorrections(y, yt): # e(y, yt)
+def getTargetBoundedCorrections(y, yt, M, K, D): # e(y, yt)
 	u = y - yt # M x K x D
 	uNorm = np.linalg.norm(u, axis=2).clip(max=L) # M x K
 	uUnit = (u.reshape(M*K, D)/(uNorm.reshape(M*K)[:, np.newaxis])).reshape(M, K, D)
@@ -57,7 +56,7 @@ Input:
 Output:
 - Xt: M x (K+3) x H x W
 '''	
-def yt2Xt(I, yt): # g()
+def yt2Xt(I, yt, H, W): # g()
 	Xt = np.zeros((M, K+3, H, W))
 	Xt[:, :3] = I
 
@@ -68,10 +67,13 @@ def yt2Xt(I, yt): # g()
 
 	return Xt
 
-#####
+##### testing
+
+y0 = np.zeros((K, 2)) # initial mean pose
+I = np.zeros((M, 3, H, W)) # training images 
 
 yt = y0
-for t in range(1):
+for t in range(T):
 	print '%dth iteration' % (t+1)
 	X = yt2Xt(I, yt)
 	e = getTargetBoundedCorrections(y, yt)
@@ -92,7 +94,6 @@ for t in range(1):
 		ConvNet.train(X, e)
 	epsilon = ConvNet.test(X)
 	yt = yt + epsilon
-	X = yt2Xt(I, yt)
 
 
 
