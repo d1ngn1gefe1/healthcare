@@ -82,7 +82,8 @@ for t in range(T):
 	           corrections.
 	'''
 	Xt = yt2Xt(I, yt)
-	ConvNet.train(X, y)
+	for n in range(N):
+		ConvNet.train(X, y)
 	epsilon = ConvNet.test(X)
 	yt = yt + epsilon
 	X = yt2Xt(I, yt)
