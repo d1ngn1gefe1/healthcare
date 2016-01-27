@@ -4,9 +4,9 @@ from scipy.stats import multivariate_normal
 
 N = 3 # number of epochs
 T = 4 # number of iterations
-K = 17 # number of joints
+K = 4 # number of joints
 L = 100 # bound, maximum displacement for each joint location
-M = 1000 # number of images
+M = 2 # number of images
 D = 2 # dimensions of joints
 W = 224 # width of input image
 H = 224 # height of input image
@@ -42,11 +42,11 @@ Input:
 Output: 
 - epsilon: M x K x D
 '''
-def getTargetBoundedCorrections(y, yt):
+def getTargetBoundedCorrections(y, yt): # e(y, yt)
 	u = y - yt # M x K x D
 	uNorm = np.linalg.norm(u, axis=2).clip(max=L) # M x K
-	uUnit = (uNorm.reshape(M*K, D)/(uNorm.reshape(M*K)[:, np.newaxis])).reshape(M, K, D)
-	epsilon = (uNorm.reshape(M*K)[:, np.newaxis]*uUnit(M*K, D)).reshape(M, K, D)
+	uUnit = (u.reshape(M*K, D)/(uNorm.reshape(M*K)[:, np.newaxis])).reshape(M, K, D)
+	epsilon = (uNorm.reshape(M*K)[:, np.newaxis]*uUnit.reshape(M*K, D)).reshape(M, K, D)
 
 	return epsilon
 
@@ -73,9 +73,16 @@ def yt2Xt(I, yt): # g()
 yt = y0
 I = np.random.rand(M, 3, H, W)
 yt = np.random.rand(M, K, D)
-for t in range(T):
+y = np.random.rand(M, K, D)
+for t in range(1):
 	print '%dth iteration' % (t+1)
-	Xt = yt2Xt(I, yt)
+	#Xt = yt2Xt(I, yt)
+	epsilon = getTargetBoundedCorrections(y, yt)
+	print yt
+	print '\n\n\n'
+	print y
+	print '\n\n\n'
+	print epsilon
 
 	''' ConvNet: 
 	Input: 
