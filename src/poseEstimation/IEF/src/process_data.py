@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 from os import listdir, path
-from scipy.stats import multivariate_normal
 import h5py
 
 data_dir = '../data/'
@@ -52,22 +51,6 @@ def npy_to_h5(images, joints):
   f.create_dataset('data', data=test_images) 
   f.create_dataset('label', data=test_joints)  
   f.close()
-
-# joints is (28,) or (14,2) np array
-# output: heat_maps (num_joints x 224 x 224)
-# bug: all prob are 0 when cov = [[1,0],[0,1]]
-def joint_to_hm(joints, num_joints):
-  joints = joints.reshape(num_joints, 2)
-  hm_shape = np.ones((img_width, img_height))
-  pair = np.nonzero(hm_shape)
-  hm_index = np.array(zip(pair[0],pair[1])).reshape(img_width, img_height, 2)
-  heat_maps = []
-  for i in range(num_joints):
-    mean = joints[i]
-    hm = multivariate_normal.pdf(hm_index, mean, cov)
-    heat_maps.append(hm)
-  heat_maps = np.array(heat_maps)
-  return heat_maps
 
 def main():
   image_saved = path.isfile(out_image_path)
