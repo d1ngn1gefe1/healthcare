@@ -71,36 +71,28 @@ def yt2Xt(I, yt): # g()
 #####
 
 yt = y0
-I = np.random.rand(M, 3, H, W)
-yt = np.random.rand(M, K, D)
-y = np.random.rand(M, K, D)
 for t in range(1):
 	print '%dth iteration' % (t+1)
-	#Xt = yt2Xt(I, yt)
-	epsilon = getTargetBoundedCorrections(y, yt)
-	print yt
-	print '\n\n\n'
-	print y
-	print '\n\n\n'
-	print epsilon
-
+	X = yt2Xt(I, yt)
+	e = getTargetBoundedCorrections(y, yt)
 	''' ConvNet: 
 	Input: 
 	- X: A numpy array of shape M x (K+3) x H x W containing the training data. 
 	     Each image is a concatenation of the RGB image I and the Gaussian 
 	     heatmaps g.
-	- y: A numpy array of shape M x K x D containing the training labels. Each
+	- e: A numpy array of shape M x K x D containing the training labels. Each
 	     label is the corrections of joints locations in the corresponding 
 	     image.
 	Output:
 	- epsilon: A numpy array of shape M x K x D containing the predicted 
 	           corrections.
 	'''
-	#for n in range(N):
-	#	ConvNet.train(X, y)
-	#epsilon = ConvNet.test(X)
-	#yt = yt + epsilon
-	#X = yt2Xt(I, yt)
+	
+	for n in range(N):
+		ConvNet.train(X, e)
+	epsilon = ConvNet.test(X)
+	yt = yt + epsilon
+	X = yt2Xt(I, yt)
 
 
 
