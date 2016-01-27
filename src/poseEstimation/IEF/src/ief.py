@@ -59,16 +59,24 @@ Output:
 '''	
 def yt2Xt(I, yt): # g()
 	Xt = np.zeros((M, K+3, H, W))
-	Xt[:, K+3] = I
+	Xt[:, :3] = I
 
 	for m in range(M):
 		Xt[m, 3:K+3] = joints2Heatmaps(yt[m]) # K x H x W
+		if m % 100 == 99:
+			print '\t%d00th image' % ((m+1)/100)
 
 	return Xt
 
 #####
+
 yt = y0
+I = np.random.rand(M, 3, H, W)
+yt = np.random.rand(M, K, D)
 for t in range(T):
+	print '%dth iteration' % (t+1)
+	Xt = yt2Xt(I, yt)
+
 	''' ConvNet: 
 	Input: 
 	- X: A numpy array of shape M x (K+3) x H x W containing the training data. 
@@ -81,12 +89,11 @@ for t in range(T):
 	- epsilon: A numpy array of shape M x K x D containing the predicted 
 	           corrections.
 	'''
-	Xt = yt2Xt(I, yt)
-	for n in range(N):
-		ConvNet.train(X, y)
-	epsilon = ConvNet.test(X)
-	yt = yt + epsilon
-	X = yt2Xt(I, yt)
+	#for n in range(N):
+	#	ConvNet.train(X, y)
+	#epsilon = ConvNet.test(X)
+	#yt = yt + epsilon
+	#X = yt2Xt(I, yt)
 
 
 
