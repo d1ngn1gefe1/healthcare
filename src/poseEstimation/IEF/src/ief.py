@@ -56,12 +56,12 @@ Input:
 Output:
 - Xt: M x (K+3) x H x W
 '''	
-def yt2Xt(I, yt, H, W): # g()
+def yt2Xt(I, yt, H, W, M, K, D): # g()
 	Xt = np.zeros((M, K+3, H, W))
 	Xt[:, :3] = I
 
 	for m in range(M):
-		Xt[m, 3:K+3] = joints2Heatmaps(yt[m]) # K x H x W
+		Xt[m, 3:K+3] = joints2Heatmaps(yt[m], H, W, K, D) # K x H x W
 		if m % 100 == 99:
 			print '\t%d00th image' % ((m+1)/100)
 
