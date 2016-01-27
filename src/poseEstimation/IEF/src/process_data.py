@@ -11,7 +11,6 @@ img_height = 224
 num_channel = 3
 num_image = 2000
 num_joints = 14
-train_ratio = 0.8
 joint_path = data_dir + 'joints.txt'
 out_image_path = data_dir + 'images.npy'
 out_joint_path = data_dir + 'joints.npy'
@@ -34,28 +33,19 @@ def process_joint():
   joints = joints.reshape(num_image, num_joints, 2)
   return joints
 
-def npy_to_h5(images, joints):
-  joints = joints.reshape(num_image, num_joints*2)
-  num_total = images.shape[0]
-  num_train = round(num_total * train_ratio)
-  train_images = images[:num_train]
-  train_joints = joints[:num_train]
-  test_images = images[num_train:]
-  test_joints = joints[num_train:]
+def npy_to_h5(images, labels, train_flag):
+  labels = labels.reshape(labels.shape[0], num_joints*2)
 
-  f = h5py.File(data_dir + 'train.h5', 'w')
-  f.create_dataset('data', data=train_images) 
-  f.create_dataset('label', data=train_joints)  
-  f.close()
-
-  f = h5py.File(data_dir + 'test.h5', 'w')
-  f.create_dataset('data', data=test_images) 
-  f.create_dataset('label', data=test_joints)  
+  if train_flag:
+    f = h5py.File(data_dir + 'train.h5', 'w')
+  else:
+    f = h5py.File(data_dir + 'test.h5', 'w')
+  f.create_dataset('data', data=images) 
+  f.create_dataset('label', data=labels)  
   f.close()
 
 # joints is (28,) or (14,2) np array
 # output: heat_maps (num_joints x 224 x 224)
-# bug: all prob are 0 when cov = [[1,0],[0,1]]
 def joint_to_hm(joints, num_joints):
   joints = joints.reshape(num_joints, 2)
   hm_shape = np.ones((img_width, img_height))

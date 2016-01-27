@@ -1,5 +1,7 @@
 import numpy as np
 import sys
+from process_data import *
+from ief import *
 
 # Caffe Settings
 sys.path.append('/opt/caffe/python/caffe')

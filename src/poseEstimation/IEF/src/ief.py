@@ -69,12 +69,13 @@ def yt2Xt(I, yt, H, W): # g()
 
 ##### testing
 
-y0 = np.zeros((K, 2)) # initial mean pose
-I = np.zeros((M, 3, H, W)) # training images 
+def main():
+  y0 = np.zeros((K, 2)) # initial mean pose
+  I = np.zeros((M, 3, H, W)) # training images 
 
-yt = y0
-for t in range(T):
-	print '%dth iteration' % (t+1)
+  yt = y0
+  for t in range(T):
+  	print '%dth iteration' % (t+1)
 	X = yt2Xt(I, yt)
 	e = getTargetBoundedCorrections(y, yt)
 	''' ConvNet: 
@@ -95,5 +96,7 @@ for t in range(T):
 	epsilon = ConvNet.test(X)
 	yt = yt + epsilon
 
+if __name__ == "__main__":
+  main()
 
 
