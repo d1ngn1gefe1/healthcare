@@ -95,7 +95,7 @@ def part_to_joint(X, label, prob, num_data, num_joints):
         else:
           joint_coords = X[indices_joint][:,:3]
           joint_probs = prob[indices_joint, j].reshape(indices_joint.size, 1)
-	  print(str(j) + 'th joint prob: ' + str(joint_probs))
+	  # print(str(j) + 'th joint prob: ' + str(joint_probs))
           normalize = np.sum(joint_probs)
 	  if (normalize > 0):
             joints[i, j] = np.sum(joint_coords * joint_probs) / normalize
