@@ -40,8 +40,8 @@ def npy_to_h5(images, labels, train_flag):
     f = h5py.File(data_dir + 'train.h5', 'w')
   else:
     f = h5py.File(data_dir + 'test.h5', 'w')
-  f.create_dataset('data', data=images) 
-  f.create_dataset('label', data=labels)  
+  f.create_dataset('data_ief', data=images) 
+  f.create_dataset('label_ief', data=labels)  
   f.close()
 
 # joints is (28,) or (14,2) np array

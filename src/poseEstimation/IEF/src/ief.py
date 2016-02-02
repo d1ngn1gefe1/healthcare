@@ -13,6 +13,7 @@ W = 224 # width of input image
 H = 224 # height of input image
 '''
 
+L = 100 # bound, maximum displacement for each joint location
 cov = [[1, 0], [0, 1]] # covariance matrix for Gaussian heatmaps
 
 '''
@@ -60,7 +61,7 @@ def yt2Xt(I, yt, H, W, M, K, D): # g()
 	Xt = np.zeros((M, K+3, H, W))
 	Xt[:, :3] = I
 
-	for m in range(M):
+	for m in range(int(M)):
 		Xt[m, 3:K+3] = joints2Heatmaps(yt[m], H, W, K, D) # K x H x W
 		if m % 100 == 99:
 			print '\t%d00th image' % ((m+1)/100)
