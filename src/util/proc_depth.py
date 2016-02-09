@@ -5,7 +5,8 @@ import cv2
 
 W = 320
 H = 240
-inDirs = glob.glob('/mnt0/data/EVAL/data')
+inDirs = glob.glob('/mnt0/data/EVAL/data/*')
+print inDirs
 
 C = 3.8605e-3 #NUI_CAMERA_DEPTH_NOMINAL_INVERSE_FOCAL_LENGTH_IN_PIXELS
 
@@ -15,7 +16,7 @@ for inDir in inDirs:
 	outDir = inDir + '/depth_frames/' 
 
 	if not os.path.exists(outDir):
-    	os.makedirs(outDir)
+	    	os.makedirs(outDir)
 
 	paths = glob.glob(inDir + '*.txt')
 	for i, path in enumerate(paths):
