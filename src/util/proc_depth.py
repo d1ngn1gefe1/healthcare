@@ -6,7 +6,7 @@ import cv2
 W = 320
 H = 240
 datasets = glob.glob('/mnt0/data/EVAL/data/*')
-print inDirs
+print datasets
 
 C = 3.8605e-3 #NUI_CAMERA_DEPTH_NOMINAL_INVERSE_FOCAL_LENGTH_IN_PIXELS
 
@@ -24,9 +24,15 @@ for dataset in datasets:
 		if i%100 == 0:
 			print 'image %d: %s' % (i+1, fName)
 
+		out = np.zeros((H, W))
 		f = np.loadtxt(path)
 
 		indices = np.nonzero(f[:, 2])
+
+		if len(indices[0]) == 0:
+			cv2.imwrite(outDir + fName, out)
+			continue
+
 		worldX = f[:, 0][indices]
 		worldY = f[:, 1][indices]
 		worldZ = f[:, 2][indices]
@@ -51,7 +57,6 @@ for dataset in datasets:
 		#print np.amin(depthY), np.amax(depthY)
 		#print np.amin(depthZ), np.amax(depthZ)
 
-		out = np.zeros((H, W))
 		out[depthY, depthX] = depthZ
 
 		out = cv2.equalizeHist(out.astype(np.uint8))
