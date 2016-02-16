@@ -5,11 +5,8 @@ import util
 data_saved = True
 out_path = './out/'
 
-def get_accuracy():
+def get_accuracy(pred_label, true_label):
   # Get average classification accuracy (average of diagoanl of confusion matrix)
-  pred_label = np.load(out_path + 'pred_label_1000.npy')
-  true_label = np.load(out_path + 'true_label.npy')
-
   avg_accuracy = util.get_cm_acc(true_label, pred_label)
   return avg_accuracy
 
