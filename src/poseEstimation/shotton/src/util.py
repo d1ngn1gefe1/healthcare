@@ -1,25 +1,36 @@
 import numpy as np
 from os import listdir, path
 from sklearn.metrics import confusion_matrix
+from multiprocessing import Process as worker
 
 data_dir = '../data/'
-out_path = './out/'
+# out_path = './out/'
+out_path = '/mnt0/emma/shotton/data_ext/'
 out_file = out_path + 'matrix.npy'
-out_X = out_path + 'X.npy'
-out_images = out_path + 'images.npy'
-out_labels = out_path + 'labels.npy'
+X_path = 'X.npy'
+images_path = 'images.npy'
+labels_path = 'labels.npy'
 width = 320
 height = 240
 
-def load_data():
+def load_data(data_dir=data_dir, out_file=out_file):
+  if path.isfile(out_file):
+    data = np.load(out_file)
+    print 'Data exists!'
+    return data
+  
   depth = []
   label = []
 
+  i = 0
   for doc in listdir(data_dir):
     if (doc.find('depth') != -1):
       depth.append(np.loadtxt(data_dir + doc, delimiter='\n').reshape(width, height))
     elif (doc.find('label') != -1):
       label.append(np.loadtxt(data_dir + doc, delimiter='\n').reshape(width, height))
+    if i % 100 == 0:
+      print 'Processed', i, 'data'
+    i += 1
 
   depth = np.array(depth)
   label = np.array(label)
@@ -30,9 +41,14 @@ def load_data():
   np.save(out_file, data)
   print('Data saved!')
   return data
+  # return (depth, label)
 
 # data is 1068 x 320 x 240 x 2, numJoint = 14
-def processData(data, numJoint, pixelPerJoint):
+def processData(data, numJoint, pixelPerJoint, out_path=out_path):
+  out_X = out_path + X_path
+  out_images = out_path + images_path
+  out_labels = out_path + labels_path
+
   saved_X = path.isfile(out_X)
   saved_images = path.isfile(out_images)
   saved_labels = path.isfile(out_labels)
@@ -130,4 +146,36 @@ def get_joints(data, pred_prob, num_joints, pixel_per_joint, train_ratio):
   joints = part_to_joint(X_test, labels_test, pred_prob, num_data, num_joints)
   return joints
 
+def main():
+  data_ext = '/mnt0/emma/shotton/data_ext/'
+  data_dirs = ['data_1/', 'data_2/', 'data_3/']
+  data_dirs = [data_ext + d for d in data_dirs]
+  out_files = ['data1.npy', 'data2.npy', 'data3.npy']
+  out_files = [data_ext + f for f in out_files]
+  data = []
+  for i in range(len(data_dirs)):
+    data.append(load_data(data_dir=data_dirs[i], out_file=out_files[i]))
+  data = np.vstack(data)
+  print data.shape
+  np.save(out_path+'data.npy', data)
+  
+  '''
+  file_all = listdir(data_dirs[2])
+  half = len(file_all) / 2
+  depth0, label0 = load_data(data_files=file_all[:half], data_dir=data_dirs[2], out_file=data_ext+'data3_0.npy')
+  depth1, label1 = load_data(data_files=file_all[half:], data_dir=data_dirs[2], out_file=data_ext+'data3_1.npy')
+  depth = np.vstack((depth0, depth1))
+  np.save(data_ext+'depth3.npy', depth)
+  label = np.vstack((label0, label1))
+  np.save(data_ext+'label3.npy', label)
+  data = np.empty((depth.shape[0], width, height, 2))
+  data[:, :, :, 0] = depth
+  data[:, :, :, 1] = label
+
+  np.save(out_files[2], data)
+  '''
+
+
+if __name__ == "__main__":
+  main()
 
