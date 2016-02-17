@@ -2,94 +2,108 @@ import numpy as np
 import glob
 import os
 import cv2
+import sys
 
 W = 320
 H = 240
-datasets = glob.glob('/mnt0/data/EVAL/data/*')
-#print datasets
+#datasets = glob.glob('/mnt0/data/EVAL/data/*')
 
 C = 3.8605e-3 #NUI_CAMERA_DEPTH_NOMINAL_INVERSE_FOCAL_LENGTH_IN_PIXELS
 
-for dataset in datasets:
-	inImgsDir = dataset + '/depth/'
-	inJointsDir = dataset + '/joints/'
-	outImgsDir = dataset + '/imgs_depthcoor/'
-	outJointsDir = dataset + '/joints_depthcoor/' 
+def main(argv):
+	getJpg, getJoints, getNpArray = False, False, False
 
-	if not os.path.exists(outImgsDir):
-		os.makedirs(outImgsDir)
-	if not os.path.exists(outJointsDir):
-		os.makedirs(outJointsDir)
+	datasets = glob.glob(argv[0])
 
-	paths = glob.glob(inJointsDir + '*.txt')
-	for i, path in enumerate(paths):
-		fName = path.replace(inJointsDir, '')
-		if i%100 == 0:
-			print 'joint %d: %s' % (i+1, fName)
+	for arg in argv[1:]:
+		if arg == '-jpg':
+			getJpg = True
+		elif arg == '-joints':
+			getJoints = True
+		elif arg == '-nparray':
+			getNpArray = True
 
-		f = np.loadtxt(path)
-		if f.shape[0] == 0:
-			continue
+	for dataset in datasets:
+		inImgsDir = dataset + '/depth/'
+		inJointsDir = dataset + '/joints/'
+		outJpgDir = dataset + '/jpg_depthcoor/'
+		outNpArrayDir = dataset + '/nparray_depthcoor/' 
+		outJointsDir = dataset + '/joints_depthcoor/' 
 
-		worldX = f[:, 0]
-		worldY = f[:, 1]
-		worldZ = f[:, 2]
+		if getJoints:
+			if not os.path.exists(outJointsDir):
+				os.makedirs(outJointsDir)
 
-		depthZ = worldZ
-		depthX = worldX/worldZ/C + W/2.0
-		depthY = worldY/worldZ/C + H/2.0
+			paths = glob.glob(inJointsDir + '*.txt')
+			for i, path in enumerate(paths):
+				fName = path.replace(inJointsDir, '')
+				if i%100 == 0:
+					print 'joint %d: %s' % (i+1, fName)
 
-		depthX = np.clip(np.rint(depthX), 0, W-1).astype(np.int32)
-		depthY = np.clip(np.rint(depthY), 0, H-1).astype(np.int32)
+				f = np.loadtxt(path)
+				if f.shape[0] == 0:
+					continue
 
-		out = np.column_stack((depthX, depthY, depthZ))
-		np.savetxt(outJointsDir + fName, out)
+				worldX = f[:, 0]
+				worldY = f[:, 1]
+				worldZ = f[:, 2]
 
-'''
-	paths = glob.glob(inImgsDir + '*.txt')
-	for i, path in enumerate(paths):
-		fName = path.replace(inImgsDir, '').replace('txt', 'jpg')
-		if i%100 == 0:
-			print 'image %d: %s' % (i+1, fName)
+				depthZ = worldZ
+				depthX = worldX/worldZ/C + W/2.0
+				depthY = worldY/worldZ/C + H/2.0
 
-		out = np.zeros((H, W))
-		f = np.loadtxt(path)
+				depthX = np.clip(np.rint(depthX), 0, W-1).astype(np.int32)
+				depthY = np.clip(np.rint(depthY), 0, H-1).astype(np.int32)
 
-		indices = np.nonzero(f[:, 2])
+				out = np.column_stack((depthX, depthY, depthZ))
+				np.savetxt(outJointsDir + fName, out)
 
-		if len(indices[0]) == 0:
-			cv2.imwrite(outImgsDir + fName, out)
-			continue
+		if getJpg or getNpArray:
+			if not os.path.exists(outJpgDir) and getJpg:
+				os.makedirs(outJpgDir)
+			if not os.path.exists(outNpArrayDir) and getNpArray:
+				os.makedirs(outNpArrayDir)
 
-		worldX = f[:, 0][indices]
-		worldY = f[:, 1][indices]
-		worldZ = f[:, 2][indices]
-		#print np.amin(worldX), np.amax(worldX)
-		#print np.amin(worldY), np.amax(worldY)
-		#print np.amin(worldZ), np.amax(worldZ)
+			paths = glob.glob(inImgsDir + '*.txt')
+			for i, path in enumerate(paths):
+				fName = path.replace(inImgsDir, '').replace('.txt', '')
+				if i%100 == 0:
+					print 'image %d: %s' % (i+1, fName)
 
-		depth = worldZ
-		depthX = worldX/worldZ/C + W/2.0
-		depthY = worldY/worldZ/C + H/2.0
-		#print np.amin(depthX), np.amax(depthX)
-		#print np.amin(depthY), np.amax(depthY)
-		#print np.amin(depth), np.amax(depth)
+				if getJpg:
+					outJpg = np.zeros((H, W))
+				if getNpArray:
+					outNpArray = np.zeros((H, W))
 
-		depthX = np.clip(np.rint(depthX), 0, W-1).astype(np.int32)
-		depthY = np.clip(np.rint(depthY), 0, H-1).astype(np.int32)
-		zMin = np.amin(depth)
-		zMax = np.amax(depth)
-		depth = (depth-zMin)/(zMax-zMin)*255
+				f = np.loadtxt(path)
 
-		#print np.amin(depthX), np.amax(depthX)
-		#print np.amin(depthY), np.amax(depthY)
-		#print np.amin(depth), np.amax(depth)
+				indices = np.nonzero(f[:, 2])
 
-		out[depthY, depthX] = depth
+				if len(indices[0]) != 0:
+					worldX = f[:, 0][indices]
+					worldY = f[:, 1][indices]
+					worldZ = f[:, 2][indices]
 
-		out = cv2.equalizeHist(out.astype(np.uint8))
-		cv2.imwrite(outImgsDir + fName, out)
-		#cv2.imshow('image', out)
-		#cv2.waitKey(0)
-		#cv2.destroyAllWindows()
-'''
+					depth = worldZ
+					depthX = worldX/worldZ/C + W/2.0
+					depthY = worldY/worldZ/C + H/2.0
+
+					depthX = np.clip(np.rint(depthX), 0, W-1).astype(np.int32)
+					depthY = np.clip(np.rint(depthY), 0, H-1).astype(np.int32)
+
+					if getJpg:
+						zMin = np.amin(depth)
+						zMax = np.amax(depth)
+						depth = (depth-zMin)/(zMax-zMin)*255
+						outJpg[depthY, depthX] = depth
+						outJpg = cv2.equalizeHist(outJpg.astype(np.uint8))
+					if getNpArray:
+						outNpArray[depthY, depthX] = worldZ
+
+				if getJpg:
+					cv2.imwrite(outJpgDir+fName+'.jpg', outJpg)
+				if getNpArray:	
+					np.save(outNpArrayDir+fName, outNpArray)
+
+if __name__ == "__main__":
+	main(sys.argv[1:])
