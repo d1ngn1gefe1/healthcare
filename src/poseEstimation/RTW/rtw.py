@@ -2,13 +2,12 @@ import numpy as np
 import helper
 from sklearn.tree import DecisionTreeRegressor
 
-nOffPts = 100 # the number of offset points of each joint
-nFeats = 500 # the number of features of each offset point
-maxOffSampXY = 30 # the maximum offset for samples in x, y axes
-maxOffSampZ = 5 # the maximum offset for samples in z axis
-maxOffFeat = 30 # the maximum offset for features
-epsilon = 1e-8 # prevent divide-by-zero
-largeNum = 1e3
+nOffPts = 500 # the number of offset points of each joint
+nFeats = 1000 # the number of features of each offset point
+maxOffSampXY = 25 # the maximum offset for samples in x, y axes
+maxOffSampZ = 2 # the maximum offset for samples in z axis
+maxOffFeat = 20*3 # the maximum offset for features
+largeNum = 100
 maxDepth = 13
 nSteps = 128
 stepSize = 2
@@ -52,7 +51,8 @@ def getSamples(load=False):
 					offset = np.concatenate((offsetXY, offsetZ))
 					S_i[i][j*nOffPts+k] = j
 					S_q[i][j*nOffPts+k] = joints[j, i] + offset
-					S_u[i][j*nOffPts+k] = offset/(np.linalg.norm(offset)+epsilon)
+					S_u[i][j*nOffPts+k] = 0 if np.linalg.norm(offset) == 0 else \
+																offset/np.linalg.norm(offset)
 					S_f[i][j*nOffPts+k] = getFeatures(j, joints[j, i]+offset)
 
 		np.save(featsDir+'si', S_i)
@@ -65,45 +65,61 @@ def getSamples(load=False):
 def getFeatures(i, q):
 	d = I[i]
 	coor = q[:2][::-1].astype(int)
+	dx = None
 
-	dx = largeNum if d[tuple(coor)] == 0 else d[tuple(coor)]
-	x1 = np.clip(coor[0]+theta[0]/dx, 0, W-1).astype(int)
-	y1 = np.clip(coor[1]+theta[1]/dx, 0, H-1).astype(int)
-	x2 = np.clip(coor[0]+theta[2]/dx, 0, W-1).astype(int)
-	y2 = np.clip(coor[1]+theta[3]/dx, 0, H-1).astype(int)
+	if d[tuple(coor)] > -4 and d[tuple(coor)] < -2:
+		dx = d[tuple(coor)]
+	else:
+		dx = largeNum
+	x1 = np.clip(coor[1]+theta[0]/dx, 0, W-1).astype(int)
+	y1 = np.clip(coor[0]+theta[1]/dx, 0, H-1).astype(int)
+	x2 = np.clip(coor[1]+theta[2]/dx, 0, W-1).astype(int)
+	y2 = np.clip(coor[0]+theta[3]/dx, 0, H-1).astype(int)
 
 	return d[y1, x1] - d[y2, x2]
 
-S_i, S_q, S_u, S_f = getSamples(True)
-S_i_train = S_i[:, :nTrain]
-S_q_train = S_q[:, :nTrain]
-S_u_train = S_u[:, :nTrain]
-S_f_train = S_f[:, :nTrain]
-S_i_test = S_i[:, nTrain:]
-S_q_test = S_q[:, nTrain:]
-S_u_test = S_u[:, nTrain:]
-S_f_test = S_f[:, nTrain:]
+def main(argv):
+	load = False
+	train = False
+	for arg in argv:
+		if arg == '-load':
+			load = True
+		elif arg == '-train'
+			train = True
 
+	S_i, S_q, S_u, S_f = getSamples(load)
 
-for i in range(1):
-	regressor = DecisionTreeRegressor(max_depth=maxDepth, \
-																		min_samples_leaf=minSamplesLeaf)
-	regressor.fit(S_f_train[i], S_u_train[i])
+	if not train:
+		return
 
-	qm = np.empty((nSteps+1, 3)).astype(float)
-	qm[0] = [180, 95, -5]
-	qsum = np.zeros(3)
-	for j in range(nSteps):
-		f = getFeatures(10, qm[j]).reshape(1, -1)
-		u = regressor.predict(f).ravel()
-		print u
-		qm[j+1] = qm[j] + u*stepSize
-		qsum += qm[j+1]
-	q = qsum/nSteps
-	print q
-	helper.drawPts(I[10], qm)
+	S_i_train = S_i[:, :nTrain]
+	S_q_train = S_q[:, :nTrain]
+	S_u_train = S_u[:, :nTrain]
+	S_f_train = S_f[:, :nTrain]
+	S_i_test = S_i[:, nTrain:]
+	S_q_test = S_q[:, nTrain:]
+	S_u_test = S_u[:, nTrain:]
+	S_f_test = S_f[:, nTrain:]
 
+	for i in range(1):
+		regressor = DecisionTreeRegressor(max_depth=maxDepth, \
+																			min_samples_leaf=minSamplesLeaf)
+		regressor.fit(S_f_train[i], S_u_train[i])
 
+		qm = np.empty((nSteps+1, 3)).astype(float)
+		qm[0] = [180, 130, -3]
+		qsum = np.zeros(3)
+		for j in range(nSteps):
+			f = getFeatures(30, qm[j]).reshape(1, -1)
+			u = regressor.predict(f).ravel()
+			print u
+			qm[j+1] = qm[j] + u*stepSize
+			qsum += qm[j+1]
+		q = qsum/nSteps
+		print q
+		helper.drawPts(I[30], qm)
 
+if __name__ == "__main__":
+	main(sys.argv[1:])
 
 

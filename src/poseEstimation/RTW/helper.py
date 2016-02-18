@@ -2,17 +2,14 @@ import glob
 import numpy as np
 import cv2
 
-dataset = '/Users/alan/Documents/research/seq_c_1/'
-jpgDir = dataset + 'jpg_depthcoor'
-npArrayDir = dataset + 'nparray_depthcoor'
-jointsDir = dataset + 'joints_depthcoor'
+dataDir = '/mnt0/data/EVAL/data'
 H = 240
 W = 320 
 nJoints = 12
 
 def getImgsAndJoints():	
-	imgsPaths = glob.glob(npArrayDir + '/*')
-	jointsPaths = glob.glob(jointsDir + '/*')
+	imgsPaths = glob.glob(dataDir + '/jpg_depthcoor/*')
+	jointsPaths = glob.glob(dataDir + '/joints_depthcoor/*')
 	N = len(imgsPaths)
 
 	I = np.empty((N, H, W))
@@ -36,21 +33,22 @@ def visualizeImgs(I, joints):
 		img = cv2.equalizeHist(img.astype(np.uint8))
 		for joint in joints[i]:
 			cv2.circle(img, tuple(joint[:2].astype(np.uint8)), 2, 255, -1)
-		cv2.imshow('image'+str(i), img)
+		cv2.imshow('image', img)
 		cv2.waitKey(0)
 	cv2.destroyAllWindows()
 
-def drawPts(I, pts):
-	I = cv2.equalizeHist(I.astype(np.uint8))
-	I = cv2.cvtColor(I, cv2.COLOR_GRAY2RGB)
+def drawPts(img, pts):
+	img = cv2.equalizeHist(img.astype(np.uint8))
+	img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
 	nPts = pts.shape[0]
 	for i, pt in enumerate(pts):
-		cv2.circle(I, tuple(pt[:2].astype(np.uint8)), 2, (0,0,255*i/nPts), -1)
-	cv2.imshow('image', I)
+		cv2.circle(img, tuple(pt[:2].astype(np.uint8)), 1, (0,0,255*i/nPts), -1)
+	cv2.imshow('image', img)
 	cv2.waitKey(0)
 	cv2.destroyAllWindows()
 
-''' testing
+#testing
+'''
 I, joints = getImgsAndJoints()
 print I.shape, joints.shape
 visualizeImgs(I, joints)
