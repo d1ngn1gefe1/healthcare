@@ -6,7 +6,7 @@ H = 240
 W = 320 
 nJoints = 12
 
-def getImgsAndJoints(dataDir, noBg=True, N=None):	
+def getImgsAndJoints(dataDir, N, noBg=True):	
 	jointsPaths = glob.glob(dataDir)
 	total = len(jointsPaths) 
 

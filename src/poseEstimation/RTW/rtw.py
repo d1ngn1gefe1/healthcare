@@ -25,7 +25,7 @@ minSamplesLeaf = 100
 	the random offset point, u is the unit direction vector toward the joint 
 	location, and f is the feature array.
 '''
-def getSamples(dataDir, featsDir, load=False):
+def getSamples(dataDir, featsDir, maxN, load=False):
 	S_i, S_q, S_u, S_f = None, None, None, None
 
 	if load:
@@ -41,7 +41,7 @@ def getSamples(dataDir, featsDir, load=False):
 		nJoints, _ = S_i.shape
 	else: 
 		# the N x H x W depth images and the N x nJoints x 3 joint locations
-		I, joints = helper.getImgsAndJoints(dataDir)
+		I, joints = helper.getImgsAndJoints(dataDir, maxN)
 		N, _, _ = I.shape
 		_, nJoints, _ = joints.shape
 		nJoints -= 1
@@ -124,14 +124,18 @@ def main(argv):
 	dataDir = argv[0] + '/*/joints_depthcoor/*'
 	featsDir = argv[1]
 
-	for arg in argv[2:]:
+	maxN = None
+	for i, arg in enumerate(argv[2:]):
 		if arg == '-load':
 			load = True
 		elif arg == '-train':
 			train = True
+		elif arg == '-N':
+			maxN = argv[2:][i+1]
+			print 'maxN: %d' % maxN
 
 	I, theta, bodyCenters, S_i, S_q, S_u, S_f, N, nJoints = \
-		getSamples(dataDir, featsDir, load)
+		getSamples(dataDir, featsDir, maxN, load)
 	print 'N: %d, nJoints: %d' % (N, nJoints)
 
 	if not train:
