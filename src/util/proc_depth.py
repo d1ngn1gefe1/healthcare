@@ -13,7 +13,8 @@ C = 3.8605e-3 #NUI_CAMERA_DEPTH_NOMINAL_INVERSE_FOCAL_LENGTH_IN_PIXELS
 def main(argv):
 	getJpg, getJoints, getNpArray = False, False, False
 
-	datasets = glob.glob(argv[0])
+	datasets = glob.glob(argv[0]+'/*')
+	print datasets
 
 	for arg in argv[1:]:
 		if arg == '-jpg':
