@@ -131,7 +131,7 @@ def main(argv):
 		elif arg == '-train':
 			train = True
 		elif arg == '-N':
-			maxN = argv[2:][i+1]
+			maxN = int(argv[2:][i+1])
 			print 'maxN: %d' % maxN
 
 	I, theta, bodyCenters, S_i, S_q, S_u, S_f, N, nJoints = \
