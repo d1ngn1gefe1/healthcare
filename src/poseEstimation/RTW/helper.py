@@ -90,7 +90,7 @@ def drawPts(img, pts):
 	cv2.waitKey(0)
 	cv2.destroyAllWindows()
 
-def drawPred(img, joints, paths, center):
+def drawPred(img, joints, paths, center, filename):
 	#img = cv2.equalizeHist(img.astype(np.uint8))
 	img = img.astype(np.uint8)
 	img[img > 0] = 255
@@ -103,9 +103,10 @@ def drawPred(img, joints, paths, center):
 	for joint in joints:
 		cv2.circle(img, tuple(joint[:2].astype(np.uint8)), 4, (0,255,0), -1)
 	cv2.circle(img, tuple(center[:2].astype(np.uint8)), 4, (128,128,0), -1)
-	cv2.imshow('image', img)
-	cv2.waitKey(0)
-	cv2.destroyAllWindows()
+	#cv2.imshow('image', img)
+	#cv2.waitKey(0)
+	#cv2.destroyAllWindows()
+	cv2.imwrite(filename, img)
 
 def checkUnitVectors(unitVectors):
 	s1 = np.sum(unitVectors.astype(np.float32)**2)

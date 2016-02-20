@@ -155,7 +155,7 @@ def main(argv):
 	kinemOrder =   [0, 12, 13, 1, 2, 5, 3, 6, 4, 7,  8, 10, 9, 11]
 	kinemParent = [-1, -1, -1, 0, 0, 0, 2, 5, 3, 6, 12, 13, 8, 10]
 
-	for i in range(141,142):
+	for i in range(140,145):
 		print '\n\n'
 		qm = np.empty((nJoints, nSteps+1, 3))
 		jointsPred = np.empty((nJoints, 3))
@@ -206,7 +206,8 @@ def main(argv):
 			#helper.drawPts(I[i], jointsPred[j])
 			#helper.drawPts(I[i], qm[j])
 
-		helper.drawPred(I[i], jointsPred, qm, bodyCenters[i])
+		helper.drawPred(I[i], jointsPred, qm, bodyCenters[i], 
+										featsDir+'/'+str(i)+'jpg')
 
 	#helper.drawPts(I[idx], jointsPred)
 
