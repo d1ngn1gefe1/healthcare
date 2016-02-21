@@ -155,11 +155,11 @@ def main(argv):
 	kinemOrder =   [0, 12, 13, 1, 2, 5, 3, 6, 4, 7,  8, 10, 9, 11]
 	kinemParent = [-1, -1, -1, 0, 0, 0, 2, 5, 3, 6, 12, 13, 8, 10]
 
-	for i in range(140,145):
-		print '\n\n'
+	for i in range(93,94):
 		qm = np.empty((nJoints, nSteps+1, 3))
 		jointsPred = np.empty((nJoints, 3))
 		for idx, j in enumerate(kinemOrder):
+			print '\n\n'
 			features, unitDirections = None, None
 			if rmZeros:
 				rows = np.logical_not(np.all(S_f[j] == 0, axis=1))
@@ -184,7 +184,7 @@ def main(argv):
 				(biggest, bin[biggest], N*nSamps)
 			print 'smallest leaf id: %d, #samples: %d/%d' % \
 				(smallest, bin[bin != 0][smallest], N*nSamps)
-
+			print 'average leaf size: %d' % (N*nSamps/uni.shape[0])
 			L = stochastic(regressor, features, unitDirections, K)
 			print 'length of dict: %d' % len(L)
 
@@ -199,6 +199,8 @@ def main(argv):
 				leafID = regressor.apply(f)[0]
 				u = getUnitDirection(L[leafID])
 				qm[j][k+1] = qm[j][k] + u*stepSize
+				qm[j][k+1][0] = np.clip(qm[j][k+1][0], 0, W-1)
+				qm[j][k+1][1] = np.clip(qm[j][k+1][1], 0, H-1)
 				qsum += qm[j][k+1]
 
 			jointsPred[j] = qsum/nSteps
@@ -207,7 +209,7 @@ def main(argv):
 			#helper.drawPts(I[i], qm[j])
 
 		helper.drawPred(I[i], jointsPred, qm, bodyCenters[i], 
-										featsDir+'/'+str(i)+'jpg')
+										featsDir+'/'+str(i)+'.png')
 
 	#helper.drawPts(I[idx], jointsPred)
 

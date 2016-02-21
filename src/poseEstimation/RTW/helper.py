@@ -6,6 +6,17 @@ H = 240
 W = 320 
 nJoints = 12
 
+palette = [(34, 88, 226), (34, 69, 101), (0, 195, 243), (146, 86, 135), \
+					 (0, 132, 243), (241, 202, 161), (50, 0, 190), (128, 178, 194), \
+					 (23, 45, 136), (86, 136, 0), (172, 143, 230), (165, 103, 0), \
+					 (121, 147, 249), (151, 78, 96), (0, 166, 246), (108, 68, 179), \
+					 (0, 211, 220), (130, 132, 132), (0, 182, 141), (38, 61, 43)] # BGR
+jointName = ["NECK", "HEAD", "LEFT SHOULDER", "LEFT ELBOW", "LEFT HAND", \
+						 "RIGHT SHOULDER", "RIGHT ELBOW", "RIGHT HAND", "LEFT KNEE", \
+						 "LEFT FOOT", "RIGHT KNEE", "RIGHT FOOT", "LEFT HIP", \
+						 "RIGHT HIP", "TORSO"]
+    
+
 def getImgsAndJoints(dataDir, N, noBg=True):	
 	jointsPaths = glob.glob(dataDir)
 	total = len(jointsPaths) 
@@ -71,7 +82,7 @@ def visualizeImgs(I, joints):
 		img = cv2.equalizeHist(img.astype(np.uint8))
 		img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
 		for joint in joints[i]:
-			cv2.circle(img, tuple(joint[:2].astype(np.uint8)), 2, (0,0,255), -1)
+			cv2.circle(img, tuple(joint[:2].astype(np.uint16)), 2, (0,0,255), -1)
 		cv2.imshow('image', img)
 		cv2.waitKey(0)
 	cv2.destroyAllWindows()
@@ -80,32 +91,48 @@ def drawPts(img, pts):
 	img = cv2.equalizeHist(img.astype(np.uint8))
 	img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
 	if pts.ndim == 1:
-		cv2.circle(img, tuple(pts[:2].astype(np.uint8)), 4, (255,0,0), -1)
+		cv2.circle(img, tuple(pts[:2].astype(np.uint16)), 4, (255,0,0), -1)
 	else:
 		nPts = pts.shape[0]
 		for i, pt in enumerate(pts):
 			color = (255*(nPts-i)/nPts, 0, 255*i/nPts)
-			cv2.circle(img, tuple(pt[:2].astype(np.uint8)), 1, color, -1)
+			cv2.circle(img, tuple(pt[:2].astype(np.uint16)), 1, color, -1)
 	cv2.imshow('image', img)
 	cv2.waitKey(0)
 	cv2.destroyAllWindows()
 
 def drawPred(img, joints, paths, center, filename):
+	nJoints = joints.shape[0]
+	H = img.shape[0]
+	W = img.shape[1]
+
 	#img = cv2.equalizeHist(img.astype(np.uint8))
 	img = img.astype(np.uint8)
-	img[img > 0] = 255
 	img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-	for path in paths:
+	img = np.hstack((img, np.zeros((H, 100, 3)))).astype(np.uint8)
+
+	for i, path in enumerate(paths):
 		nPts = path.shape[0]
-		for i, pt in enumerate(path):
-			color = (255*(nPts-i)/nPts, 0, 255*i/nPts)
-			cv2.circle(img, tuple(pt[:2].astype(np.uint8)), 1, color, -1)
-	for joint in joints:
-		cv2.circle(img, tuple(joint[:2].astype(np.uint8)), 4, (0,255,0), -1)
-	cv2.circle(img, tuple(center[:2].astype(np.uint8)), 4, (128,128,0), -1)
+		for j, pt in enumerate(path):
+			color = tuple(c*(2*j+nPts)/(3*nPts) for c in palette[i]) 
+			cv2.circle(img, tuple(pt[:2].astype(np.uint16)), 1, color, -1)
+
+	for i, joint in enumerate(joints):
+		cv2.circle(img, tuple(joint[:2].astype(np.uint16)), 4, palette[i], -1)
+
+	cv2.rectangle(img, 
+								tuple([int(center[0]-1), int(center[1]-1)]), 
+								tuple([int(center[0]+1), int(center[1]+1)]), 
+								palette[nJoints], -1)
 	#cv2.imshow('image', img)
 	#cv2.waitKey(0)
 	#cv2.destroyAllWindows()
+	for i, joint in enumerate(joints):
+		cv2.rectangle(img, (W, H*i/nJoints), (W+100, H*(i+1)/nJoints-1), 
+									palette[i], -1)
+		cv2.putText(img, jointName[i], (W, H*(i+1)/nJoints-5), 
+								cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255))
+
 	cv2.imwrite(filename, img)
 
 def checkUnitVectors(unitVectors):
