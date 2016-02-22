@@ -4,51 +4,52 @@ import cv2
 
 H = 240
 W = 320 
-nJoints = 12
+nJoints = 14
 
 palette = [(34, 88, 226), (34, 69, 101), (0, 195, 243), (146, 86, 135), \
 					 (0, 132, 243), (241, 202, 161), (50, 0, 190), (128, 178, 194), \
 					 (23, 45, 136), (86, 136, 0), (172, 143, 230), (165, 103, 0), \
 					 (121, 147, 249), (151, 78, 96), (0, 166, 246), (108, 68, 179), \
 					 (0, 211, 220), (130, 132, 132), (0, 182, 141), (38, 61, 43)] # BGR
-jointName = ["NECK", "HEAD", "LEFT SHOULDER", "LEFT ELBOW", "LEFT HAND", \
-						 "RIGHT SHOULDER", "RIGHT ELBOW", "RIGHT HAND", "LEFT KNEE", \
-						 "LEFT FOOT", "RIGHT KNEE", "RIGHT FOOT", "LEFT HIP", \
-						 "RIGHT HIP", "TORSO"]
-    
+jointName = ["NECK", "HEAD", "LEFT SHOULDER", "LEFT ELBOW", \
+						 "LEFT HAND", "RIGHT SHOULDER", "RIGHT ELBOW", "RIGHT HAND", \
+						 "LEFT KNEE", "LEFT FOOT", "RIGHT KNEE", "RIGHT FOOT", \
+						 "LEFT HIP", "RIGHT HIP", "TORSO"]
+kinemOrder =   [0, 1, 2, 5, 3, 6, 4, 7, 12, 13,  8, 10, 9, 11]
+kinemParent = [-1, 0, 0, 0, 2, 5, 3, 6, -1, -1, 12, 13, 8, 10]
 
-def getImgsAndJoints(dataDir, N, noBg=True):	
+def getImgsAndJoints(dataDir, maxN, noBg=True):	
 	jointsPaths = glob.glob(dataDir)
 	total = len(jointsPaths) 
 
 	I = np.empty((total, H, W)).astype('float16')
-	joints = np.empty((total, nJoints+3, 3))
+	joints = np.empty((total, nJoints+1, 3))
 
 	idx = 0
 	for i in range(total):
 		if i%100 == 0:
 			print 'loading image %d' % (i+1)
 		tmp = np.loadtxt(jointsPaths[i])
-		if tmp.shape[0] == nJoints:
+		if tmp.shape[0] == nJoints-2:
 			imgPath = jointsPaths[i].replace('txt', 'npy') \
 								 .replace('joints_depthcoor', 'nparray_depthcoor')
 			I[idx] = np.load(imgPath).astype('float16')
-			joints[idx, 0:nJoints, :] = tmp
+			joints[idx, 0:nJoints-2, :] = tmp
 			idx += 1
-			if idx == N:
+			if idx == maxN:
 				break
 
-	joints[:, nJoints, :] = (joints[:, 0, :]+2*joints[:, 8, :])/3
-	joints[:, nJoints+1, :] = (joints[:, 0, :]+2*joints[:, 10, :])/3
-	joints[:, nJoints+2, :] = (2*joints[:, 0, :]+joints[:, nJoints, :]+
-														 joints[:, nJoints+1, :])/4
+	joints[:, nJoints-2, :] = (joints[:, 0, :]+2*joints[:, 8, :])/3
+	joints[:, nJoints-1, :] = (joints[:, 0, :]+2*joints[:, 10, :])/3
+	joints[:, nJoints, :] = (2*joints[:, 0, :]+joints[:, nJoints-2, :]+
+														 joints[:, nJoints-1, :])/4
 
 	print 'total number of images: %d/%d' % (idx, total)
 	I = I[:idx]
 	joints = joints[:idx]
 	if noBg:
 		I = bgSub(I, joints)
-	return (I, joints)
+	return (I, joints) # including bodyCenters
 
 def bgSub(I, joints):
 	thres = 250
@@ -102,7 +103,6 @@ def drawPts(img, pts):
 	cv2.destroyAllWindows()
 
 def drawPred(img, joints, paths, center, filename):
-	nJoints = joints.shape[0]
 	H = img.shape[0]
 	W = img.shape[1]
 
@@ -121,8 +121,8 @@ def drawPred(img, joints, paths, center, filename):
 		cv2.circle(img, tuple(joint[:2].astype(np.uint16)), 4, palette[i], -1)
 
 	cv2.rectangle(img, 
-								tuple([int(center[0]-1), int(center[1]-1)]), 
-								tuple([int(center[0]+1), int(center[1]+1)]), 
+								tuple([int(center[0]-2), int(center[1]-2)]), 
+								tuple([int(center[0]+2), int(center[1]+2)]), 
 								palette[nJoints], -1)
 	#cv2.imshow('image', img)
 	#cv2.waitKey(0)
