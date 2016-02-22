@@ -82,7 +82,7 @@ def getSamples(dataDir, outDir, maxN, loadSamples=False):
 		np.save(outDir+'/sf', S_f)
 
 	print '#samples: %d' % N
-	return (I, joints, theta, bodyCenters, S_i, S_q, S_u, S_f, N)
+	return (I, joints[:, :nJoints], theta, bodyCenters, S_i, S_q, S_u, S_f, N)
 
 def getFeatures(img, theta, q, z):
 	img[img == 0] = largeNum
@@ -186,7 +186,7 @@ def getAccuracy(joints, joints_pred):
 													*joints_pred.shape[1], joints_pred.shape[2])
 	assert joints_reshape.shape[0] == joints_pred_reshape.shape[0]
 	dists = np.sqrt(np.sum((joints_reshape-joints_pred_reshape)**2, axis=1))
-	return np.sum(dists < tolerance)/joints_reshape.shape[0]
+	return float(np.sum(dists < tolerance))/joints_reshape.shape[0]
 
 def main(argv):
 	loadSamples, loadModels, train = False, False, False
@@ -243,7 +243,7 @@ def main(argv):
 																									theta, qm0, I_test[i], \
 																									bodyCenters_test[i])
 
-	print getAccuracy(joints_test, joints_pred)
+	print 'test accuracy: %f' % getAccuracy(joints_test, joints_pred)
 
 	for i in range(nTest):
 		pngPath = outDir+'/png/'+str(i)+'.png'
