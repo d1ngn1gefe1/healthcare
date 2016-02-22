@@ -8,8 +8,8 @@ import pickle
 
 np.set_printoptions(threshold=np.nan)
 
-nSamps = 500 # the number of samples of each joint
-nFeats = 500 # the number of features of each offset point
+nSamps = 1000 # the number of samples of each joint
+nFeats = 1000 # the number of features of each offset point
 maxOffSampXY = 50 # the maximum offset for samples in x, y axes
 maxOffSampZ = 2 # the maximum offset for samples in z axis
 maxOffFeat = 200 # the maximum offset for features (before divided by d)
