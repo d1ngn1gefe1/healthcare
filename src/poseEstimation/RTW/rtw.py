@@ -1,10 +1,11 @@
 import numpy as np
-from helper import *
+import pickle
 import sys
 import os
+from helper import *
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.cluster import KMeans
-import pickle
+from multiprocessing import Process, Queue
 
 np.set_printoptions(threshold=np.nan)
 
@@ -21,68 +22,69 @@ minSamplesLeaf = 200
 trainRatio = 0.9
 tolerance = 20
 
+def getInfo(depthDir, outDir, maxN, loadData=False):
+	if loadData:
+		I = np.load(outDir+'/data/I.npy')
+		joints = np.load(outDir+'/data/joints.npy')
+		theta = np.load(outDir+'/data/theta.npy')
+		bodyCenters = np.load(outDir+'/data/bodyCenters.npy')
+		N, _, _ = I.shape
+	else:
+		if not os.path.exists(outDir+'/data'):
+			os.makedirs(outDir+'/data')
+
+		# the N x H x W depth images and the N x nJoints x 3 joint locations
+		I, joints = getImgsAndJoints(depthDir, maxN)
+		N, _, _ = I.shape
+		theta = np.random.randint(-maxOffFeat, maxOffFeat+1, (4, nFeats))
+		bodyCenters = joints[:, nJoints]
+
+		np.save(outDir+'/data/I', I)
+		np.save(outDir+'/data/joints', joints[:, :nJoints])
+		np.save(outDir+'/data/theta', theta)
+		np.save(outDir+'/data/bodyCenters', bodyCenters)
+
+	print '#samples: %d' % N
+	return (I, joints[:, :nJoints], theta, bodyCenters, N)
+
 '''
 	The function creates the training samples. 
 	Each sample is (i, q, u, f), where i is the index of the depth image, q is
 	the random offset point, u is the unit direction vector toward the joint 
 	location, and f is the feature array.
 '''
-def getSamples(dataDir, outDir, maxN, loadSamples=False):
-	S_i, S_q, S_u, S_f = None, None, None, None
+def getSamples(outDir, jointID, theta, I, bodyCenters, joints, loadData=False):
+	S_u, S_f = None, None
+	nTrain, _, _ = I.shape
 
-	if loadSamples:
-		I = np.load(outDir+'/I.npy')
-		joints = np.load(outDir+'/joints.npy')
-		theta = np.load(outDir+'/theta.npy')
-		bodyCenters = np.load(outDir+'/bodyCenters.npy')
-		S_i = np.load(outDir+'/si.npy')
-		S_q = np.load(outDir+'/sq.npy')
-		S_u = np.load(outDir+'/su.npy')
-		S_f = np.load(outDir+'/sf.npy')
-		N, _, _ = I.shape
+	if loadData:
+		S_u = np.load(outDir+'/data/su'+str(jointID)+'.npy')
+		S_f = np.load(outDir+'/data/sf'+str(jointID)+'.npy')
 	else: 
-		# the N x H x W depth images and the N x nJoints x 3 joint locations
-		I, joints = getImgsAndJoints(dataDir, maxN)
-		N, _, _ = I.shape
+		if not os.path.exists(outDir+'/data'):
+			os.makedirs(outDir+'/data')
 
-		# t1x, t1y, t2x, t2y
-		theta = np.random.randint(-maxOffFeat, maxOffFeat+1, (4, nFeats))
-		
-		S_i = np.empty((nJoints, N, nSamps), dtype=np.int16)
-		S_q = np.empty((nJoints, N, nSamps, 3), dtype=np.int16)
-		S_u = np.empty((nJoints, N, nSamps, 3), dtype=np.float16)
-		S_f = np.empty((nJoints, N, nSamps, nFeats), dtype=np.float16)
+		S_u = np.empty((nTrain, nSamps, 3), dtype=np.float16)
+		S_f = np.empty((nTrain, nSamps, nFeats), dtype=np.float16)
 
-		bodyCenters = joints[:, nJoints]
+		for i in range(nTrain):
+			if i%100 == 0:
+				print 'joint %s: processing image %d/%d' % (jointName[jointID], \
+																										i, nTrain)
+			for j in range(nSamps):
+				offsetXY = np.random.randint(-maxOffSampXY, maxOffSampXY+1, 2)
+				offsetZ = np.random.uniform(-maxOffSampZ, maxOffSampZ, 1)
+				offset = np.concatenate((offsetXY, offsetZ))
 
-		for jointID in range(nJoints):
-			for i in range(N):
-				if i%100 == 0:
-					print 'processing joint %d, image %d' % (jointID+1, i+1)
-				for j in range(nSamps):
-					offsetXY = np.random.randint(-maxOffSampXY, maxOffSampXY+1, 2)
-					offsetZ = np.random.uniform(-maxOffSampZ, maxOffSampZ, 1)
-					offset = np.concatenate((offsetXY, offsetZ))
+				S_u[i, j] = 0 if np.linalg.norm(offset) == 0 else \
+											-offset/np.linalg.norm(offset)
+				S_f[i, j] = getFeatures(I[i], theta, joints[i]+offset, \
+											bodyCenters[i][2])
 
-					S_i[jointID,i,j] = i
-					S_q[jointID,i,j] = joints[i, jointID] + offset
-					S_u[jointID,i,j] = 0 if np.linalg.norm(offset) == 0 else \
-															 -offset/np.linalg.norm(offset)
-					S_f[jointID,i,j] = getFeatures(I[i], theta, \
-															 joints[i, jointID]+offset, \
-															 bodyCenters[i][2])
+		np.save(outDir+'/data/su'+str(jointID), S_u)
+		np.save(outDir+'/data/sf'+str(jointID), S_f)
 
-		np.save(outDir+'/I', I)
-		np.save(outDir+'/joints', joints[:, :nJoints])
-		np.save(outDir+'/theta', theta)
-		np.save(outDir+'/bodyCenters', bodyCenters)
-		np.save(outDir+'/si', S_i)
-		np.save(outDir+'/sq', S_q)
-		np.save(outDir+'/su', S_u)
-		np.save(outDir+'/sf', S_f)
-
-	print '#samples: %d' % N
-	return (I, joints[:, :nJoints], theta, bodyCenters, S_i, S_q, S_u, S_f, N)
+	return (S_u, S_f)
 
 def getFeatures(img, theta, q, z):
 	img[img == 0] = largeNum
@@ -124,10 +126,11 @@ def trainModel(X, y, jointID, outDir, loadModels=False):
 	LPath = outDir + '/models/L' + str(jointID) + '.pkl'
 
 	if loadModels:
+		print 'loading model %s from files...' % jointName[jointID]
 		regressor = pickle.load(open(regressorPath, 'rb'))
 		L = pickle.load(open(LPath, 'rb')) 
 	else:
-		print '\n------- joint %s -------' % jointName[jointID]
+		print 'start training model %s...' % jointName[jointID]
 		regressor = DecisionTreeRegressor(min_samples_leaf=minSamplesLeaf)
 
 		X_reshape = X.reshape(X.shape[0]*X.shape[1], X.shape[2])
@@ -135,8 +138,8 @@ def trainModel(X, y, jointID, outDir, loadModels=False):
 
 		rows = np.logical_not(np.all(X_reshape == 0, axis=1))
 		regressor.fit(X_reshape[rows], y_reshape[rows])
-		print 'valid samples: %d/%d' % (X_reshape[rows].shape[0], 
-			X_reshape.shape[0])
+		print 'model %s - valid samples: %d/%d' % (jointName[jointID], \
+			X_reshape[rows].shape[0], X_reshape.shape[0])
 
 		leafIDs = regressor.apply(X_reshape[rows])
 		bin = np.bincount(leafIDs)
@@ -144,12 +147,13 @@ def trainModel(X, y, jointID, outDir, loadModels=False):
 		biggest = np.argmax(bin)
 		smallest = np.argmin(bin[bin != 0])
 
-		print '#leaves: %d' % uniqueIDs.shape[0]
-		print 'biggest leaf id: %d, #samples: %d/%d' % \
-						(biggest, bin[biggest], np.sum(bin))
-		print 'smallest leaf id: %d, #samples: %d/%d' % \
-						(smallest, bin[bin != 0][smallest], np.sum(bin))
-		print 'average leaf size: %d' % (np.sum(bin)/uniqueIDs.shape[0])
+		print 'model %s - #leaves: %d' % (jointName[jointID], uniqueIDs.shape[0])
+		print 'model %s - biggest leaf id: %d, #samples: %d/%d' % \
+						(jointName[jointID], biggest, bin[biggest], np.sum(bin))
+		print 'model %s - smallest leaf id: %d, #samples: %d/%d' % \
+						(jointName[jointID], smallest, bin[bin != 0][smallest], np.sum(bin))
+		print 'model %s - average leaf size: %d' % (jointName[jointID], \
+						np.sum(bin)/uniqueIDs.shape[0])
 
 		L = stochastic(regressor, X_reshape, y_reshape)
 
@@ -188,70 +192,77 @@ def getAccuracy(joints, joints_pred):
 	dists = np.sqrt(np.sum((joints_reshape-joints_pred_reshape)**2, axis=1))
 	return float(np.sum(dists < tolerance))/joints_reshape.shape[0]
 
+def trainParallel(outDir, jointID, theta, I, bodyCenters, joints, \
+									loadData, loadModels, regressorQ, LQ):
+	S_u, S_f = getSamples(outDir, jointID, theta, I, bodyCenters, \
+												joints, loadData)
+
+	regressor, L = trainModel(S_f, S_u, jointID, outDir, loadModels)
+	regressorQ.put(regressor)
+	LQ.put(L)
+
 def main(argv):
-	loadSamples, loadModels, train = False, False, False
+	loadData, loadModels = False, False
 	maxN = None
 
-	dataDir = argv[0] + '/*/joints_depthcoor/*'
+	depthDir = argv[0] + '/*/joints_depthcoor/*'
 	outDir = argv[1]
 
 	for i, arg in enumerate(argv[2:]):
-		if arg == '-loadsamples':
-			loadSamples = True
+		if arg == '-loaddata':
+			loadData = True
 		elif arg == '-loadmodels':
 			loadModels = True
-		elif arg == '-train':
-			train = True
 		elif arg == '-maxn':
 			maxN = int(argv[2:][i+1])
 			print 'maxN: %d' % maxN
 
-	I, joints, theta, bodyCenters, S_i, S_q, S_u, S_f, N = \
-		getSamples(dataDir, outDir, maxN, loadSamples)
-
-	if not train:
-		return
+	I, joints, theta, bodyCenters, N = getInfo(depthDir, outDir, maxN, loadData)
 
 	nTrain = int(trainRatio*N)
 	nTest = N - nTrain
 	print 'nTrain: %d, nTest: %d' % (nTrain, nTest)
 
-	S_i_train = S_i[:, :nTrain]
-	S_q_train = S_q[:, :nTrain]
-	S_u_train = S_u[:, :nTrain]
-	S_f_train = S_f[:, :nTrain]
-	I_train = I[:nTrain]
-	joints_train = joints[:nTrain]
-	bodyCenters_train = bodyCenters[:nTrain]
-	S_i_test = S_i[:, nTrain:]
-	S_q_test = S_q[:, nTrain:]
-	S_u_test = S_u[:, nTrain:]
-	S_f_test = S_f[:, nTrain:]
-	I_test = I[nTrain:]
-	joints_test = joints[nTrain:]
-	bodyCenters_test = bodyCenters[nTrain:]
-
 	qms = np.zeros((nTest, nJoints, nSteps+1, 3))
 	joints_pred = np.zeros((nTest, nJoints, 3))
+
+	print '\n------- training models in parallel -------'
+	processes = []
+	regressorQ, LQ = Queue(), Queue()
+	regressors, Ls = {}, {}
+
+	for i in range(nJoints):
+		p = Process(target=trainParallel, name='Thread #%d' % i, \
+								args=(outDir, i, theta, I[:nTrain], bodyCenters[:nTrain], \
+								joints[:nTrain, i], loadData, loadModels, regressorQ, LQ))
+		processes.append(p)
+		p.start()
+		regressors[i] = regressorQ.get()
+		Ls[i] = LQ.get()
+
+	[t.join() for t in processes]
+
+	print '\n------- testing models -------'
 	for idx, jointID in enumerate(kinemOrder):
-		regressor, L = trainModel(S_f_train[jointID], S_u_train[jointID], 
-															jointID, outDir, loadModels)
+		print 'testing model %s' % jointName[jointID]
 		for i in range(nTest):
-			qm0 = bodyCenters_test[i] if kinemParent[idx] == -1 \
+			qm0 = bodyCenters[nTrain:][i] if kinemParent[idx] == -1 \
 							else joints_pred[i][kinemParent[idx]]
-			qms[i][jointID], joints_pred[i][jointID] = testModel(regressor, L, \
-																									theta, qm0, I_test[i], \
-																									bodyCenters_test[i])
+			qms[i][jointID], joints_pred[i][jointID] = testModel(
+				regressors[jointID], Ls[jointID], theta, qm0, I[nTrain:][i], \
+				bodyCenters[nTrain:][i])
 
-	print 'test accuracy: %f' % getAccuracy(joints_test, joints_pred)
+	print 'test accuracy: %f' % getAccuracy(joints[nTrain:], joints_pred)
 
+	# visualize predicted labels
 	for i in range(nTest):
 		pngPath = outDir+'/png/'+str(i)+'.png'
 		if not os.path.exists(outDir+'/png'):
 			os.makedirs(outDir+'/png')
-		drawPred(I_test[i], joints_pred[i], qms[i], bodyCenters_test[i], pngPath)
+		drawPred(I[nTrain:][i], joints_pred[i], qms[i], bodyCenters[nTrain:][i], \
+						 pngPath)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 	main(sys.argv[1:])
 
 
