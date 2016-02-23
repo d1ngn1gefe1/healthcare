@@ -124,9 +124,11 @@ def drawPred(img, joints, paths, center, filename):
 								tuple([int(center[0]-2), int(center[1]-2)]), 
 								tuple([int(center[0]+2), int(center[1]+2)]), 
 								palette[nJoints], -1)
+
 	#cv2.imshow('image', img)
 	#cv2.waitKey(0)
 	#cv2.destroyAllWindows()
+	
 	for i, joint in enumerate(joints):
 		cv2.rectangle(img, (W, H*i/nJoints), (W+100, H*(i+1)/nJoints-1), 
 									palette[i], -1)

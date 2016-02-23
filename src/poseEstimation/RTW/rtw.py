@@ -18,7 +18,7 @@ largeNum = 100
 nSteps = 200
 stepSize = 2
 K = 10
-minSamplesLeaf = 200
+minSamplesLeaf = 100
 trainRatio = 0.9
 tolerance = 20
 
@@ -198,8 +198,8 @@ def trainParallel(outDir, jointID, theta, I, bodyCenters, joints, \
 												joints, loadData)
 
 	regressor, L = trainModel(S_f, S_u, jointID, outDir, loadModels)
-	regressorQ.put(regressor)
-	LQ.put(L)
+	regressorQ.put({jointID: regressor})
+	LQ.put({jointID: L})
 
 def main(argv):
 	loadData, loadModels = False, False
@@ -229,7 +229,6 @@ def main(argv):
 	print '\n------- training models in parallel -------'
 	processes = []
 	regressorQ, LQ = Queue(), Queue()
-	regressors, Ls = {}, {}
 
 	for i in range(nJoints):
 		p = Process(target=trainParallel, name='Thread #%d' % i, \
@@ -237,10 +236,13 @@ def main(argv):
 								joints[:nTrain, i], loadData, loadModels, regressorQ, LQ))
 		processes.append(p)
 		p.start()
-		regressors[i] = regressorQ.get()
-		Ls[i] = LQ.get()
 
-	[t.join() for t in processes]
+	regressorsTmp = [regressorQ.get() for p in processes]
+	LsTmp = [LQ.get() for p in processes]
+	regressors = dict(i.items()[0] for i in regressorsTmp)
+	Ls = dict(i.items()[0] for i in LsTmp)
+
+	[p.join() for p in processes]
 
 	print '\n------- testing models -------'
 	for idx, jointID in enumerate(kinemOrder):
