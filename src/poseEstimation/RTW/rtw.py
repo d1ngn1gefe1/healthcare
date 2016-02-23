@@ -9,8 +9,8 @@ from multiprocessing import Process, Queue
 
 np.set_printoptions(threshold=np.nan)
 
-nSamps = 1000 # the number of samples of each joint
-nFeats = 1000 # the number of features of each offset point
+nSamps = 500 # the number of samples of each joint
+nFeats = 500 # the number of features of each offset point
 maxOffSampXY = 50 # the maximum offset for samples in x, y axes
 maxOffSampZ = 2 # the maximum offset for samples in z axis
 maxOffFeat = 200 # the maximum offset for features (before divided by d)
@@ -18,7 +18,7 @@ largeNum = 100
 nSteps = 200
 stepSize = 2
 K = 10
-minSamplesLeaf = 100
+minSamplesLeaf = 200
 trainRatio = 0.9
 tolerance = 20
 
