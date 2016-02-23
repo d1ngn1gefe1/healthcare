@@ -201,8 +201,15 @@ def trainParallel(outDir, jointID, theta, I, bodyCenters, joints, \
 	regressorQ.put({jointID: regressor})
 	LQ.put({jointID: L})
 
+def trainSeries(outDir, jointID, theta, I, bodyCenters, joints, \
+								loadData, loadModels):
+	S_u, S_f = getSamples(outDir, jointID, theta, I, bodyCenters, \
+												joints, loadData)
+	regressor, L = trainModel(S_f, S_u, jointID, outDir, loadModels)
+	return (regressor, L)
+
 def main(argv):
-	loadData, loadModels = False, False
+	loadData, loadModels, multiThreads = False, False, False
 	maxN = None
 
 	depthDir = argv[0] + '/*/joints_depthcoor/*'
@@ -216,6 +223,8 @@ def main(argv):
 		elif arg == '-maxn':
 			maxN = int(argv[2:][i+1])
 			print 'maxN: %d' % maxN
+		elif arg == '-multithreads':
+			multiThreads = True
 
 	I, joints, theta, bodyCenters, N = getInfo(depthDir, outDir, maxN, loadData)
 
@@ -226,23 +235,30 @@ def main(argv):
 	qms = np.zeros((nTest, nJoints, nSteps+1, 3))
 	joints_pred = np.zeros((nTest, nJoints, 3))
 
-	print '\n------- training models in parallel -------'
-	processes = []
-	regressorQ, LQ = Queue(), Queue()
+	print '\n------- training models  -------'
+	regressors, Ls = {}, {}
+	if multiThreads:
+		processes = []
+		regressorQ, LQ = Queue(), Queue()
 
-	for i in range(nJoints):
-		p = Process(target=trainParallel, name='Thread #%d' % i, \
-								args=(outDir, i, theta, I[:nTrain], bodyCenters[:nTrain], \
-								joints[:nTrain, i], loadData, loadModels, regressorQ, LQ))
-		processes.append(p)
-		p.start()
+		for i in range(nJoints):
+			p = Process(target=trainParallel, name='Thread #%d' % i, \
+									args=(outDir, i, theta, I[:nTrain], bodyCenters[:nTrain], \
+									joints[:nTrain, i], loadData, loadModels, regressorQ, LQ))
+			processes.append(p)
+			p.start()
 
-	regressorsTmp = [regressorQ.get() for p in processes]
-	LsTmp = [LQ.get() for p in processes]
-	regressors = dict(i.items()[0] for i in regressorsTmp)
-	Ls = dict(i.items()[0] for i in LsTmp)
+		regressorsTmp = [regressorQ.get() for p in processes]
+		LsTmp = [LQ.get() for p in processes]
+		regressors = dict(i.items()[0] for i in regressorsTmp)
+		Ls = dict(i.items()[0] for i in LsTmp)
 
-	[p.join() for p in processes]
+		[p.join() for p in processes]
+	else:
+		for i in range(nJoints):
+			regressors[i], Ls[i] = trainSeries(outDir, i, theta, I[:nTrain], \
+				bodyCenters[:nTrain], joints[:nTrain, i], loadData, loadModels)
+
 
 	print '\n------- testing models -------'
 	for idx, jointID in enumerate(kinemOrder):
