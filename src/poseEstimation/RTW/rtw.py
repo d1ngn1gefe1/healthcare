@@ -160,7 +160,7 @@ def trainModel(X, y, jointID, outDir, loadModels=False):
 		pickle.dump(regressor, open(regressorPath, 'wb')) 
 		pickle.dump(L, open(LPath, 'wb')) 
 
-	return regressor, L
+	return (regressor, L)
 
 def testModel(regressor, L, theta, qm0, img, bodyCenter):
 	qm = np.zeros((nSteps+1, 3))
