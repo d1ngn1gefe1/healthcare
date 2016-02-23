@@ -44,7 +44,7 @@ def getInfo(depthDir, outDir, maxN, loadData=False):
 		np.save(outDir+'/data/theta', theta)
 		np.save(outDir+'/data/bodyCenters', bodyCenters)
 
-	print '#samples: %d' % N
+	print '#images: %d' % N
 	return (I, joints[:, :nJoints], theta, bodyCenters, N)
 
 '''
