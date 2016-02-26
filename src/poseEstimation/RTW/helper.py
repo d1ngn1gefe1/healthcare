@@ -1,6 +1,9 @@
 import glob
 import numpy as np
 import cv2
+from sklearn.neighbors import KNeighborsClassifier
+
+np.set_printoptions(threshold=np.nan)
 
 H = 240
 W = 320 
@@ -51,10 +54,7 @@ def getImgsAndJoints(dataDir, maxN, noBg=True):
 		I = bgSub(I, joints)
 	return (I, joints) # including bodyCenters
 
-def bgSub(I, joints):
-	thres = 250
-	scale = 30
-
+def bgSub(I, joints, thres=250, scale=30):
 	N = I.shape[0]
 	assert N == joints.shape[0]
 	indices = np.indices(I.shape[1:]).swapaxes(0, 1).swapaxes(1, 2)
@@ -74,6 +74,35 @@ def bgSub(I, joints):
 	mask[mask > thres] = 0
 	mask[mask > 0] = 1
 	return I*mask
+
+def perPixelLabels(I, joints):
+	'''
+	scale = 30
+	I_noBg = bgSub(I, joints, scale=scale)
+	nJoints = joints.shape[1]
+	joints_scale = joints.copy()
+	joints_scale[:, :, 2] *= scale
+	N = I.shape[0]
+
+	for i in range(1):
+		knn = KNeighborsClassifier(n_neighbors=1)
+		knn.fit(joints_scale[i], np.arange(0, nJoints))
+		X = np.indices(I[i].shape).reshape((2, I[i].shape[0]*I[i].shape[1]))
+		X = np.vstack((X, I[i].reshape(I[i].shape[0]*I[i].shape[1])*scale))
+		X = X[:, X[2] != 0].T
+		labels = knn.predict(X)
+		
+		img = cv2.equalizeHist(I_noBg[i].astype(np.uint8))
+		#img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+		#print img
+		#for j in range(nJoints):
+		#	coors = X[labels == j][:, :2].astype(int)
+		#	if coors.shape[0] != 0:
+		#		img[coors] = palette[j]
+	'''
+	cv2.imshow('image', I[0].astype(np.uint8))
+	cv2.waitKey(0)
+	cv2.destroyAllWindows()
 
 def visualizeImgs(I, joints):
 	N = I.shape[0]
@@ -144,9 +173,8 @@ def checkUnitVectors(unitVectors):
 
 
 #testing
-'''
-I, joints = getImgsAndJoints()
+I, joints = getImgsAndJoints('/Users/alan/Documents/research/EVAL/*/joints_depthcoor/*', 200)
 print I.shape, joints.shape
-mask = bgSub(I, joints)
-visualizeImgs(mask, joints)
-'''
+perPixelLabels(I, joints)
+#mask = bgSub(I, joints)
+#visualizeImgs(mask, joints)

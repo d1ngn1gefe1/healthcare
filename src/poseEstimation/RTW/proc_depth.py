@@ -13,7 +13,7 @@ C = 3.8605e-3 #NUI_CAMERA_DEPTH_NOMINAL_INVERSE_FOCAL_LENGTH_IN_PIXELS
 def main(argv):
 	getJpg, getJoints, getNpArray = False, False, False
 
-	datasets = glob.glob(argv[0]+'/*')
+	datasets = glob.glob(argv[0])
 	print datasets
 
 	for arg in argv[1:]:
@@ -86,6 +86,7 @@ def main(argv):
 					worldZ = f[:, 2][indices]
 
 					depth = worldZ
+					print worldX/worldZ
 					depthX = worldX/worldZ/C + W/2.0
 					depthY = worldY/worldZ/C + H/2.0
 
@@ -102,7 +103,9 @@ def main(argv):
 						outNpArray[depthY, depthX] = worldZ
 
 				if getJpg:
-					cv2.imwrite(outJpgDir+fName+'.jpg', outJpg)
+					#cv2.imwrite(outJpgDir+fName+'.jpg', outJpg)
+					cv2.imshow('img', outJpg)
+					cv2.waitKey(0)
 				if getNpArray:	
 					np.save(outNpArrayDir+fName, outNpArray)
 

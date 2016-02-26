@@ -7,8 +7,6 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.cluster import KMeans
 from multiprocessing import Process, Queue
 
-np.set_printoptions(threshold=np.nan)
-
 nSamps = 500 # the number of samples of each joint
 nFeats = 500 # the number of features of each offset point
 maxOffSampXY = 50 # the maximum offset for samples in x, y axes
