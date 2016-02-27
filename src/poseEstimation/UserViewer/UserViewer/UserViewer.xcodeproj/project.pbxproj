@@ -54,11 +54,6 @@
 		E73BD20D1C3D964B006E8CD7 /* libOpenNI2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libOpenNI2.dylib; path = "/Users/alan/Documents/research/OpenNI-MacOSX-x64-2.2/Redist/libOpenNI2.dylib"; sourceTree = "<absolute>"; };
 		E73BD20E1C3D964B006E8CD7 /* libOpenNI2.jni.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libOpenNI2.jni.dylib; path = "/Users/alan/Documents/research/OpenNI-MacOSX-x64-2.2/Redist/libOpenNI2.jni.dylib"; sourceTree = "<absolute>"; };
 		E73BD2111C3D964B006E8CD7 /* org.openni.jar */ = {isa = PBXFileReference; lastKnownFileType = archive.jar; name = org.openni.jar; path = "/Users/alan/Documents/research/OpenNI-MacOSX-x64-2.2/Redist/org.openni.jar"; sourceTree = "<absolute>"; };
-		E73BD2371C3D9F28006E8CD7 /* libNiTE2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libNiTE2.dylib; path = ../../../Redist/libNiTE2.dylib; sourceTree = "<group>"; };
-		E73BD2391C3D9F3A006E8CD7 /* libOpenNI2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libOpenNI2.dylib; path = "../../../../OpenNI-MacOSX-x64-2.2/Redist/libOpenNI2.dylib"; sourceTree = "<group>"; };
-		E73BD23A1C3D9F3A006E8CD7 /* libOpenNI2.jni.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libOpenNI2.jni.dylib; path = "../../../../OpenNI-MacOSX-x64-2.2/Redist/libOpenNI2.jni.dylib"; sourceTree = "<group>"; };
-		E73BD23D1C3D9F78006E8CD7 /* OpenNI2 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = OpenNI2; path = "../../../../OpenNI-MacOSX-x64-2.2/Redist/OpenNI2"; sourceTree = "<group>"; };
-		E73BD23F1C3D9F9B006E8CD7 /* NiTE2 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = NiTE2; path = ../../../Redist/NiTE2; sourceTree = "<group>"; };
 		E79401CE1C3F726F00FA1083 /* helper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = helper.cpp; sourceTree = "<group>"; };
 		E79401CF1C3F726F00FA1083 /* helper.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = helper.hpp; sourceTree = "<group>"; };
 		E7AB9BE21C55FD7D00BC747A /* NiTE2 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = NiTE2; path = "../../NiTE-2.0.0/Redist/NiTE2"; sourceTree = "<group>"; };
@@ -93,11 +88,6 @@
 				E7AB9BE81C55FDD700BC747A /* libOpenNI2.jni.dylib */,
 				E7AB9BE51C55FDB100BC747A /* OpenNI2 */,
 				E7AB9BE21C55FD7D00BC747A /* NiTE2 */,
-				E73BD23F1C3D9F9B006E8CD7 /* NiTE2 */,
-				E73BD23D1C3D9F78006E8CD7 /* OpenNI2 */,
-				E73BD2391C3D9F3A006E8CD7 /* libOpenNI2.dylib */,
-				E73BD23A1C3D9F3A006E8CD7 /* libOpenNI2.jni.dylib */,
-				E73BD2371C3D9F28006E8CD7 /* libNiTE2.dylib */,
 				E73BD1FC1C3D8F7F006E8CD7 /* GLUT.framework */,
 				E73BD1FA1C3D8F7A006E8CD7 /* OpenGL.framework */,
 				E73BD1ED1C3D8D8B006E8CD7 /* UserViewer */,

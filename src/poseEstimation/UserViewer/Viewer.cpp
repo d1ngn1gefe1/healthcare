@@ -14,6 +14,7 @@
 #endif
 
 #include "../Common/NiteSampleUtilities.h"
+#include <sys/stat.h>
 
 #define GL_WIN_SIZE_X	320
 #define GL_WIN_SIZE_Y	240
@@ -46,7 +47,7 @@ float sideJoints[N_JOINTS][5];
 float topJoints[N_JOINTS][5];
 
 int g_nXRes = 0, g_nYRes = 0;
-string outDir = "/Users/Emma/GitHub/healthcare/src/poseEstimation/NiTE-2.0.0/Samples/UserViewer/data";
+string outDir = "/Users/alan/Documents/research/healthcare/src/poseEstimation/UserViewer/data";
 
 // time to hold in pose to exit program. In milliseconds.
 const int g_poseTimeoutToExit = 2000;
@@ -581,6 +582,7 @@ void SampleViewer::Display()
 		}
 	}
     
+    const openni::DepthPixel *imgBufferSide = (const openni::DepthPixel *)depthFrameSide.getData();
     const openni::DepthPixel *imgBufferTop = (const openni::DepthPixel *)depthFrameTop.getData();
     calculateHistogram(m_pDepthHistTop, MAX_DEPTH, depthFrameTop);
     imgTop = Mat(depthFrameTop.getHeight(), depthFrameTop.getWidth(), CV_8UC3);
@@ -737,39 +739,54 @@ void SampleViewer::Display()
     
     if (!g_getBackground) {
         knnsearch(topJoints, imgBufferTop, mask, labelTop, label, 320, 240);
+        drawSkeleton(labelTop, topJoints);
         cv::resize(labelTop, labelTop, Size(), 2, 2);
         imshow("Label", labelTop);
         
         if (g_capture2) {
-            
-            // c++ style
-            /*
-            ofstream file;
-            file.open(outDir + "/depth" + to_string(nFrame) + ".dat");
-            for (int i = 0; i < width*height; i++) {
-                file << imgBufferTop[i] << endl;
-            }
-            file.close();
-
-            file.open(outDir + "/label" + to_string(nFrame) + ".dat");
-            for (int i = 0; i < width*height; i++) {
-                file << label[i] << endl;
-            }
-            file.close();
-            */
-            
             // c style
-            string path = outDir + "/depth" + to_string(nFrame) + ".dat";
+            string path = outDir + "/depth-top" + to_string(nFrame) + ".txt";
             FILE *f = fopen(path.c_str(), "w");
             for (int i = 0; i < width*height; i++) {
                 fprintf(f, "%u\n", imgBufferTop[i]);
             }
             fclose(f);
-        
-            path = outDir + "/label" + to_string(nFrame) + ".dat";
+            
+            path = outDir + "/depth-side" + to_string(nFrame) + ".txt";
+            f = fopen(path.c_str(), "w");
+            for (int i = 0; i < width*height; i++) {
+                fprintf(f, "%u\n", imgBufferSide[i]);
+            }
+            fclose(f);
+            
+            path = outDir + "/joints-top" + to_string(nFrame) + ".txt";
+            f = fopen(path.c_str(), "w");
+            for (int i = 0; i < N_JOINTS; i++) {
+                fprintf(f, "%f, %f, %f, %f, %f\n", topJoints[i][0], topJoints[i][1],
+                        topJoints[i][2], topJoints[i][3], topJoints[i][4]);
+            }
+            fclose(f);
+            
+            path = outDir + "/joints-side" + to_string(nFrame) + ".txt";
+            f = fopen(path.c_str(), "w");
+            for (int i = 0; i < N_JOINTS; i++) {
+                fprintf(f, "%f, %f, %f, %f, %f\n", sideJoints[i][0], sideJoints[i][1],
+                        sideJoints[i][2], sideJoints[i][3], sideJoints[i][4]);
+            }
+            fclose(f);
+
+            path = outDir + "/label-top" + to_string(nFrame) + ".txt";
             f = fopen(path.c_str(), "w");
             for (int i = 0; i < width*height; i++) {
                 fprintf(f, "%d\n", label[i]);
+            }
+            fclose(f);
+            
+            path = outDir + "/label-side" + to_string(nFrame) + ".txt";
+            f = fopen(path.c_str(), "w");
+            const nite::UserId* labelsTop = userLabels.getPixels();
+            for (int i = 0; i < width*height; i++) {
+                fprintf(f, "%d\n", (int)labelsTop[i]);
             }
             fclose(f);
             

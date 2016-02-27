@@ -10,7 +10,7 @@
 
 float dx = 0;
 float dy = 1.5e3;
-float dz = 2.8e3;
+float dz = 2.85e3;
 
 float unitVectors[4][4] = {{1,0,0,0}, {0,0,1,0}, {0,-1,0,0}, {0,0,0,1}};
 
