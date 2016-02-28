@@ -1,4 +1,5 @@
 import numpy as np
+import argparse
 import glob
 import cv2
 import sys
@@ -24,11 +25,10 @@ np.set_printoptions(threshold=np.nan)
   JOINT_RIGHT_FOOT
 '''
 
-nPeople = sys.maxint
-nImages = sys.maxint
 H = 240
 W = 320
 nJoints = 15
+nPeople = 20
 
 palette = [(34, 69, 101), (0, 195, 243), (146, 86, 135), (130, 132, 132),\
            (0, 132, 243), (241, 202, 161), (50, 0, 190), (128, 178, 194), \
@@ -186,32 +186,31 @@ def knn(depth, joints, C):
   cv2.imshow('kNNSide', img.astype(np.uint8))
   return img
 
-def main(argv):
+def main(**kwargs):
   C = 0
   bad = False
-  dataDir = argv[0]
-  people = glob.glob(dataDir)
-  print people
+  deleleBad = True
+  dataDir = kwargs.get('dir')
+  id = kwargs.get('id')
 
-  for i, person in enumerate(people):
-    depthSideFiles = glob.glob(person + 'depth-side*.txt')
-    depthTopFiles = glob.glob(person + 'depth-top*.txt')
-    jointsSideFiles = glob.glob(person + 'joints-side*.txt')
-    jointsTopFiles = glob.glob(person + 'joints-top*.txt')
-    labelSideFiles = glob.glob(person + 'label-side*.txt')
-    labelTopFiles = glob.glob(person + 'label-top*.txt')
+  for i in range(0 if id == -1 else id, nPeople if id == -1 else id+1):
+    person = dataDir+str(i).zfill(2)+'_'+'[0-9]'*5+'_'
+    depthSideFiles = sorted(glob.glob(person + 'depth_side.txt'))
+    depthTopFiles = sorted(glob.glob(person + 'depth_top.txt'))
+    jointsSideFiles = sorted(glob.glob(person + 'joints_side.txt'))
+    jointsTopFiles = sorted(glob.glob(person + 'joints_top.txt'))
+    labelSideFiles = sorted(glob.glob(person + 'label_side.txt'))
+    labelTopFiles = sorted(glob.glob(person + 'label_top.txt'))
 
     assert len(depthSideFiles) == len(depthTopFiles) == len(jointsSideFiles) \
       == len(jointsTopFiles) == len(labelSideFiles) == len(labelTopFiles)
     N = len(depthSideFiles)
+    print 'person id: %d; #frames: %d' % (i, N)
 
     for j in range(N):
-      #print depthSideFiles[j]
-      #print depthTopFiles[j]
-      #print jointsSideFiles[j]
-      #print jointsTopFiles[j]
-      #print labelSideFiles[j]
-      #print labelTopFiles[j]
+      curFrame = depthSideFiles[j].replace(dataDir, '')\
+                   .replace('_depth_side.txt', '').replace(str(i)+'_', '')
+      print 'current frame: %s' % curFrame
 
       depthSide = np.loadtxt(depthSideFiles[j], dtype=float).reshape((H, W))
       depthTop = np.loadtxt(depthTopFiles[j], dtype=float).reshape((H, W))
@@ -223,6 +222,15 @@ def main(argv):
       if np.count_nonzero(jointsSide) == 0 and \
         np.count_nonzero(jointsSide) == 0:
         bad = True
+        if deleleBad:
+            print 'automatically delete bad frame %s' % curFrame
+            os.remove(depthSideFiles[j])
+            os.remove(depthTopFiles[j])
+            os.remove(jointsSideFiles[j])
+            os.remove(jointsTopFiles[j])
+            os.remove(labelSideFiles[j])
+            os.remove(labelTopFiles[j])
+            continue
       else:
         bad = False
 
@@ -256,7 +264,7 @@ def main(argv):
       if key == ord('s'):
         return
       elif key == ord('d'):
-        print 'deleting...'
+        print 'deleting frame %d' % curFrame
         os.remove(depthSideFiles[j])
         os.remove(depthTopFiles[j])
         os.remove(jointsSideFiles[j])
@@ -264,14 +272,12 @@ def main(argv):
         os.remove(labelSideFiles[j])
         os.remove(labelTopFiles[j])
 
-      #print depthSide.shape, depthTop.shape, jointsSide.shape, jointsTop.shape, \
-      #  labelSide.shape, labelTop.shape
-
-      if j >= nImages - 1:
-        break
-
-    if i >= nPeople - 1:
-      break
+      #print depthSide.shape, depthTop.shape, jointsSide.shape, \
+      #jointsTop.shape, labelSide.shape, labelTop.shape
 
 if __name__ == '__main__':
-  main(sys.argv[1:])
+  parser = argparse.ArgumentParser()
+  parser.add_argument('--dir', required=True)
+  parser.add_argument('--id', type=int, default=-1)
+  args = parser.parse_args()
+  main(**vars(args))
