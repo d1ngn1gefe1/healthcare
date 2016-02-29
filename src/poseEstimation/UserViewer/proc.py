@@ -29,6 +29,8 @@ H = 240
 W = 320
 nJoints = 15
 nPeople = 20
+ptsPerJoint = 20
+nNeighbors = 5
 
 palette = [(34, 69, 101), (0, 195, 243), (146, 86, 135), (130, 132, 132),\
            (0, 132, 243), (241, 202, 161), (50, 0, 190), (128, 178, 194), \
@@ -44,8 +46,8 @@ jointName = ['HEAD', 'NECK', 'LEFT_SHOULDER', 'RIGHT_SHOULDER', \
 skeleton = [(0,1), (1,2), (1,3), (2,4), (3,5), (4,6), (5,7), (2,8), (3,8), \
             (8,9), (8,10), (9,10), (9,11), (10,12), (11,13), (12,14)]
 # first joint vs second joint
-relativeWeights = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.3, \
-                   0.3, 0.7, 0.7, 0.5, 0.5, 0.5, 0.5, 0.5]
+relativeWeights = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.2, \
+                   0.2, 0.8, 0.8, 0.5, 0.5, 0.5, 0.5, 0.5]
 
 '''
   pixelZ = worldZ
@@ -74,7 +76,7 @@ def world2pixel(world, C):
   pixel[:, 1] = -world[:, 1]/world[:, 2]/C + H/2.0
   return pixel.astype(int)
 
-def visualizePts(pixel, name, label=None):
+def visualizePts(pixel, label=None):
   if label is None:
     img = np.zeros((H, W), np.uint8)
   else:
@@ -87,15 +89,16 @@ def visualizePts(pixel, name, label=None):
       #img[pt[1], pt[0]] = np.asarray(palette[label[i]])
       cv2.circle(img, (pt[0], pt[1]), 1, palette[label[i]], -1)
       #print label[i], palette[label[i]]
-    cv2.imshow(name, img)
-
-def drawID(img, id):
-  cv2.putText(img, str(id), (10, 10), \
-              cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255))
   return img
 
+def drawID(img, id):
+  cv2.putText(img, str(id), (10, 20), \
+              cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255))
+  return img
+
+# joints: pixelx, pixely
 def drawJoints(img, joints, bad):
-  # right bar
+  # legend bar
   img = np.hstack((img, np.zeros((H, 100, 3)))).astype(np.uint8)
   for i in range(nJoints):
     cv2.rectangle(img, (W, H*i/nJoints), (W+100, H*(i+1)/nJoints-1), \
@@ -108,13 +111,13 @@ def drawJoints(img, joints, bad):
                 cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255))
     return img
 
-  for i, pt in enumerate(joints[:, 3:]):
+  for i, pt in enumerate(joints):
     cv2.circle(img, tuple(pt.astype(np.uint16)), 4, palette[i], -1)
 
-  for jointPair in skeleton:
-    pt1 = joints[jointPair[0], 3:]
-    pt2 = joints[jointPair[1], 3:]
-    mid = (pt1+pt2)/2
+  for i, jointPair in enumerate(skeleton):
+    pt1 = joints[jointPair[0]]
+    pt2 = joints[jointPair[1]]
+    mid = pt1*(1-relativeWeights[i]) + pt2*relativeWeights[i]
 
     cv2.line(img, tuple(pt1.astype(np.uint16)), tuple(mid.astype(np.uint16)), \
       palette[jointPair[0]], 2)
@@ -142,54 +145,81 @@ def joints2skeleton(joints):
     pt1 = joints[jointPair[0]]
     pt2 = joints[jointPair[1]]
 
+    idx, nPts = 0, 0
     if abs(pt1[0]-pt2[0]) < abs(pt1[1]-pt2[1]):
-      start = min(pt1[1], pt2[1])
-      end = max(pt1[1], pt2[1])
-      y = np.arange(start, end, (end-start)/20.0)
+      idx = 1
+
+    start = min(pt1[idx], pt2[idx])
+    end = max(pt1[idx], pt2[idx])
+    if idx == 1:
+      y = np.arange(start, end, (end-start)/ptsPerJoint)
       x, z = y2xz(pt1, pt2, y)
       nPts = y.shape[0]
-      if nPts == 0:
-        continue
-      labels = np.empty(nPts)
-      nPart1 = int(relativeWeights[i]*nPts)
-      nPart2 = nPts - nPart1
-      nParts = [nPart1, nPart2]
-      idxSm = np.argmin([pt1[1], pt2[1]])
-      idxLg = np.argmax([pt1[1], pt2[1]])
-      labels[:nParts[idxSm]] = jointPair[idxSm]
-      labels[nParts[idxSm]:] = jointPair[idxLg]
     else:
-      start = min(pt1[0], pt2[0])
-      end = max(pt1[0], pt2[0])
-      x = np.arange(start, end, (end-start)/20.0)
+      x = np.arange(start, end, (end-start)/ptsPerJoint)
       y, z = x2yz(pt1, pt2, x)
       nPts = x.shape[0]
-      if nPts == 0:
-        continue
-      labels = np.empty(nPts)
-      nPart1 = int(relativeWeights[i]*nPts)
-      nPart2 = nPts - nPart1
-      nParts = [nPart1, nPart2]
-      idxSm = np.argmin([pt1[0], pt2[0]])
-      idxLg = np.argmax([pt1[0], pt2[0]])
-      labels[:nParts[idxSm]] = jointPair[idxSm]
-      labels[nParts[idxSm]:] = jointPair[idxLg]
+    if nPts == 0:
+      continue
+    labels = np.empty(nPts)
+    nPart1 = int(relativeWeights[i]*nPts)
+    nPart2 = nPts - nPart1
+    nParts = [nPart1, nPart2]
+    idxSm = np.argmin([pt1[idx], pt2[idx]])
+    idxLg = np.argmax([pt1[idx], pt2[idx]])
+    labels[:nParts[idxSm]] = jointPair[idxSm]
+    labels[nParts[idxSm]:] = jointPair[idxLg]
 
     pts = np.vstack((x, y, z)).T
     ptsAll = np.concatenate((ptsAll, pts))
-    #print ptsAll.shape, pts.shape
+    #print ptsAll.shape
     labelsAll = np.concatenate((labelsAll, labels))
-    #print labelsAll.shape, labels.shape
+    #print labelsAll.shape
+
+  # torso
+  tl = joints[2]*(1-relativeWeights[7])+joints[8]*relativeWeights[7]
+  tr = joints[3]*(1-relativeWeights[8])+joints[8]*relativeWeights[8]
+  bl = joints[8]*(1-relativeWeights[9])+joints[9]*relativeWeights[9]
+  br = joints[8]*(1-relativeWeights[10])+joints[10]*relativeWeights[10]
+
+  torsoSkel = [(tl, tr), (tr, br), (br, bl), (bl, tl)]
+  for i, jointPair in enumerate(torsoSkel):
+    x, y, z, nPts = None, None, None, 0
+    pt1 = torsoSkel[i][0]
+    pt2 = torsoSkel[i][1]
+
+    idx, nPts = 0, 0
+    if abs(pt1[0]-pt2[0]) < abs(pt1[1]-pt2[1]):
+      idx = 1
+
+    start = min(pt1[idx], pt2[idx])
+    end = max(pt1[idx], pt2[idx])
+    if idx == 1:
+      y = np.arange(start, end, (end-start)/ptsPerJoint)
+      x, z = y2xz(pt1, pt2, y)
+      nPts = y.shape[0]
+    else:
+      x = np.arange(start, end, (end-start)/ptsPerJoint)
+      y, z = x2yz(pt1, pt2, x)
+      nPts = x.shape[0]
+    if nPts == 0:
+      continue
+
+    labels = 8*np.ones(nPts)
+    pts = np.vstack((x, y, z)).T
+    ptsAll = np.concatenate((ptsAll, pts))
+    #print ptsAll.shape
+    labelsAll = np.concatenate((labelsAll, labels))
+    #print labelsAll.shape
 
   return (ptsAll, labelsAll.astype(int))
 
 # zScale: how much we trust the z value. 1 indicates equal trust on x, y, z
-def knn(depth, joints, C, name=None, zScale=1.0):
-  pts_world, labels = joints2skeleton(joints[:, :3])
-  if name is not None:
-      visualizePts(world2pixel(pts_world, C), name, labels)
+def knn(depth, joints, C, visualize=False, name='', zScale=1.0):
+  pts_world, labels = joints2skeleton(joints)
+
   pts_world[:, 2] *= zScale
-  classifier = KNeighborsClassifier(n_neighbors=5)
+  classifier = KNeighborsClassifier(n_neighbors=nNeighbors)
   classifier.fit(pts_world, labels)
 
   X = np.vstack((np.nonzero(depth)[1], np.nonzero(depth)[0]))
@@ -205,7 +235,29 @@ def knn(depth, joints, C, name=None, zScale=1.0):
   for i in range(nJoints):
     img[perPixelLabels == i] = palette[i]
 
-  return img
+  if visualize is True:
+      #foreground = visualizePts(world2pixel(pts_world, C), labels)
+      #img[foreground != 0] = foreground[foreground != 0]
+      skel = visualizePts(world2pixel(pts_world, C), labels)
+      cv2.imshow(name, skel)
+
+  return (img, X_world, predicts)
+
+def errCorrect(depth_world, predicts, joints):
+  thredPixel = 10
+  correctedJoints = joints.copy()
+
+  for i, joint in enumerate(joints):
+    count = np.sum(predicts == i)
+    if count < thredPixel:
+      continue
+
+    # centroid, center of mass
+    mass = depth_world[predicts == i][:, :2]
+    com = np.average(mass, axis=0)
+    correctedJoints[i, :2] = com
+
+  return correctedJoints
 
 def main(**kwargs):
   C = 0
@@ -214,6 +266,7 @@ def main(**kwargs):
   dataDir = kwargs.get('dir')
   id = kwargs.get('id')
   startFrame = kwargs.get('start')
+  testMode = kwargs.get('test')
   key = 0
 
   for i in range(0 if id == -1 else id, nPeople if id == -1 else id+1):
@@ -284,23 +337,44 @@ def main(**kwargs):
       dispSide = cv2.equalizeHist(depthSide.astype(np.uint8))
       dispSide = cv2.applyColorMap(dispSide, cv2.COLORMAP_SPRING)
       dispSide = np.multiply(dispSide, labelSide[:, :, np.newaxis])
-      dispSide = drawJoints(dispSide, jointsSide, bad)
-      dispSide = drawID(dispSide, curFrame)
-      cv2.imshow('depthSide', dispSide)
+      dispSideWithJoints = drawJoints(dispSide, jointsSide[:, 3:], bad)
+      dispSideWithJoints = drawID(dispSideWithJoints, curFrame)
+      cv2.imshow('depthSide', dispSideWithJoints)
 
       dispTop = cv2.equalizeHist(depthTop.astype(np.uint8))
       dispTop = cv2.applyColorMap(dispTop, cv2.COLORMAP_SPRING)
       dispTop = np.multiply(dispTop, labelTop[:, :, np.newaxis])
-      dispTop = drawJoints(dispTop, jointsTop, bad)
-      dispTop = drawID(dispTop, curFrame)
-      cv2.imshow('depthTop', dispTop)
+      dispTopWithJoints = drawJoints(dispTop, jointsTop[:, 3:], bad)
+      dispTopWithJoints = drawID(dispTopWithJoints, curFrame)
+      cv2.imshow('depthTop', dispTopWithJoints)
 
       # knn
-      perPixelSide = knn(depthSide, jointsSide, C, 'sideKNN')
-      perPixelTop = knn(depthTop, jointsTop, C, 'topKNN')
+      perPixelSide, depthSide_world, predictsSide = knn(depthSide, \
+        jointsSide[:, :3], C, True, 'side')
+      perPixelTop, depthTop_world, predictsTop = knn(depthTop, \
+        jointsTop[:, :3], C, True, 'top')
       cv2.imshow('perPixelSide', perPixelSide)
       cv2.imshow('perPixelTop', perPixelTop)
 
+      # error correction
+      if testMode:
+        correctedJointsSide = errCorrect(depthSide_world, predictsSide, \
+          jointsSide[:, :3])
+        correctedJointsTop = errCorrect(depthTop_world, predictsTop, \
+          jointsTop[:, :3])
+
+        dispSideWithJoints = drawJoints(dispSide, \
+          world2pixel(correctedJointsSide, C)[:, :2], bad)
+        cv2.imshow('correctedDepthSide', dispSideWithJoints)
+        dispTopWithJoints = drawJoints(dispTop, \
+          world2pixel(correctedJointsTop, C)[:, :2], bad)
+        cv2.imshow('correctedDepthTop', dispTopWithJoints)
+
+        perPixelSide, _, _ = knn(depthSide, correctedJointsSide, C)
+        perPixelTop, _, _ = knn(depthTop, correctedJointsTop, C)
+
+        cv2.imshow('correctedPerPixelSide', perPixelSide)
+        cv2.imshow('correctedPerPixelTop', perPixelTop)
 
       key = cv2.waitKey(0)
       if key == ord('s'):
@@ -326,5 +400,6 @@ if __name__ == '__main__':
   parser.add_argument('--dir', required=True)
   parser.add_argument('--id', type=int, default=-1)
   parser.add_argument('--start', type=int, default=0)
+  parser.add_argument('--test', action='store_true')
   args = parser.parse_args()
   main(**vars(args))
