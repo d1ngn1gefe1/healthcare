@@ -1,40 +1,75 @@
 import numpy as np
+import re
 from os import listdir, path
 from sklearn.metrics import confusion_matrix
 from multiprocessing import Process as worker
+from get_acc_joints import *
 
-data_dir = '../data/'
-# out_path = './out/'
-out_path = '/mnt0/emma/shotton/data_ext/'
-out_file = out_path + 'matrix.npy'
 X_path = 'X.npy'
 images_path = 'images.npy'
 labels_path = 'labels.npy'
 width = 320
 height = 240
 
-def load_data(data_dir=data_dir, out_file=out_file):
-  if path.isfile(out_file):
-    data = np.load(out_file)
-    print 'Data exists!'
-    return data
-  
+def load_data_new(file_list, person_id, npy_root):
+  depth_top, depth_side = [], []
+  label_top, label_side = [], []
+  joint_top, joint_side = [], []
+
+  depth_top_files = [f for f in file_list if f.find('depth_top') != -1]
+  depth_side_files = [f for f in file_list if f.find('depth_side') != -1]
+  label_top_files = [f for f in file_list if f.find('label_top') != -1]
+  label_side_files = [f for f in file_list if f.find('label_side') != -1]
+  joints_top_files = [f for f in file_list if f.find('joints_top') != -1]
+  joints_side_files = [f for f in file_list if f.find('joints_side') != -1]
+
+  num_data = len(depth_top_files)
+
+  for i in range(num_data):
+    if i % 100 == 0:
+      print 'Thread', person_id, 'Processed', i, '/', num_data
+    depth_top.append(np.loadtxt(depth_top_files[i], delimiter='\n').reshape(height, width))
+    depth_side.append(np.loadtxt(depth_side_files[i], delimiter='\n').reshape(height, width))
+    label_top.append(np.loadtxt(label_top_files[i], delimiter='\n').reshape(height, width))
+    label_side.append(np.loadtxt(label_side_files[i], delimiter='\n').reshape(height, width))
+    joint_top.append(np.loadtxt(joints_top_files[i], delimiter=','))
+    joint_side.append(np.loadtxt(joints_side_files[i], delimiter=','))
+
+  root = npy_root + person_id + '_'
+  print 'Saving to', root
+
+  depth_top = np.array(depth_top)
+  np.save(root+'depth_top.npy', depth_top)
+  del depth_top
+  depth_side = np.array(depth_side)
+  np.save(root+'depth_side.npy', depth_side)
+  del depth_side
+  label_top = np.array(label_top)
+  np.save(root+'label_top.npy', label_top)
+  del label_top
+  label_side = np.array(label_side)
+  np.save(root+'label_side.npy', label_side)
+  del label_side
+  joint_top = np.array(joint_top)
+  np.save(root+'joint_top.npy', joint_top)
+  del joint_top
+  joint_side = np.array(joint_side)
+  np.save(root+'joint_side.npy', joint_side)
+  del joint_side
+
+def load_data(data_dir, out_file, num_images):
   depth = []
   label = []
 
-  i = 0
-  for doc in listdir(data_dir):
-    if (doc.find('depth') != -1):
-      depth.append(np.loadtxt(data_dir + doc, delimiter='\n').reshape(width, height))
-    elif (doc.find('label') != -1):
-      label.append(np.loadtxt(data_dir + doc, delimiter='\n').reshape(width, height))
+  for i in range(num_images):
+    depth.append(np.loadtxt(data_dir +'depth'+str(i)+'.dat', delimiter='\n').reshape(height, width))
+    label.append(np.loadtxt(data_dir +'label'+str(i)+'.dat', delimiter='\n').reshape(height, width))
     if i % 100 == 0:
       print 'Processed', i, 'data'
-    i += 1
 
   depth = np.array(depth)
   label = np.array(label)
-  data = np.empty((depth.shape[0], width, height, 2))
+  data = np.empty((depth.shape[0], height, width, 2))
   data[:, :, :, 0] = depth
   data[:, :, :, 1] = label
 
@@ -43,25 +78,28 @@ def load_data(data_dir=data_dir, out_file=out_file):
   return data
   # return (depth, label)
 
-# data is 1068 x 320 x 240 x 2, numJoint = 14
-def processData(data, numJoint, pixelPerJoint, out_path=out_path):
-  out_X = out_path + X_path
-  out_images = out_path + images_path
-  out_labels = out_path + labels_path
+def load_joints(data_dir, out_file, num_images, num_joints):
+  if path.isfile(out_file):
+    joints = np.load(out_file)
+    print 'Joint exists!'
+    return joints
 
-  saved_X = path.isfile(out_X)
-  saved_images = path.isfile(out_images)
-  saved_labels = path.isfile(out_labels)
+  joints = []
+  for i in range(num_images):
+    joints.append(np.loadtxt(data_dir +'joints-top'+str(i)+'.dat', delimiter=','))
+    if i % 100 == 0:
+      print 'Processed', i, 'data'
 
-  if saved_X and saved_images and saved_labels:
-    X = np.load(out_X)
-    images = np.load(out_images)
-    labels = np.load(out_labels)
-    return (images, X, labels)
+  joints = np.array(joints)[:,:num_joints,:]
+  np.save(out_file, joints)
+  return joints
 
-  numImage = data.shape[0]
-  image = data[:,:,:,0]
-  labelAll = data[:,:,:,1]
+def processData(image, labelAll, numJoint, pixelPerJoint, out_path, view):
+  out_X = out_path + view + X_path
+  out_images = out_path + view + images_path
+  out_labels = out_path + view + labels_path
+
+  numImage = len(image)
 
   X = []
   label = []
@@ -74,49 +112,72 @@ def processData(data, numJoint, pixelPerJoint, out_path=out_path):
     for j in range(numJoint):
       jointNumPixel[j] = np.nonzero(labelAll[i] == j)[0].shape[0] # joint label: 0,...,13
 
-    jointNumPixel = np.minimum(pixelPerJoint, jointNumPixel)
+    jointNumPixel = np.minimum(pixelPerJoint, jointNumPixel).astype(int)
     for j in range(numJoint):
       pair = np.nonzero(labelAll[i] == j)
       indices = np.column_stack((pair[0], pair[1]))
       depth_val = image[i][indices[:,0], indices[:,1]]
 
-      X += indices[0:jointNumPixel[j], :].tolist()
-      depth += depth_val[0:jointNumPixel[j]].tolist()
+      if len(indices) > 0:
+        random_sample = np.random.choice(len(indices), jointNumPixel[j], replace=False)
+        random_sample.sort()
+      else:
+	random_sample = np.array([]).astype(int)
+
+      X += indices[random_sample, :].tolist()
+      depth += depth_val[random_sample].tolist()
       index_image += (i * np.ones((jointNumPixel[j]))).tolist()
-      label += np.extract(labelAll[i] == j, labelAll[i])[0:jointNumPixel[j]].tolist()
+      label += np.extract(labelAll[i] == j, labelAll[i])[random_sample].tolist()
+    # print index_image[-1]
 
   X = np.array(X)
   depth = np.array(depth)
   depth = depth.reshape(depth.shape[0], 1)
   index_image = np.array(index_image)
   index_image = index_image.reshape(index_image.shape[0], 1)
+  np.save(out_path+'index.npy', index_image)
 
-  X = np.append(np.append(X, depth, axis=1), index_image, axis=1) # each row of X: (x,y,depth,#image)
-  label = np.array(label)
+  print 'X', X.shape
+  print 'depth', depth.shape
+  print 'index', index_image.shape
+
+  # each row of X: (x,y,depth,#image)
+  X = np.append(X, depth, axis=1)
+  X = np.append(X, index_image, axis=1)
+  label = np.array(label).astype(int)
+  print 'label', label.shape
   np.save(out_X, X)
   np.save(out_images, image)
   np.save(out_labels, label)
   return (image, X, label)
 
-def part_to_joint(X, label, prob, num_data, num_joints):
+def part_to_joint(X, label, prob, num_data, offset, num_joints, density_path, lam=0.14, push_back=39):
   joints = np.zeros((num_data, num_joints, 3))
+  if path.isfile(density_path):
+    density = np.load(density_path)
+  else:
+    density = np.zeros(prob.shape)
 
-  for i in range(num_data): # for each image in the test set
-    indices = np.nonzero(X[:,3] == i)[0]
-    if (indices.size != 0):
-      for j in range(num_joints):
-        indices_joint = indices[np.nonzero(label[indices] == j)[0]]
-        if (indices_joint.size == 0):
-	  joints[i, j] = -1 # if the i-th image doesn't have pixels labeled as the jth joint, the joint coords will be (-1,-1,-1)
-        else:
-          joint_coords = X[indices_joint][:,:3]
-          joint_probs = prob[indices_joint, j].reshape(indices_joint.size, 1)
-	  # print(str(j) + 'th joint prob: ' + str(joint_probs))
-          normalize = np.sum(joint_probs)
-	  if (normalize > 0):
-            joints[i, j] = np.sum(joint_coords * joint_probs) / normalize
-	  else:
-	    joints[i, j] = -1
+  col = [1,0,2]
+  coord_world = pixel2world2(X[:,:3][:,col])
+  coord_world[:,2] += push_back
+  for i in range(num_data):
+    if i % 10 == 0:
+      print 'Processed:', i
+    start = np.where(X[:,3] == i + offset)[0][0]
+    end = np.where(X[:,3] == i + offset)[0][-1]
+    if path.isfile(density_path):
+      new_prob = density[start:end]
+    else:
+      new_prob = gaussian_density(X[start:end], prob[start:end], num_joints)
+      density[start:end] = new_prob
+    for j in range(num_joints):
+      prob_thred = new_prob[:,j] * np.array(new_prob[:,j] > lam, dtype=int)
+      if np.sum(prob_thred) == 0:
+        joints[i, j] = [0, 0, 1000]
+      else:
+        joints[i, j] = np.sum(coord_world[start:end] * prob_thred.reshape(len(prob_thred), 1), axis=0) / (np.sum(prob_thred))
+  np.save(density_path, density)
   return joints
 
 def partition_data(data, pixel_per_joint, num_joints, train_ratio):
@@ -132,10 +193,9 @@ def partition_data(data, pixel_per_joint, num_joints, train_ratio):
 
   return (X_train, X_test, labels_train, labels_test)
 
-
 def get_cm_acc(y_true, y_pred):
   cm = confusion_matrix(y_true, y_pred)
-  cm_normalized = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+  cm_normalized = cm.astype('float') / (cm.sum(axis=1)[:, np.newaxis] + 1)
   num_classes = cm_normalized.shape[0]
   avg_accuracy = np.trace(cm_normalized) / num_classes
   return avg_accuracy
@@ -146,36 +206,72 @@ def get_joints(data, pred_prob, num_joints, pixel_per_joint, train_ratio):
   joints = part_to_joint(X_test, labels_test, pred_prob, num_data, num_joints)
   return joints
 
-def main():
+def main_0():
   data_ext = '/mnt0/emma/shotton/data_ext/'
-  data_dirs = ['data_1/', 'data_2/', 'data_3/']
+  data_roots = ['data2/']
+  data_roots = [data_ext + d for d in data_roots]
+  data_dirs = ['data2/data_2/']
   data_dirs = [data_ext + d for d in data_dirs]
-  out_files = ['data1.npy', 'data2.npy', 'data3.npy']
+  out_files = ['data2/data2.npy']
   out_files = [data_ext + f for f in out_files]
-  data = []
+  out_joints = ['data2/joints.npy']
+  out_joints = [data_ext + f for f in out_joints]
   for i in range(len(data_dirs)):
-    data.append(load_data(data_dir=data_dirs[i], out_file=out_files[i]))
-  data = np.vstack(data)
-  print data.shape
-  np.save(out_path+'data.npy', data)
-  
-  '''
-  file_all = listdir(data_dirs[2])
-  half = len(file_all) / 2
-  depth0, label0 = load_data(data_files=file_all[:half], data_dir=data_dirs[2], out_file=data_ext+'data3_0.npy')
-  depth1, label1 = load_data(data_files=file_all[half:], data_dir=data_dirs[2], out_file=data_ext+'data3_1.npy')
-  depth = np.vstack((depth0, depth1))
-  np.save(data_ext+'depth3.npy', depth)
-  label = np.vstack((label0, label1))
-  np.save(data_ext+'label3.npy', label)
-  data = np.empty((depth.shape[0], width, height, 2))
-  data[:, :, :, 0] = depth
-  data[:, :, :, 1] = label
+    if not path.isfile(out_files[i]):
+      load_data(data_dir=data_dirs[i], out_file=out_files[i], num_images=4800)
+      # load_joints(data_dir=data_dirs[i], out_file=out_joints[i], num_images=4800, num_joints=8)
+    else:
+      data = np.load(out_files[i])
+      processData(data, numJoint=8, pixelPerJoint=500, out_path=data_roots[i])
 
-  np.save(out_files[2], data)
-  '''
+def main_1():
+  data_root = '/mnt0/data/ITOP/shotton_people/'
+  npy_root = '/mnt0/data/ITOP/npy/'
+  views = ['side', 'top']
+  num_joints = {'side':12, 'top':8}
+  num_people = 20
 
+  for view in views:
+    processes = []
+    for i in range(num_people):
+      index = str(i).zfill(2)
+      image = np.load(npy_root+index+'_depth_'+view+'.npy')
+      label = np.load(npy_root+index+'_label_'+view+'.npy')
+      dir_path = data_root + index + '/'
+      if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+      processes.append(
+        worker(
+          target = processData,
+          name="Thread #%d" % i,
+          args=(image, label, num_joints[view], 500, data_root, view)
+        )
+      )
+    [t.start() for t in processes]
+    [t.join() for t in processes]
+
+def main():
+  data_root = '/mnt0/data/ITOP/all/'
+  npy_root = '/mnt0/data/ITOP/npy/'
+  data_files = listdir(data_root)
+  num_people = 4
+
+  processes = []
+  for i in range(num_people):
+    index = str(i).zfill(2)
+    person_i = [data_root+f for f in data_files if \
+                len(re.findall(r"\b"+index+"_", f)) != 0]
+    person_i.sort()
+    print 'Processing person', i, 'Num frames', len(person_i)
+    processes.append(
+      worker(
+        target=load_data_new,
+        name="Thread #%d" % i,
+        args=(person_i, index, npy_root)
+      )
+    )
+  [t.start() for t in processes]
+  [t.join() for t in processes]
 
 if __name__ == "__main__":
   main()
-
