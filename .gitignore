@@ -12,6 +12,7 @@
 *.jpg
 *.pyc
 *.dat
+*.txt
 *.m~
 *.swp
 *.rar
