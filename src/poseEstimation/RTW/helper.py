@@ -1,6 +1,7 @@
 import glob
 import numpy as np
 import cv2
+import os
 from sklearn.neighbors import KNeighborsClassifier
 
 np.set_printoptions(threshold=np.nan)
@@ -23,7 +24,8 @@ jointNameITOP = ['HEAD', 'NECK', 'LEFT_SHOULDER', 'RIGHT_SHOULDER', \
                 'TORSO', 'LEFT_HIP', 'RIGHT_HIP', 'LEFT_KNEE', \
                 'RIGHT_KNEE', 'LEFT_FOOT', 'RIGHT_FOOT']
 
-trainTestITOP = [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0] # train = 0, test = 1
+#trainTestITOP = [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0] # train = 0, test = 1
+trainTestITOP = [1, 0]
 kinemOrderEVAL =   [0, 1, 2, 5, 3, 6, 4, 7, 12, 13,  8, 10, 9, 11]
 kinemParentEVAL = [-1, 0, 0, 0, 2, 5, 3, 6, -1, -1, 12, 13, 8, 10]
 kinemOrderITOP =   [8, 1, 0, 9, 10, 2, 3, 4, 5, 6, 7, 11, 12, 13, 14]
@@ -32,6 +34,15 @@ kinemParentITOP = [-1, 8, 1, 8, 8,  1, 1, 2, 3, 4, 5, 9,  10, 11, 12]
 nJoints = None
 jointName = None
 C = None
+
+def mkdir(dir):
+    try:
+        os.makedirs(mydir)
+        break
+    except OSError, e:
+        if e.errno != 17:
+            raise
+        pass
 
 def setParams(isITOP):
     global nJoints
@@ -43,6 +54,7 @@ def setParams(isITOP):
     return nJoints, jointName, C
 
 def getImgsAndJointsITOP(dataDir, maxN=None):
+    print dataDir
     I_train, I_test = np.empty((0, H, W), np.float16), \
         np.empty((0, H, W), np.float16)
     joints_train, joints_test = np.empty((0, nJoints, 3)), \
@@ -60,7 +72,7 @@ def getImgsAndJointsITOP(dataDir, maxN=None):
         joints = np.load(jointsPath)[:, :, :3]
         #print type(depthPath[0,0,0])
         I /= 1000.0
-        joints[:, 2] /= 1000.0
+        joints[:, :, 2] /= 1000.0
         mask = np.load(maskPath)
         mask[mask >= 0] = 1
         mask[mask == -1] = 0
@@ -265,9 +277,14 @@ visualizeImgs(labels+1, joints)
 
 #testing 3
 '''
-I = np.load('/mnt0/data/ITOP/out/00_depth_side.npy')
-joints = np.load('/mnt0/data/ITOP/out/00_joints_side.npy')
-print I[0]
-print '\n\n'
-print joints[0]
+I = np.load('/Users/alan/Documents/research/healthcare/src/poseEstimation/RTW/ITOP/00_depth_side.npy')
+joints = np.load('/Users/alan/Documents/research/healthcare/src/poseEstimation/RTW/ITOP/00_joints_side.npy')
+labels = np.load('/Users/alan/Documents/research/healthcare/src/poseEstimation/RTW/ITOP/00_predicts_side.npy')
+labels[labels >= 0] = 1
+labels[labels < 0] = 0
+
+I *= labels
+print np.mean(I[np.nonzero(I)])
+print np.mean(I)
+#visualizeImgs(I, joints)
 '''

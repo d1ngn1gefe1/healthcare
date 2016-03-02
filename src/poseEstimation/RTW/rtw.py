@@ -1,18 +1,17 @@
 import numpy as np
 import pickle
 import sys
-import os
 import argparse
 from helper import *
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.cluster import KMeans
 from multiprocessing import Process, Queue
 
-nSamps = 50 # the number of samples of each joint
-nFeats = 50 # the number of features of each offset point
+nSamps = 500 # the number of samples of each joint
+nFeats = 500 # the number of features of each offset point
 maxOffSampXY = 30 # the maximum offset for samples in x, y axes
 maxOffSampZ = 2 # the maximum offset for samples in z axis
-maxOffFeat = 100 # the maximum offset for features (before divided by d)
+maxOffFeat = 90 # the maximum offset for features (before divided by d)
 largeNum = 100
 nSteps = 200
 stepSize = 2
@@ -36,8 +35,7 @@ def getInfoEVAL(depthDir, dataDir, outDir, maxN=None, loadData=False):
         bodyCenters = np.load(outDir+dataDir+'/bodyCenters.npy')
         N, _, _ = I.shape
     else:
-        if not os.path.exists(outDir+dataDir):
-            os.makedirs(outDir+dataDir)
+        mkdir(outDir+dataDir)
 
         # the N x H x W depth images and the N x nJoints x 3 joint locations
         I, joints = getImgsAndJointsEVAL(depthDir, maxN)
@@ -76,8 +74,7 @@ def getInfoITOP(depthDir, dataDir, outDir, maxN=None, loadData=False):
         bodyCenters_train = np.load(outDir+dataDir+'/bodyCenters_train.npy')
         bodyCenters_test = np.load(outDir+dataDir+'/bodyCenters_test.npy')
     else:
-        if not os.path.exists(outDir+dataDir):
-            os.makedirs(outDir+dataDir)
+        mkdir(outDir+dataDir)
 
         # the N x H x W depth images and the N x nJoints x 3 joint locations
         I_train, I_test, joints_train, joints_test = \
@@ -116,8 +113,7 @@ def getSamples(dataDir, outDir, jointID, theta, I, bodyCenters, joints, \
         S_u = np.load(outDir+dataDir+'/su'+str(jointID)+'.npy')
         S_f = np.load(outDir+dataDir+'/sf'+str(jointID)+'.npy')
     else:
-        if not os.path.exists(outDir+dataDir):
-            os.makedirs(outDir+dataDir)
+        mkdir(outDir+dataDir)
 
         S_u = np.empty((nTrain, nSamps, 3), dtype=np.float16)
         S_f = np.empty((nTrain, nSamps, nFeats), dtype=np.float16)
@@ -175,8 +171,8 @@ def stochastic(regressor, features, unitDirections):
 def trainModel(X, y, jointID, modelsDir, outDir, loadModels=False):
     regressor, L = None, None
 
-    if not os.path.exists(outDir+modelsDir):
-        os.makedirs(outDir+modelsDir)
+    mkdir(outDir+modelsDir)
+
     regressorPath = outDir + modelsDir + '/regressor' + str(jointID) + '.pkl'
     LPath = outDir + modelsDir + '/L' + str(jointID) + '.pkl'
 
@@ -192,12 +188,11 @@ def trainModel(X, y, jointID, modelsDir, outDir, loadModels=False):
         y_reshape = y.reshape(y.shape[0]*y.shape[1], y.shape[2])
 
         rows = np.logical_not(np.all(X_reshape == 0, axis=1))
-        print X_reshape[rows].shape
         regressor.fit(X_reshape[rows], y_reshape[rows])
         print 'model %s - valid samples: %d/%d' % (jointName[jointID], \
             X_reshape[rows].shape[0], X_reshape.shape[0])
 
-        leafIDs = regressor.apply(X_reshape[rows])
+        leafIDs = regressor.apply(X_reshape)
         bin = np.bincount(leafIDs)
         uniqueIDs = np.unique(leafIDs)
         biggest = np.argmax(bin)
@@ -382,8 +377,7 @@ def main(**kwargs):
 
     for i in range(nTest):
         pngPath = outDir+dataDir+'/png/'+str(i)+'.png'
-        if not os.path.exists(outDir+dataDir+'/png/'):
-            os.makedirs(outDir+dataDir+'/png/')
+        mkdir(outDir+dataDir+'/png/')
         drawPred(I_test[i], joints_pred[i], qms[i], bodyCenters_test[i], \
                  pngPath)
 
