@@ -10,7 +10,7 @@ def main(**kwargs):
     data_root = '/mnt0/emma/IEF/tf_data/'
     view = 'side'
     num_joints = 15
-    small_data = 60 # 6 batches
+    small_data = 1000 # 100 batches
     offset = 500
 
     X_train, y_train, X_val, y_val = load_data(data_root, view, small_data, offset)
@@ -23,7 +23,7 @@ def main(**kwargs):
 
     # Parameters
     learning_rate = 5e-4
-    num_epochs = 1000
+    num_epochs = 100
     num_step = 5
     # Default batch size of 10
     batch_size = 10
@@ -33,7 +33,7 @@ def main(**kwargs):
     gpu_memory_frac = 0.5
     print gpu_memory_frac
     input_img_size = 224
-    dropout_prob = 0.5
+    dropout_prob = 0.3
     n_outputs =  num_joints * 3 # How many regression values to output
     n_train =len(X_train)
 
@@ -56,7 +56,7 @@ def main(**kwargs):
     start_time = time.time()
 
     saver = tf.train.Saver()
-    saver.save(sess, 'ief_vgg', global_step=5000)
+    saver.save(sess, 'models/ief_vgg', global_step=5000)
 
     y_median = np.median(y_train, axis=0)
     yt_train = np.ones(y_train.shape) * y_median # initialize using mean pose
@@ -72,7 +72,7 @@ def main(**kwargs):
             for b in r_order:
                 start_idx = b * batch_size
                 end_idx = min(X_train.shape[0], (b+1)*batch_size)
-                print 'Epoch', epoch, 'Training using batch', b
+                print 'Step', t, 'Epoch', epoch, 'Training using batch', b
                 x_batch, eps_batch = get_batch(X_train, y_train, yt_train, start_idx, end_idx, num_joints)
                 eps_batch = eps_batch.reshape(batch_size, n_outputs)
                 feed = {x: x_batch, y: eps_batch, dropout: dropout_prob}
@@ -89,14 +89,15 @@ def main(**kwargs):
                           "\tLearning rate:" + "{:.2e}".format(learning_rate)
             runValidationSet(sess, x, y, dropout, y_hat, error, cost, X_val, y_val, yt_val, \
                              batch_size, n_outputs, dropout_prob, start_time, num_joints)
-        train_eps_pred = run_prediction(num_batches_train, batch_size, X_train, y_train, yt, y_hat, \
-                                        x, y, dropout, dropout_prob, num_joints)
-        val_eps_pred = run_prediction(num_batches_val, batch_size, X_val, y_val, yt_val, y_hat, \
-                                      x, y, dropout, dropout_prob, num_joints)
+        train_eps_pred = run_prediction(sess, num_batches_train, batch_size, X_train, y_train, yt_train, \
+                                        x, y, y_hat, dropout, dropout_prob, num_joints)
+        val_eps_pred = run_prediction(sess, num_batches_val, batch_size, X_val, y_val, yt_val, \
+                                      x, y, y_hat, dropout, dropout_prob, num_joints)
         yt_train += train_eps_pred
         yt_val += val_eps_pred
 
-    np.save('small_data_pred_vgg.npy', yt_train)
+        np.save('small_data_pred_vgg.npy', yt_train)
+        np.save('small_data_pred_vgg_val.npy', yt_val)
 
 def runValidationSet(sess, x, y, dropout, y_hat, error, cost, X_val, y_val, yt_val, \
                      batch_size, n_outputs, keep_prob, start_time, num_joints):
@@ -120,12 +121,14 @@ def runValidationSet(sess, x, y, dropout, y_hat, error, cost, X_val, y_val, yt_v
     elapsed_time = 1.0 * (time.time() - start_time) / 60
     print '[INFO:val] Loss: %f\t Error: %f\t Elapsed: %0.1f min' % (accumulator_cost, accumulator_err, elapsed_time)
 
-def run_prediction(num_batches, batch_size, X_all, y_all, yt, x, y, y_hat, \
+def run_prediction(sess, num_batches, batch_size, X_all, y_all, yt, x, y, y_hat, \
                    dropout, dropout_prob, num_joints):
+    prediction = []
     for b in range(num_batches):
         start_idx = b * batch_size
-        end_idx = min(X.shape[0], (b+1)*batch_size)
+        end_idx = min(X_all.shape[0], (b+1)*batch_size)
         x_batch, eps_batch = get_batch(X_all, y_all, yt, start_idx, end_idx, num_joints)
+        eps_batch = eps_batch.reshape(batch_size, num_joints * 3)
         feed = {x: x_batch, y: eps_batch, dropout: dropout_prob}
         feedback = sess.run(y_hat, feed_dict=feed)
         feedback = np.reshape(feedback, (batch_size, num_joints, 3))

@@ -32,20 +32,20 @@ def resize(data_dir, img_height, img_width):
         np.save(f, images_new)
 
 def load_data(data_root, view, small_data, offset):
-    # X_train = np.load(data_root + 'depth_' + view + '_train.npy')
-    # y_train = np.load(data_root + 'joint_' + view + '_train.npy')
+    X_train = np.load(data_root + 'depth_' + view + '_train.npy')
+    y_train = np.load(data_root + 'joint_' + view + '_train.npy')
 
-    # X_train = X_train[offset:offset+small_data] / 1000
-    # y_train = y_train[offset:offset+small_data, :, 2:] / 1000
+    X_train = X_train[offset:offset+small_data] / 1000
+    y_train = y_train[offset:offset+small_data, :, 2:] / 1000
 
-    X_train = np.load(data_root + 'small_train_X.npy') / 1000
-    y_train = np.load(data_root + 'small_train_y.npy')
+    # X_train = np.load(data_root + 'small_train_X.npy') / 1000
+    # y_train = np.load(data_root + 'small_train_y.npy')
 
     X_val = np.load(data_root + 'depth_' + view + '_val.npy')
     y_val = np.load(data_root + 'joint_' + view + '_val.npy')
 
-    X_val = X_val[offset:offset+small_data/2] / 1000
-    y_val = y_val[offset:offset+small_data/2, :, 2:] / 1000
+    X_val = X_val[offset:offset+small_data/4] / 1000
+    y_val = y_val[offset:offset+small_data/4, :, 2:] / 1000
 
     col = [1, 2, 0]
     # y_train = y_train[:, :, col]
