@@ -2,9 +2,26 @@ import glob
 import numpy as np
 import cv2
 import os
+import logging
+import os.path
+import time
 from sklearn.neighbors import KNeighborsClassifier
 
 np.set_printoptions(threshold=np.nan)
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+
+fh = logging.FileHandler(time.strftime('%Y%m%d-%H%M%S')+'.txt')
+fh.setLevel(logging.DEBUG)
+fh.setFormatter(formatter)
+logger.addHandler(fh)
+
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+ch.setFormatter(formatter)
+logger.addHandler(ch)
 
 H = 240
 W = 320
@@ -24,37 +41,22 @@ jointNameITOP = ['HEAD', 'NECK', 'LEFT_SHOULDER', 'RIGHT_SHOULDER', \
                 'TORSO', 'LEFT_HIP', 'RIGHT_HIP', 'LEFT_KNEE', \
                 'RIGHT_KNEE', 'LEFT_FOOT', 'RIGHT_FOOT']
 
-#trainTestITOP = [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0] # train = 0, test = 1
-trainTestITOP = [1, 0]
+trainTestITOP = [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0] # train = 0, test = 1
 kinemOrderEVAL =   [0, 1, 2, 5, 3, 6, 4, 7, 12, 13,  8, 10, 9, 11]
 kinemParentEVAL = [-1, 0, 0, 0, 2, 5, 3, 6, -1, -1, 12, 13, 8, 10]
 kinemOrderITOP =   [8, 1, 0, 9, 10, 2, 3, 4, 5, 6, 7, 11, 12, 13, 14]
 kinemParentITOP = [-1, 8, 1, 8, 8,  1, 1, 2, 3, 4, 5, 9,  10, 11, 12]
 
-nJoints = None
-jointName = None
-C = None
-
 def mkdir(dir):
     try:
-        os.makedirs(mydir)
-        break
+        os.makedirs(dir)
     except OSError, e:
         if e.errno != 17:
             raise
         pass
 
-def setParams(isITOP):
-    global nJoints
-    global jointName
-    global C
-    nJoints = 15 if isITOP else 14
-    jointName = jointNameITOP if isITOP else jointNameEVAL
-    C = 3.50666662e-3 if isITOP else 3.8605e-3
-    return nJoints, jointName, C
-
-def getImgsAndJointsITOP(dataDir, maxN=None):
-    print dataDir
+def getImgsAndJointsITOP(dataDir, nJoints, isTop=False, maxN=None):
+    global trainTestITOP
     I_train, I_test = np.empty((0, H, W), np.float16), \
         np.empty((0, H, W), np.float16)
     joints_train, joints_test = np.empty((0, nJoints, 3)), \
@@ -63,11 +65,12 @@ def getImgsAndJointsITOP(dataDir, maxN=None):
     if maxN is not None:
         trainTestITOP = [1, 0]
 
+    fileName = 'top.npy' if isTop else 'side.npy'
     for i, isTest in enumerate(trainTestITOP):
-        depthPath = dataDir + '/' + str(i).zfill(2) + '_depth_side.npy'
-        jointsPath = dataDir + '/' + str(i).zfill(2) + '_joints_side.npy'
-        maskPath = dataDir + '/' + str(i).zfill(2) + '_predicts_side.npy'
-        print 'loading %s' % depthPath
+        depthPath = dataDir + '/' + str(i).zfill(2) + '_depth_' + fileName
+        jointsPath = dataDir + '/' + str(i).zfill(2) + '_joints_' + fileName
+        maskPath = dataDir + '/' + str(i).zfill(2) + '_predicts_' + fileName
+        logger.debug('loading %s', depthPath)
         I = np.load(depthPath)
         joints = np.load(jointsPath)[:, :, :3]
         #print type(depthPath[0,0,0])
@@ -96,7 +99,7 @@ def getImgsAndJointsITOP(dataDir, maxN=None):
 
     return (I_train, I_test, joints_train, joints_test)
 
-def getImgsAndJointsEVAL(dataDir, maxN, noBg=True):
+def getImgsAndJointsEVAL(dataDir, maxN, nJoints, noBg=True):
     jointsPaths = glob.glob(dataDir)
     total = len(jointsPaths)
 
@@ -106,7 +109,7 @@ def getImgsAndJointsEVAL(dataDir, maxN, noBg=True):
     idx = 0
     for i in range(total):
         if i%100 == 0:
-            print 'loading image %d' % (i+1)
+            logger.debug('loading image %d', (i+1))
         tmp = np.loadtxt(jointsPaths[i])
         if tmp.shape[0] == nJoints-2:
             imgPath = jointsPaths[i].replace('txt', 'npy') \
@@ -122,7 +125,7 @@ def getImgsAndJointsEVAL(dataDir, maxN, noBg=True):
     joints[:, nJoints, :] = (2*joints[:, 0, :]+joints[:, nJoints-2, :]+
                                 joints[:, nJoints-1, :])/4
 
-    print 'total number of images: %d/%d' % (idx, total)
+    logger.debug('total number of images: %d/%d', idx, total)
     I = I[:idx]
     joints = joints[:idx]
     if noBg:
@@ -150,7 +153,7 @@ def bgSub(I, joints, thres=250, scale=30):
     mask[mask > 0] = 1
     return I*mask
 
-def perPixelLabels(I, joints):
+def perPixelLabels(I, joints, nJoints):
     '''
     scale = 30
     I_noBg = bgSub(I, joints, scale=scale)
@@ -206,7 +209,7 @@ def drawPts(img, pts):
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-def drawPred(img, joints, paths, center, filename):
+def drawPred(img, joints, paths, center, filename, nJoints, jointName):
     H = img.shape[0]
     W = img.shape[1]
 
@@ -215,35 +218,34 @@ def drawPred(img, joints, paths, center, filename):
     img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
     img = np.hstack((img, np.zeros((H, 100, 3)))).astype(np.uint8)
 
-    for i, path in enumerate(paths):
-        nPts = path.shape[0]
-        for j, pt in enumerate(path):
-            color = tuple(c*(2*j+nPts)/(3*nPts) for c in palette[i])
-            cv2.circle(img, tuple(pt[:2].astype(np.uint16)), 1, color, -1)
+    if paths is not None:
+        for i, path in enumerate(paths):
+            nPts = path.shape[0]
+            for j, pt in enumerate(path):
+                color = tuple(c*(2*j+nPts)/(3*nPts) for c in palette[i])
+                cv2.circle(img, tuple(pt[:2].astype(np.uint16)), 1, color, -1)
 
-    for i, joint in enumerate(joints):
-        cv2.circle(img, tuple(joint[:2].astype(np.uint16)), 4, palette[i], -1)
+    if joints is not None:
+        for i, joint in enumerate(joints):
+            cv2.circle(img, tuple(joint[:2].astype(np.uint16)), 4, \
+                palette[i], -1)
+
+        for i, joint in enumerate(joints):
+            cv2.rectangle(img, (W, H*i/nJoints), (W+100, H*(i+1)/nJoints-1),
+                          palette[i], -1)
+            cv2.putText(img, jointName[i], (W, H*(i+1)/nJoints-5),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255))
 
     cv2.rectangle(img, tuple([int(center[0]-2), int(center[1]-2)]),
                   tuple([int(center[0]+2), int(center[1]+2)]),
                   palette[nJoints], -1)
-
-    #cv2.imshow('image', img)
-    #cv2.waitKey(0)
-    #cv2.destroyAllWindows()
-
-    for i, joint in enumerate(joints):
-        cv2.rectangle(img, (W, H*i/nJoints), (W+100, H*(i+1)/nJoints-1),
-                      palette[i], -1)
-        cv2.putText(img, jointName[i], (W, H*(i+1)/nJoints-5),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255))
 
     cv2.imwrite(filename, img)
 
 def checkUnitVectors(unitVectors):
     s1 = np.sum(unitVectors.astype(np.float32)**2)
     s2 = unitVectors.shape[0]
-    print 'error: %0.3f' % (abs(s1-s2)/s2)
+    logger.debug('error: %0.3f', (abs(s1-s2)/s2))
 
 def pixel2world(pixel, C):
     world = np.empty(pixel.shape)

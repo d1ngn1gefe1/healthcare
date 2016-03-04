@@ -4,21 +4,20 @@ import sys
 import argparse
 from helper import *
 from sklearn.tree import DecisionTreeRegressor
-from sklearn.cluster import KMeans
+from sklearn.cluster import MiniBatchKMeans
 from multiprocessing import Process, Queue
 
 nSamps = 500 # the number of samples of each joint
 nFeats = 500 # the number of features of each offset point
-maxOffSampXY = 30 # the maximum offset for samples in x, y axes
+maxOffSampXY = 40 # the maximum offset for samples in x, y axes
 maxOffSampZ = 2 # the maximum offset for samples in z axis
-maxOffFeat = 90 # the maximum offset for features (before divided by d)
+maxOffFeat = 100 # the maximum offset for features (before divided by d)
 largeNum = 100
 nSteps = 200
-stepSize = 2
-K = 10
-minSamplesLeaf = 20
+stepSize = 1
+K = 20
+minSamplesLeaf = 400
 trainRatio = 0.9
-tolerance = 20
 
 nJoints = None
 jointName = None
@@ -38,7 +37,7 @@ def getInfoEVAL(depthDir, dataDir, outDir, maxN=None, loadData=False):
         mkdir(outDir+dataDir)
 
         # the N x H x W depth images and the N x nJoints x 3 joint locations
-        I, joints = getImgsAndJointsEVAL(depthDir, maxN)
+        I, joints = getImgsAndJointsEVAL(depthDir, maxN, nJoints)
         theta = np.random.randint(-maxOffFeat, maxOffFeat+1, (4, nFeats))
         bodyCenters = joints[:, nJoints]
         joints = joints[:, :nJoints]
@@ -57,11 +56,12 @@ def getInfoEVAL(depthDir, dataDir, outDir, maxN=None, loadData=False):
     bodyCenters_train = bodyCenters[:nTrain]
     bodyCenters_test = bodyCenters[nTrain:]
 
-    print '#train: %d, #test: %d' % (I_train.shape[0], I_test.shape[0])
+    logger.debug('#train: %d, #test: %d', I_train.shape[0], I_test.shape[0])
     return (I_train, I_test, joints_train, joints_test, theta, \
         bodyCenters_train, bodyCenters_test)
 
-def getInfoITOP(depthDir, dataDir, outDir, maxN=None, loadData=False):
+def getInfoITOP(depthDir, dataDir, outDir, isTop=False, maxN=None, \
+                loadData=False):
     I_train, I_test, joints_train, joints_test = None, None, None, None
     theta, bodyCenters_train, bodyCenters_test = None, None, None
 
@@ -78,7 +78,7 @@ def getInfoITOP(depthDir, dataDir, outDir, maxN=None, loadData=False):
 
         # the N x H x W depth images and the N x nJoints x 3 joint locations
         I_train, I_test, joints_train, joints_test = \
-            getImgsAndJointsITOP(depthDir, maxN)
+            getImgsAndJointsITOP(depthDir, nJoints, isTop, maxN)
 
         theta = np.random.randint(-maxOffFeat, maxOffFeat+1, (4, nFeats))
         bodyCenters_train = (joints_train[:, 1]+joints_train[:, 9]+ \
@@ -94,7 +94,7 @@ def getInfoITOP(depthDir, dataDir, outDir, maxN=None, loadData=False):
         np.save(outDir+dataDir+'/bodyCenters_train', bodyCenters_train)
         np.save(outDir+dataDir+'/bodyCenters_test', bodyCenters_test)
 
-    print '#train: %d, #test: %d' % (I_train.shape[0], I_test.shape[0])
+    logger.debug('#train: %d, #test: %d', I_train.shape[0], I_test.shape[0])
     return (I_train, I_test, joints_train, joints_test, theta, \
         bodyCenters_train, bodyCenters_test)
 
@@ -120,8 +120,8 @@ def getSamples(dataDir, outDir, jointID, theta, I, bodyCenters, joints, \
 
         for i in range(nTrain):
             if i%100 == 0:
-                print 'joint %s: processing image %d/%d' % (jointName[jointID], \
-                    i, nTrain)
+                logger.debug('joint %s: processing image %d/%d', \
+                    jointName[jointID], i, nTrain)
             for j in range(nSamps):
                 offsetXY = np.random.randint(-maxOffSampXY, maxOffSampXY+1, 2)
                 offsetZ = np.random.uniform(-maxOffSampZ, maxOffSampZ, 1)
@@ -156,8 +156,9 @@ def stochastic(regressor, features, unitDirections):
     leafIDs = np.unique(indices) # array of unique leaf ids
     L = {}
 
+    logger.debug('MiniBatchKMeans...')
     for leafID in leafIDs:
-        kmeans = KMeans(n_clusters=K)
+        kmeans = MiniBatchKMeans(n_clusters=K, batch_size=1000)
         labels = kmeans.fit_predict(unitDirections[indices == leafID])
         weights = np.bincount(labels).astype(float)/labels.shape[0]
         centers = kmeans.cluster_centers_
@@ -176,12 +177,12 @@ def trainModel(X, y, jointID, modelsDir, outDir, loadModels=False):
     regressorPath = outDir + modelsDir + '/regressor' + str(jointID) + '.pkl'
     LPath = outDir + modelsDir + '/L' + str(jointID) + '.pkl'
 
-    if loadModels:
-        print 'loading model %s from files...' % jointName[jointID]
+    if loadModels and os.path.isfile(regressorPath) and os.path.isfile(LPath):
+        logger.debug('loading model %s from files...', jointName[jointID])
         regressor = pickle.load(open(regressorPath, 'rb'))
         L = pickle.load(open(LPath, 'rb'))
     else:
-        print 'start training model %s...' % jointName[jointID]
+        logger.debug('start training model %s...', jointName[jointID])
         regressor = DecisionTreeRegressor(min_samples_leaf=minSamplesLeaf)
 
         X_reshape = X.reshape(X.shape[0]*X.shape[1], X.shape[2])
@@ -189,7 +190,7 @@ def trainModel(X, y, jointID, modelsDir, outDir, loadModels=False):
 
         rows = np.logical_not(np.all(X_reshape == 0, axis=1))
         regressor.fit(X_reshape[rows], y_reshape[rows])
-        print 'model %s - valid samples: %d/%d' % (jointName[jointID], \
+        logger.debug('model %s - valid samples: %d/%d', jointName[jointID], \
             X_reshape[rows].shape[0], X_reshape.shape[0])
 
         leafIDs = regressor.apply(X_reshape)
@@ -198,13 +199,15 @@ def trainModel(X, y, jointID, modelsDir, outDir, loadModels=False):
         biggest = np.argmax(bin)
         smallest = np.argmin(bin[bin != 0])
 
-        print 'model %s - #leaves: %d' % (jointName[jointID], uniqueIDs.shape[0])
-        print 'model %s - biggest leaf id: %d, #samples: %d/%d' % \
-                        (jointName[jointID], biggest, bin[biggest], np.sum(bin))
-        print 'model %s - smallest leaf id: %d, #samples: %d/%d' % \
-                        (jointName[jointID], smallest, bin[bin != 0][smallest], np.sum(bin))
-        print 'model %s - average leaf size: %d' % (jointName[jointID], \
-                        np.sum(bin)/uniqueIDs.shape[0])
+        logger.debug('model %s - #leaves: %d', jointName[jointID], \
+                     uniqueIDs.shape[0])
+        logger.debug('model %s - biggest leaf id: %d, #samples: %d/%d', \
+                     jointName[jointID], biggest, bin[biggest], np.sum(bin))
+        logger.debug('model %s - smallest leaf id: %d, #samples: %d/%d', \
+                     jointName[jointID], smallest, bin[bin != 0][smallest], \
+                     np.sum(bin))
+        logger.debug('model %s - average leaf size: %d', jointName[jointID], \
+                     np.sum(bin)/uniqueIDs.shape[0])
 
         L = stochastic(regressor, X_reshape, y_reshape)
 
@@ -233,15 +236,6 @@ def testModel(regressor, L, theta, qm0, img, bodyCenter):
     joint_pred = joint_pred/nSteps
 
     return (qm, joint_pred)
-
-def getAccuracy(joints, joints_pred):
-    joints_reshape = joints.reshape(joints.shape[0]*joints.shape[1],
-                                    joints.shape[2])
-    joints_pred_reshape = joints_pred.reshape(joints_pred.shape[0]\
-                              *joints_pred.shape[1], joints_pred.shape[2])
-    assert joints_reshape.shape[0] == joints_pred_reshape.shape[0]
-    dists = np.sqrt(np.sum((joints_reshape-joints_pred_reshape)**2, axis=1))
-    return float(np.sum(dists < tolerance))/joints_reshape.shape[0]
 
 def getDists(joints, joints_pred):
     assert joints.shape == joints_pred.shape
@@ -279,16 +273,20 @@ def main(**kwargs):
 
     loadData = kwargs.get('loaddata')
     loadModels = kwargs.get('loadmodels')
+    loadTest = kwargs.get('loadtest')
     dataDir = kwargs.get('data')
     modelsDir = kwargs.get('models')
     ITOP = kwargs.get('itop')
+    isTop = kwargs.get('top')
     depthDir = kwargs.get('indir')
     outDir = kwargs.get('outdir')
     makePng = kwargs.get('png')
     maxN = kwargs.get('maxn')
     multiThreads = kwargs.get('multithreads')
 
-    nJoints, jointName, C = setParams(ITOP)
+    nJoints = 15 if ITOP else 14
+    jointName = jointNameITOP if ITOP else jointNameEVAL
+    C = 3.50666662e-3 if ITOP else 3.8605e-3
 
     '''
     for i, arg in enumerate(argv[2:]):
@@ -307,8 +305,8 @@ def main(**kwargs):
 
     if ITOP:
         I_train, I_test, joints_train, joints_test, theta, bodyCenters_train, \
-            bodyCenters_test = getInfoITOP(depthDir, dataDir, outDir, maxN, \
-            loadData)
+            bodyCenters_test = getInfoITOP(depthDir, dataDir, outDir, isTop, \
+            maxN, loadData)
     else:
         I_train, I_test, joints_train, joints_test, theta, bodyCenters_train, \
             bodyCenters_test = getInfoEVAL(depthDir, dataDir, outDir, maxN, \
@@ -317,10 +315,7 @@ def main(**kwargs):
     nTrain = I_train.shape[0]
     nTest = I_test.shape[0]
 
-    qms = np.zeros((nTest, nJoints, nSteps+1, 3))
-    joints_pred = np.zeros((nTest, nJoints, 3))
-
-    print '\n------- training models  -------'
+    logger.debug('\n------- training models  -------')
     regressors, Ls = {}, {}
     if multiThreads:
         processes = []
@@ -346,8 +341,11 @@ def main(**kwargs):
                                        theta, I_train, bodyCenters_train, \
                                        joints_train[:, i], loadData, loadModels)
 
-    print '\n------- testing models -------'
+    logger.debug('\n------- testing models -------')
+    qms = np.zeros((nTest, nJoints, nSteps+1, 3))
+    joints_pred = np.zeros((nTest, nJoints, 3))
     kinemOrder, kinemParent = None, None
+
     if ITOP:
         kinemOrder = kinemOrderITOP
         kinemParent = kinemParentITOP
@@ -355,21 +353,36 @@ def main(**kwargs):
         kinemOrder = kinemOrderEVAL
         kinemParent = kinemParentEVAL
 
-    for idx, jointID in enumerate(kinemOrder):
-        print 'testing model %s' % jointName[jointID]
-        for i in range(nTest):
-            qm0 = bodyCenters_test[i] if kinemParent[idx] == -1 \
-                else joints_pred[i][kinemParent[idx]]
-            qms[i][jointID], joints_pred[i][jointID] = testModel(
-                regressors[jointID], Ls[jointID], theta, qm0, I_test[i], \
-                bodyCenters_test[i])
+    if loadTest:
+        qms = np.load(outDir+modelsDir+'/qms.npy')
+        joints_pred = np.load(outDir+modelsDir+'/joints_pred.npy')
+    else:
+        for idx, jointID in enumerate(kinemOrder):
+            logger.debug('testing model %s', jointName[jointID])
+            for i in range(nTest):
+                qm0 = bodyCenters_test[i] if kinemParent[idx] == -1 \
+                    else joints_pred[i][kinemParent[idx]]
+                qms[i][jointID], joints_pred[i][jointID] = testModel(
+                    regressors[jointID], Ls[jointID], theta, qm0, I_test[i], \
+                    bodyCenters_test[i])
+        np.save(outDir+modelsDir+'/qms', qms)
+        np.save(outDir+modelsDir+'/joints_pred', joints_pred)
 
-    print 'test accuracy: %f' % getAccuracy(joints_test, joints_pred)
-    np.save(outDir+modelsDir+'/aa', joints_test)
-    np.save(outDir+modelsDir+'/bb', joints_pred)
+    #np.savetxt(outDir+modelsDir+'/joints_test.txt', joints_test[:, i])
+    #np.savetxt(outDir+modelsDir+'/joints_pred.txt', joints_pred[: i])
     joints_pred[:, :, 2] = joints_test[:, :, 2]
-    dists = getDists(joints_test, joints_pred)
+    dists = getDists(joints_test, joints_pred)*100.0
     np.savetxt(outDir+modelsDir+'/dists.txt', dists)
+
+    for i in range(nJoints):
+        logger.debug('\nJoint %s:', jointName[i])
+        logger.debug('average distance: %f cm', np.mean(dists[:, i])*100)
+        logger.debug('5cm accuracy: %f', np.sum(dists[:, i] < 5)/ \
+            float(dists.shape[0]))
+        logger.debug('10cm accuracy: %f', np.sum(dists[:, i] < 10)/ \
+            float(dists.shape[0]))
+        logger.debug('15cm accuracy: %f', np.sum(dists[:, i] < 15)/ \
+            float(dists.shape[0]))
 
     # visualize predicted labels
     if not makePng:
@@ -379,17 +392,19 @@ def main(**kwargs):
         pngPath = outDir+dataDir+'/png/'+str(i)+'.png'
         mkdir(outDir+dataDir+'/png/')
         drawPred(I_test[i], joints_pred[i], qms[i], bodyCenters_test[i], \
-                 pngPath)
+                 pngPath, nJoints, jointName)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--loadmodels', action='store_true')
     parser.add_argument('--loaddata', action='store_true')
+    parser.add_argument('--loadtest', action='store_true')
     parser.add_argument('--models')
     parser.add_argument('--data')
     parser.add_argument('--indir')
     parser.add_argument('--outdir')
     parser.add_argument('--itop', action='store_true')
+    parser.add_argument('--top', action='store_true')
     parser.add_argument('--png', action='store_true')
     parser.add_argument('--multithreads', action='store_true')
     parser.add_argument('--maxn', type=int)
