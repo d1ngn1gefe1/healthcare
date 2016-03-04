@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import tree
+from sklearn.externals import joblib
 from multiprocessing import Process as worker
 from get_acc_joints import *
 import util
@@ -8,144 +9,111 @@ import os
 import glob
 
 # parameters
-num_joints = 8
-root_dir = '/mnt0/emma/shotton/data_ext/'
-data_dirs = ['data2/']
-data_dirs = [root_dir + d for d in data_dirs]
+num_joints = 15
+root_dir = '/mnt0/emma/shotton/shotton_people/'
 BATCH_SIZE = 500
-train_batch = 3
+train_batch = 1
 test_batch = 1
-ensemble1 = 3
+ensemble = 8
 
-def get_data_ensemble(data_dir, num_ensemble):
+def get_data_ensemble(data_dir, train_batch, view):
   data = {}
-  dirs = os.listdir(data_dir)
-  dirs = [data_dir+d+'/' for d in dirs if d.find('0') != -1]
-  # dirs = [data_dir+d+'/' for d in ['00', '02', '03', '04', '06', '08']]
+  dirs = [data_dir+d+'/' for d in os.listdir(data_dir) if d.find('0') != -1]
   dirs.sort()
   print dirs
+
+  num_batch = min(train_batch, len(dirs))
   features = []
   labels = []
-  for j in range(train_batch):
-    index = train_batch * num_ensemble + j
-    print 'Load training data from', dirs[index]
-    features.append(np.load(dirs[index] + 'f16.npy'))
-    labels.append(np.load(dirs[index] + 'labels.npy').reshape(features[-1].shape[0], 1))
+  for i in range(num_batch):
+    print 'Load data from', dirs[i]
+    features.append(np.load(dirs[i] + 'f16_'+ view +'.npy'))
+    labels.append(np.load(dirs[i] + view + '_labels.npy').reshape(features[-1].shape[0], 1))
   features = np.vstack(features)
   labels = np.vstack(labels)
   data['features'] = features
   data['labels'] = labels.reshape(labels.shape[0],)
-  return data 
-
-def get_data(batch, train_flag, root_dir=root_dir, data_dir=data_dirs):
-  data = {}
-  features = []
-  labels = []
-  for directory in data_dir:
-    dirs = os.listdir(directory)
-    dirs = [directory+d+'/' for d in dirs if d.find('0') != -1]
-    dirs.sort()
-    if train_flag:
-      del dirs[-1] # reserve the last one for testing
-      if batch > len(dirs):
-        batch -= len(dirs)
-        for d in dirs:
-          labels.append(np.load(d + 'labels.npy'))
-	  features.append(np.load(d + 'f16.npy'))
-          print d, 'train loaded!'
-      else:
-        for i in range(batch):
-	  labels.append(np.load(dirs[i] + 'labels.npy'))
-	  features.append(np.load(dirs[i] + 'f16.npy'))
-	  print i, 'train loaded!'
-        break
-    else:
-      if batch > 0:
-        labels.append(np.load(dirs[-1] + 'labels.npy'))
-        features.append(np.load(dirs[-1] + 'f16.npy'))
-        print 'Load test data from', dirs[-1]
-        batch -= 1
-      else:
-        break
-  features = np.vstack(features)
-  labels = np.vstack(labels)
-  print labels.shape
-  data['features'] = features
-  data['labels'] = labels.reshape(labels.shape[1],)
   return data
 
-def train_rf(i, test_data):
-  train_data = get_data_ensemble(data_dirs[0], i)
+def train_rf(i, view, root_dir):
+  data_dir = root_dir + 'person_' + str(i).zfill(2) + '/'
+  train_data = get_data_ensemble(data_dir, train_batch, view)
 
   # train a random forest classifier
   print 'Feature shape:', train_data['features'].shape
   print 'Label shape:', train_data['labels'].shape
   rf = RandomForestClassifier(n_estimators=3, criterion='entropy', max_depth=20)
   rf.fit(train_data['features'], train_data['labels'])
-  
-  # prediction
-  pred_label = rf.predict(test_data['features'])
-  pred_prob = rf.predict_proba(test_data['features'])
 
-  # accuracy
-  score = rf.score(test_data['features'], test_data['labels'])
-  print('Ensemble ' + str(i) +' Score: ' + str(score))
+  joblib.dump(rf, 'models/rf_' + view + '_' + str(i).zfill(2) + '.pkl')
+  print 'models/rf_' + view + '_' + str(i).zfill(2) + '.pkl saved'
 
-  np.save(data_dirs[0]+'probs/pred_prob'+str(i)+'.npy', pred_prob)
-
-def main():
-  test_data = get_data(batch=test_batch, train_flag=False)    
-  ensemble_prob = np.zeros((len(test_data['labels']), num_joints))
-
-  num_train_images = train_batch * ensemble1 * BATCH_SIZE
-  print 'Num ensembles:', ensemble1, 'Num images:', num_train_images
-
-  prob_dir = data_dirs[0] + 'probs/'
-  files = glob.glob(prob_dir+'*')
-  for f in files:
-    os.remove(f)
-
+def test_rf(root_dir, view, test_range, train_range):
   processes = []
-  for i in range(ensemble1):
+  for i in test_range:
     processes.append(
       worker(
-        target=train_rf,
+        target=test_rf_batch,
         name="Thread #%d" % i,
-        args=(i, test_data)	
-      )	
+        args=(i, view, train_range, root_dir)
+      )
     )
   [t.start() for t in processes]
   [t.join() for t in processes]
 
-  ensemble_prob = np.zeros((len(test_data['labels']), num_joints))
-  probs = [prob_dir + f for f in os.listdir(prob_dir) if f.find('prob') != -1]
-  for f in probs:
-    ensemble_prob += np.load(f)
+def test_rf_batch(i, view, train_range, root_dir):
+  data_dir = root_dir + 'person_' + str(i).zfill(2) + '/'
+  test_data = get_data_ensemble(data_dir, test_batch, view)
+  print 'Loading test batch from', data_dir
 
-  ensemble_label = np.argmax(ensemble_prob, axis=1)
-  avg_accuracy = util.get_cm_acc(test_data['labels'].astype(int), ensemble_label)
-  print 'Avg accuracy:', avg_accuracy
+  pred_prob_ensemble = np.zeros((len(test_data['labels']), num_joints))
+  for j in train_range:
+    rf = joblib.load('models/rf_' + view + '_' + str(j).zfill(2) + '.pkl')
+    print 'Model loaded for', 'models/rf_' + view + '_' + str(j).zfill(2) + '.pkl'
+    pred_prob_ensemble += rf.predict_proba(test_data['features'])
 
-  pred_label_path = root_dir + 'out/ensemble_label_'+str(ensemble1)+'_'+str(num_train_images)+'.npy'
-  pred_prob_path = root_dir + 'out/ensemble_prob_'+str(ensemble1)+'_'+str(num_train_images)+'.npy'
-  np.save(pred_label_path, ensemble_label)
-  np.save(pred_prob_path, ensemble_prob)
+  pred_label = np.argmax(pred_prob_ensemble, axis=1)
+  np.save(data_dir+view+'_pred_prob.npy', pred_prob_ensemble)
+  np.save(data_dir+view+'_pred_label.npy', pred_label)
+
+  avg_accuracy = util.get_cm_acc(test_data['labels'].astype(int), pred_label)
+  print 'MAP for person', i, ':', avg_accuracy
 
   accuracy = 0.0
   accClass = np.zeros((num_joints,2))
-  for i in range(0,ensemble_label.shape[0]):
-    accClass[int(test_data['labels'][i])][1] += 1
-    if ensemble_label[i] == test_data['labels'][i]:
-      accClass[ensemble_label[i]][0] += 1
+  for j in range(pred_label.shape[0]):
+    accClass[int(test_data['labels'][j])][1] += 1
+    if pred_label[j] == test_data['labels'][j]:
+      accClass[pred_label[j]][0] += 1
       accuracy += 1
-  accuracy /= float(ensemble_label.shape[0])
+  accuracy /= float(pred_label.shape[0])
 
-  for i in range(num_joints):
-    print 'Class', i, ':', accClass[i][0], '/', accClass[i][1], accClass[i][0]/accClass[i][1]
-  print 'Total accuracy:', accuracy
-  print '#########################################'
+  for j in range(num_joints):
+    print 'Person', i, 'Class', j, ':', accClass[j][0], '/', accClass[j][1], accClass[j][0]/accClass[j][1]
+  print 'Person', i, 'Total accuracy:', accuracy
+
+
+def main():
+  root_dir = '/mnt0/emma/shotton/shotton_people/'
+  view = 'side'
+  train_range = range(4)
+  test_range = range(8,9)
+  mode = 'test'
+
+  if mode == 'train':
+    processes = []
+    for i in train_range:
+      processes.append(
+        worker(
+          target=train_rf,
+          name="Thread #%d" % i,
+          args=(i, view, root_dir)
+        )
+      )
+    [t.start() for t in processes]
+    [t.join() for t in processes]
+  elif mode == 'test':
+    test_rf(root_dir, view, test_range, train_range)
 
 if __name__ == "__main__":
   main()
-
-
