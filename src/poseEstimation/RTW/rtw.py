@@ -315,31 +315,34 @@ def main(**kwargs):
     nTrain = I_train.shape[0]
     nTest = I_test.shape[0]
 
-    logger.debug('\n------- training models  -------')
-    regressors, Ls = {}, {}
-    if multiThreads:
-        processes = []
-        regressorQ, LQ = Queue(), Queue()
+    if not loadTest:
+        logger.debug('\n------- training models  -------')
+        regressors, Ls = {}, {}
+        if multiThreads:
+            processes = []
+            regressorQ, LQ = Queue(), Queue()
 
-        for i in range(nJoints):
-            p = Process(target=trainParallel, name='Thread #%d' % i, \
-                        args=(dataDir, modelsDir, outDir, i, theta, I_train, \
-                        bodyCenters_train, joints_train[:, i], loadData, \
-                        loadModels, regressorQ, LQ))
-            processes.append(p)
-            p.start()
+            for i in range(nJoints):
+                p = Process(target=trainParallel, name='Thread #%d' % i, \
+                            args=(dataDir, modelsDir, outDir, i, theta, \
+                            I_train, bodyCenters_train, joints_train[:, i], \
+                            loadData, loadModels, regressorQ, LQ))
+                processes.append(p)
+                p.start()
 
-        regressorsTmp = [regressorQ.get() for p in processes]
-        LsTmp = [LQ.get() for p in processes]
-        regressors = dict(i.items()[0] for i in regressorsTmp)
-        Ls = dict(i.items()[0] for i in LsTmp)
+            regressorsTmp = [regressorQ.get() for p in processes]
+            LsTmp = [LQ.get() for p in processes]
+            regressors = dict(i.items()[0] for i in regressorsTmp)
+            Ls = dict(i.items()[0] for i in LsTmp)
 
-        [p.join() for p in processes]
-    else:
-        for i in range(nJoints):
-            regressors[i], Ls[i] = trainSeries(dataDir, modelsDir, outDir, i, \
-                                       theta, I_train, bodyCenters_train, \
-                                       joints_train[:, i], loadData, loadModels)
+            [p.join() for p in processes]
+        else:
+            for i in range(nJoints):
+                regressors[i], Ls[i] = trainSeries(dataDir, modelsDir, outDir, \
+                                           i, theta, I_train, \
+                                           bodyCenters_train, \
+                                           joints_train[:, i], \
+                                           loadData, loadModels)
 
     logger.debug('\n------- testing models -------')
     qms = np.zeros((nTest, nJoints, nSteps+1, 3))
@@ -374,15 +377,18 @@ def main(**kwargs):
     dists = getDists(joints_test, joints_pred)*100.0
     np.savetxt(outDir+modelsDir+'/dists.txt', dists)
 
+    mAP = 0
     for i in range(nJoints):
         logger.debug('\nJoint %s:', jointName[i])
-        logger.debug('average distance: %f cm', np.mean(dists[:, i])*100)
+        logger.debug('average distance: %f cm', np.mean(dists[:, i]))
         logger.debug('5cm accuracy: %f', np.sum(dists[:, i] < 5)/ \
             float(dists.shape[0]))
         logger.debug('10cm accuracy: %f', np.sum(dists[:, i] < 10)/ \
             float(dists.shape[0]))
         logger.debug('15cm accuracy: %f', np.sum(dists[:, i] < 15)/ \
             float(dists.shape[0]))
+        mAP += np.sum(dists[:, i] < 10)/float(dists.shape[0])
+    logger.debug('mAP (10cm): %f', mAP/nJoints)
 
     # visualize predicted labels
     if not makePng:
