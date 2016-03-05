@@ -4,14 +4,15 @@ from util import *
 # true_joints: 500 x 14 x 3
 # output: 14 x 1 (accuracy for each joint)
 def get_joint_acc(true_joints, pred_joints, true_joint_count, pixel_thred=100, offset=10):
-  # if a joint has less than 100 pixels, count as occluded 
+  # if a joint has less than 100 pixels, count as occluded
   mask = np.array(true_joint_count > pixel_thred, dtype=int) # (300, 8)
-  true_num_image = np.sum(mask, axis=0) # (8,) 
+  true_num_image = np.sum(mask, axis=0) # (8,)
   diff = abs(true_joints - pred_joints) / 10 # convert mm to cm
   dist = np.sum(np.sqrt(diff), axis=2)
   result = np.array(dist < offset, dtype=int) * mask
   result = np.sum(result, axis=0)
-  accuracy = result.astype(float) / true_num_image 
+  accuracy = result.astype(float) / true_num_image
+  # np.save('/mnt0/emma/shotton/data_ext/data1/03/local_error.npy', dist)
   print true_num_image
   return accuracy
 
@@ -34,7 +35,7 @@ def get_joint_count(X, labels, num_data, offset, num_joints):
 def gaussian_density(X, pred_prob, num_joints, b=0.065, push_back=0.039):
   new_prob = np.zeros(pred_prob.shape)
   depth = X[:,2].reshape(len(X),1) / 1000 + push_back# mm -> m
-  new_prob = pred_prob * depth**2 
+  new_prob = pred_prob * depth**2
   coord_world = pixel2world2(X[:,:3])
   density = np.zeros(pred_prob.shape)
   for i in range(len(coord_world)):
@@ -43,22 +44,25 @@ def gaussian_density(X, pred_prob, num_joints, b=0.065, push_back=0.039):
   return density
 
 def main():
-  root_dir = '/mnt0/emma/shotton/data_ext/'
-  test_data = root_dir + 'data1/03/'
-  out_prob = root_dir + 'out/ensemble1_prob_3_1500.npy'
-  out_label = root_dir + 'out/ensemble1_label_3_1500.npy'
-  density_path = test_data + 'density_1500.npy'
-  num_images = 300
-  offset = 1500
-  num_joints = 8
+  root_dir = '/mnt0/emma/shotton/'
+  test_data = root_dir + 'shotton_people/person_08/00/'
+  out_prob = root_dir + 'itop_out/ensemble_prob_1_500.npy'
+  out_label = root_dir + 'itop_out/ensemble_label_1_500.npy'
+  density_path = test_data + 'density_500.npy'
+  num_images = 500
+  offset = 0
+  num_joints = 15
+  view = 'side'
 
-  X = np.load(test_data + 'X.npy')
-  true_label = np.load(test_data + 'labels.npy')
-  # true_joints: x_world, y_world, z, x_pixel, y_pixel
-  true_joints = np.load(test_data + 'joints.npy')[:,:num_joints,:3]
+  X = np.load(test_data + view + '_X.npy')
+  true_label = np.load(test_data + view + '_labels.npy')
+  # true_joints: x_pixel, y_pixel, z, x_world, y_world
+  true_joints = np.load(test_data + view + '_joints.npy')[:,:num_joints,2:]
+  col = [1, 2, 0]
+  true_joints = true_joints[:,:,col]
   pred_prob, pred_label = np.load(out_prob), np.load(out_label)
   pred_joints = part_to_joint(X, pred_label, pred_prob, num_images, offset, num_joints, density_path)
-  np.save(test_data + 'pred_joints.npy', pred_joints)
+  np.save(test_data + view + '_pred_joints.npy', pred_joints)
 
   true_joint_count = get_joint_count(X, true_label, num_images, offset, num_joints)
   total_acc = get_joint_acc(true_joints, pred_joints, true_joint_count)

@@ -10,9 +10,10 @@ def main(**kwargs):
     data_root = '/mnt0/emma/IEF/tf_data/'
     view = 'side'
     num_joints = 15
-    small_data = 1000 # 100 batches
-    offset = 500
+    small_data = 60 # 100 batches
+    offset = 115
 
+    # y's are joints in 2D (x, y)
     X_train, y_train, X_val, y_val = load_data(data_root, view, small_data, offset)
 
     print 'Train X shape', X_train.shape
@@ -22,19 +23,19 @@ def main(**kwargs):
     print 'X max', np.amax(X_train), 'X min', np.amin(X_train)
 
     # Parameters
-    learning_rate = 5e-4
-    num_epochs = 100
-    num_step = 5
+    learning_rate = 1e-4
+    num_epochs = 50
+    num_step = 10
     # Default batch size of 10
     batch_size = 10
     # Titan X has 12 GB memory, TensorFlow requires user to specify a fraction
     max_gpu_memory = 12287  # Need to adjust this for different GPUs! (in MB)
     # gpu_memory_frac = kwargs.get('gpu_memory', 0.9*max_gpu_memory)*1024/max_gpu_memory
-    gpu_memory_frac = 0.5
-    print gpu_memory_frac
+    gpu_memory_frac = 0.3
     input_img_size = 224
     dropout_prob = 0.3
-    n_outputs =  num_joints * 3 # How many regression values to output
+    num_coords = 2
+    n_outputs =  num_joints * num_coords # How many regression values to output
     n_train =len(X_train)
 
     num_channel = num_joints + 1
@@ -62,6 +63,11 @@ def main(**kwargs):
     yt_train = np.ones(y_train.shape) * y_median # initialize using mean pose
     yt_val = np.ones(y_val.shape) * y_median # initialize using mean pose
 
+    # y_train_2d = world2pixel(y_train)[:,:,:num_coords]
+    # yt_train_2d = world2pixel(yt_train)[:,:,:num_coords]
+    # y_val_2d = world2pixel(y_val)[:,:,:num_coords]
+    # yt_val_2d = world2pixel(yt_val)[:,:,:num_coords]
+
     for t in xrange(num_step):
         num_batches_train = int(np.ceil(1.0 * n_train / batch_size))
         num_batches_val = int(np.ceil(1.0 * X_val.shape[0] / batch_size))
@@ -80,7 +86,7 @@ def main(**kwargs):
                 if r_order.index(b) % 2 == 0:
                     num_iteration = epoch * num_batches_train + r_order.index(b)
                     eps_pred = sess.run(y_hat, feed_dict=feed)  # Get eps prediction
-                    eps_pred = eps_pred.reshape(batch_size, num_joints, 3)
+                    eps_pred = eps_pred.reshape(batch_size, num_joints, num_coords)
                     loss = sess.run(cost, feed_dict=feed)  # Get loss
                     current_estimate = yt_train[start_idx:end_idx] + eps_pred # Get error
                     loc_err = np.mean(np.abs(y_train[start_idx:end_idx] - current_estimate))
@@ -88,11 +94,11 @@ def main(**kwargs):
                           "{:.2e}".format(loss) + "\tError: " + "{:.2e}".format(loc_err) + \
                           "\tLearning rate:" + "{:.2e}".format(learning_rate)
             runValidationSet(sess, x, y, dropout, y_hat, error, cost, X_val, y_val, yt_val, \
-                             batch_size, n_outputs, dropout_prob, start_time, num_joints)
+                             batch_size, n_outputs, dropout_prob, start_time, num_joints, num_coords)
         train_eps_pred = run_prediction(sess, num_batches_train, batch_size, X_train, y_train, yt_train, \
-                                        x, y, y_hat, dropout, dropout_prob, num_joints)
+                                        x, y, y_hat, dropout, dropout_prob, num_joints, num_coords)
         val_eps_pred = run_prediction(sess, num_batches_val, batch_size, X_val, y_val, yt_val, \
-                                      x, y, y_hat, dropout, dropout_prob, num_joints)
+                                      x, y, y_hat, dropout, dropout_prob, num_joints, num_coords)
         yt_train += train_eps_pred
         yt_val += val_eps_pred
 
@@ -100,7 +106,7 @@ def main(**kwargs):
         np.save('small_data_pred_vgg_val.npy', yt_val)
 
 def runValidationSet(sess, x, y, dropout, y_hat, error, cost, X_val, y_val, yt_val, \
-                     batch_size, n_outputs, keep_prob, start_time, num_joints):
+                     batch_size, n_outputs, keep_prob, start_time, num_joints, num_coords):
     num_batches = int(math.ceil(1.0 * X_val.shape[0] / batch_size))
     accumulator_err = 0.0
     accumulator_cost = 0.0
@@ -111,7 +117,7 @@ def runValidationSet(sess, x, y, dropout, y_hat, error, cost, X_val, y_val, yt_v
         eps_batch = eps_batch.reshape(batch_size, n_outputs)
         feed = {x: x_batch, y: eps_batch, dropout: 1.0}
         eps_pred = sess.run(y_hat, feed_dict=feed)  # Get eps prediction
-        eps_pred = eps_pred.reshape(batch_size, num_joints, 3)
+        eps_pred = eps_pred.reshape(batch_size, num_joints, num_coords)
         loss = sess.run(cost, feed_dict=feed)
         current_estimate = yt_val[start_idx:end_idx] + eps_pred # Get error
         loc_err = np.mean(np.abs(y_val[start_idx:end_idx] - current_estimate))
@@ -122,16 +128,16 @@ def runValidationSet(sess, x, y, dropout, y_hat, error, cost, X_val, y_val, yt_v
     print '[INFO:val] Loss: %f\t Error: %f\t Elapsed: %0.1f min' % (accumulator_cost, accumulator_err, elapsed_time)
 
 def run_prediction(sess, num_batches, batch_size, X_all, y_all, yt, x, y, y_hat, \
-                   dropout, dropout_prob, num_joints):
+                   dropout, dropout_prob, num_joints, num_coords):
     prediction = []
     for b in range(num_batches):
         start_idx = b * batch_size
         end_idx = min(X_all.shape[0], (b+1)*batch_size)
         x_batch, eps_batch = get_batch(X_all, y_all, yt, start_idx, end_idx, num_joints)
-        eps_batch = eps_batch.reshape(batch_size, num_joints * 3)
+        eps_batch = eps_batch.reshape(batch_size, num_joints * num_coords)
         feed = {x: x_batch, y: eps_batch, dropout: dropout_prob}
         feedback = sess.run(y_hat, feed_dict=feed)
-        feedback = np.reshape(feedback, (batch_size, num_joints, 3))
+        feedback = np.reshape(feedback, (batch_size, num_joints, num_coords))
         prediction.append(feedback)
     prediction = np.vstack(prediction)
     return prediction

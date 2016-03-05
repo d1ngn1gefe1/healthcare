@@ -36,7 +36,8 @@ def load_data(data_root, view, small_data, offset):
     y_train = np.load(data_root + 'joint_' + view + '_train.npy')
 
     X_train = X_train[offset:offset+small_data] / 1000
-    y_train = y_train[offset:offset+small_data, :, 2:] / 1000
+    # y_train = y_train[offset:offset+small_data, :, 2:] / 1000
+    y_train = y_train[offset:offset+small_data, :, :2] # 2D (x, y)
 
     # X_train = np.load(data_root + 'small_train_X.npy') / 1000
     # y_train = np.load(data_root + 'small_train_y.npy')
@@ -44,12 +45,13 @@ def load_data(data_root, view, small_data, offset):
     X_val = np.load(data_root + 'depth_' + view + '_val.npy')
     y_val = np.load(data_root + 'joint_' + view + '_val.npy')
 
-    X_val = X_val[offset:offset+small_data/4] / 1000
-    y_val = y_val[offset:offset+small_data/4, :, 2:] / 1000
+    X_val = X_val[offset:offset+small_data/2] / 1000
+    # y_val = y_val[offset:offset+small_data/2, :, 2:] / 1000
+    y_val = y_val[offset:offset+small_data/2, :, :2]
 
-    col = [1, 2, 0]
+    # col = [1, 2, 0]
     # y_train = y_train[:, :, col]
-    y_val = y_val[:, :, col]
+    # y_val = y_val[:, :, col]
 
     return X_train, y_train, X_val, y_val
 
@@ -78,11 +80,11 @@ def joint_to_hm(joints, num_joints, img_height=224, img_width=224):
 def add_hms(images, yt, num_joints, num_channel=1, H=240.0, W=320.0):
     out = []
     N, img_height, img_width = images.shape
-    joints = world2pixel(yt) # joint in 240 x 320 pixel space
-    joints_new = np.zeros(joints.shape)
-    joints_new[:,:,0] = joints[:,:,0] * (img_width / W * 1.0)
-    joints_new[:,:,1] = joints[:,:,1] * (img_height / H * 1.0)
-    joints_new[:,:,2] = joints[:,:,2]
+    # joints = world2pixel(yt) # joint in 240 x 320 pixel space
+    joints_new = np.zeros(yt.shape)
+    joints_new[:,:,0] = yt[:,:,0] * (img_width / W * 1.0) # convert to 224 x 224
+    joints_new[:,:,1] = yt[:,:,1] * (img_height / H * 1.0)
+    # joints_new[:,:,2] = joints[:,:,2]
     # np.save('/mnt0/emma/IEF/tf_src/test_data/pixel_joint.npy', joints_new)
     for n in range(N):
         # if n % 10 == 0:
@@ -95,7 +97,7 @@ def add_hms(images, yt, num_joints, num_channel=1, H=240.0, W=320.0):
     print 'Heatmaps added for', N, 'images'
     return out
 
-def get_bounded_correction(y, yt, num_coords, L=0.5):
+def get_bounded_correction(y, yt, num_coords, L=20):
     u = y - yt
     u_norm = np.sqrt(np.sum(u**2, axis=2)).reshape(u.shape[0], u.shape[1], 1)
     unit = u / u_norm
@@ -111,7 +113,9 @@ def get_batch(X, y, yt, start_idx, end_idx, num_joints):
     yt_batch = yt[start_idx:end_idx]
     x_batch = add_hms(x_batch, yt, num_joints) # e.g. 60 x 16 x 224 x 224
     x_batch = np.swapaxes(np.swapaxes(x_batch, 1, 2), 2, 3) # e.g. 60 x 224 x 224 x 16
-    eps_batch = get_bounded_correction(y_batch, yt_batch, num_coords=3)
+    # y_batch = world2pixel(y_batch)[:,:,:2] # use 2D pixel joints
+    # yt_batch = world2pixel(yt_batch)[:,:,:2]
+    eps_batch = get_bounded_correction(y_batch, yt_batch, num_coords=2)
     return x_batch, eps_batch
 
 def alexNet(x, y, dropout_prob, n_outputs, input_img_size):
