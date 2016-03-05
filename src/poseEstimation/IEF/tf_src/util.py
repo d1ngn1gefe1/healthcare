@@ -100,9 +100,11 @@ def add_hms(images, yt, num_joints, num_channel=1, H=240.0, W=320.0):
 def get_bounded_correction(y, yt, num_coords, L=20):
     u = y - yt
     u_norm = np.sqrt(np.sum(u**2, axis=2)).reshape(u.shape[0], u.shape[1], 1)
+    mask = np.array(u_norm == 0, dtype=int)
+    u_norm += mask
     unit = u / u_norm
     correction = np.zeros(unit.shape)
-    c_norm = np.minimum(L * np.ones(u_norm.shape), u_norm)
+    c_norm = np.minimum(L, u_norm)
     for i in range(num_coords):
         correction[:,:,i] = unit[:,:,i] * c_norm.reshape(unit.shape[:2])
     return correction
