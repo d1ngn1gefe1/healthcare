@@ -142,6 +142,7 @@ def getFeatures(img, theta, q, z):
     coor = q[:2][::-1] # coor: y, x
     coor[0] = np.clip(coor[0], 0, H-1)
     coor[1] = np.clip(coor[1], 0, W-1)
+    coor = np.rint(coor).astype(int)
     dq = z if img[tuple(coor)] == largeNum else img[tuple(coor)]
 
     x1 = np.clip(coor[1]+theta[0]/dq, 0, W-1).astype(int)
