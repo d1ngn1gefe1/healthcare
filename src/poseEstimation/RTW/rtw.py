@@ -372,11 +372,16 @@ def main(**kwargs):
         np.save(outDir+modelsDir+'/qms', qms)
         np.save(outDir+modelsDir+'/joints_pred', joints_pred)
 
-    #np.savetxt(outDir+modelsDir+'/joints_test.txt', joints_test[:, i])
-    #np.savetxt(outDir+modelsDir+'/joints_pred.txt', joints_pred[: i])
+    for jointID in range(nJoints):
+        #print joints_test[:, jointID].shape
+        np.savetxt(outDir+modelsDir+'/'+jointName[jointID]+'_test.txt', \
+            joints_test[:, jointID], fmt='%1.3f')
+        #print joints_pred[:, jointID].shape
+        np.savetxt(outDir+modelsDir+'/'+jointName[jointID]+'_pred.txt', \
+            joints_pred[: jointID], fmt='%1.3f')
     joints_pred[:, :, 2] = joints_test[:, :, 2]
     dists = getDists(joints_test, joints_pred)*100.0
-    np.savetxt(outDir+modelsDir+'/dists.txt', dists)
+    np.savetxt(outDir+modelsDir+'/dists.txt', dists, fmt='%1.3f')
 
     mAP = 0
     for i in range(nJoints):
