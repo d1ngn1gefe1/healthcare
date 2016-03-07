@@ -4,21 +4,6 @@ from scipy.stats import multivariate_normal
 import os
 import cv2
 
-def save_data(data_root, out_dir, view, person_id_list, d_type):
-    depth_view = []
-    joint_view = []
-    for i in person_id_list:
-        index = str(i).zfill(2)
-        print 'Loading', data_root + index
-        depth = np.load(data_root + index + '_depth_' + view + '.npy')
-        joint = np.load(data_root + index + '_joints_' + view + '.npy')
-        depth_view.append(depth)
-        joint_view.append(joint)
-    depth_view = np.vstack(depth_view)
-    joint_view = np.vstack(joint_view)
-    np.save(out_dir + 'depth_' + view + '_' + d_type + '.npy', depth_view)
-    np.save(out_dir + 'joint_' + view + '_' + d_type + '.npy', joint_view)
-
 def resize(data_dir, img_height, img_width):
     depth_people = [data_dir + d for d in os.listdir(data_dir) if d.find('depth') != -1]
     for f in depth_people:
@@ -372,6 +357,20 @@ def vgg19(x, y, dropout_prob, n_outputs, input_img_size, num_channel):
 
     return y_hat
 
+def save_data(data_root, out_dir, view, person_id_list, d_type):
+    depth_view = []
+    joint_view = []
+    for i in person_id_list:
+        index = str(i).zfill(2)
+        print 'Loading', data_root + index
+        depth = np.load(data_root + index + '_depth_' + view + '.npy')
+        joint = np.load(data_root + index + '_joints_' + view + '.npy')
+        depth_view.append(depth)
+        joint_view.append(joint)
+    depth_view = np.vstack(depth_view)
+    joint_view = np.vstack(joint_view)
+    np.save(out_dir + 'depth_' + view + '_' + d_type + '.npy', depth_view)
+    np.save(out_dir + 'joint_' + view + '_' + d_type + '.npy', joint_view)
 
 def main_0():
     data_root = '/mnt0/data/ITOP/out/'
@@ -385,14 +384,31 @@ def main_0():
         save_data(data_root, out_dir, view, val_list, 'val')
         save_data(data_root, out_dir, view, train_list, 'train')
 
-def main_1():
-    data_dir = '/mnt0/emma/IEF/tf_data/'
-    img_height = 224
-    img_width = 224
-
-    resize(data_dir, img_height, img_width)
-
 def main():
+    id = 0
+    view = 'side'
+    data_root = '/mnt0/data/ITOP/out/'
+    out_dir = '/mnt0/emma/IEF/tf_data/'
+    index = str(0).zfill(2)
+    depth = np.load(data_root + index + '_depth_' + view + '.npy')[:100]
+    labels = np.load(data_root + index + '_predicts_' + view + '.npy')[:100]
+    joints = np.load(data_root + index + '_joints_' + view + '.npy')[:100]
+    labels[labels >= 0] = 1
+    labels[labels < 0] = 0
+    depth *= labels
+
+    depth_resize = np.emtpy(depth.shape[0], 224, 224)
+    for i, img in enumerate(depth):
+        cv2.resize(img, depth_resize[i], (224, 224))
+        cv2.imshow('img', img)
+
+    np.save(out_dir + 'depth_' + view + '_train.npy', depth_resize[:60])
+    np.save(out_dir + 'joint_' + view + '_train.npy', joints[:60])
+    np.save(out_dir + 'depth_' + view + '_test.npy', depth_resize[60:100])
+    np.save(out_dir + 'joint_' + view + '_test.npy', joints[60:100])
+
+
+def main_1():
     data_root = '/mnt0/emma/IEF/tf_data/'
     image_path = data_root + 'small_train_X.npy'
     joint_path = data_root + 'small_train_y.npy'
@@ -404,4 +420,4 @@ def main():
     np.save('/mnt0/emma/IEF/tf_src/test_data/img_hms.npy', img_hms)
 
 if __name__ == "__main__":
-  main()
+    main()
