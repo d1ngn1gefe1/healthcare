@@ -388,7 +388,7 @@ def main():
     id = 0
     view = 'side'
     data_root = '/mnt0/data/ITOP/out/'
-    out_dir = '/mnt0/emma/IEF/tf_data/'
+    out_dir = '/tf_data/'
     index = str(0).zfill(2)
     depth = np.load(data_root + index + '_depth_' + view + '.npy')[:100]
     labels = np.load(data_root + index + '_predicts_' + view + '.npy')[:100]
