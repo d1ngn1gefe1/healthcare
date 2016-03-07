@@ -34,8 +34,8 @@ def main(**kwargs):
     input_img_size = 224
     dropout_prob = 0.3
     num_coords = 2
-    n_outputs =  num_joints * num_coords # How many regression values to output
-    n_train =len(X_train)
+    n_outputs = num_joints * num_coords # How many regression values to output
+    n_train = len(X_train)
     num_channel = num_joints + 1
 
     # x = tf.placeholder('float', [None, input_img_size, input_img_size, num_channel])
@@ -45,7 +45,7 @@ def main(**kwargs):
 
     x = tf.placeholder("float", [None, input_img_size*input_img_size*num_channel])
     y = tf.placeholder("float", [None, n_outputs])
-    W = tf.Variable(tf.zeros([input_img_size*input_img_size*num_channel, n_outputs]))
+    W = tf.Variable(tf.random_normal([input_img_size*input_img_size*num_channel, n_outputs], stddev=0.01))
     b = tf.Variable(tf.zeros([n_outputs]))
     y_hat = tf.add(tf.matmul(x, W), b)
 

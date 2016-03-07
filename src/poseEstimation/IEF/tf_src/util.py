@@ -19,6 +19,7 @@ def resize(data_dir, img_height, img_width):
 def load_data(data_root, view, small_data=None, offset=0, overwrite=False):
     X_train, y_train, X_val, y_val = None, None, None, None
 
+    print data_root+'depth_'+view+'_train_small.npy'
     if (small_data is not None) and (not overwrite) and \
         os.path.exists(data_root+'depth_'+view+'_train_small.npy'):
         X_train = np.load(data_root+'depth_'+view+'_train_small.npy')
@@ -67,7 +68,7 @@ def load_data(data_root, view, small_data=None, offset=0, overwrite=False):
     # y_train = y_train[:, :, col]
     # y_val = y_val[:, :, col]
 
-    return X_train, y_train, X_val, y_val
+    return X_train, y_train[:, :, :2], X_val, y_val[:, :, :2]
 
 def visualizeImgJointsEps(imgs, joints=None, eps=None, name='img'):
     for i in range(imgs.shape[0]):
@@ -172,7 +173,7 @@ def get_batch(X, y, yt, start_idx, end_idx, num_joints):
     x_batch = np.swapaxes(np.swapaxes(x_batch, 1, 2), 2, 3) # e.g. 60 x 224 x 224 x 16
     # y_batch = world2pixel(y_batch)[:,:,:2] # use 2D pixel joints
     # yt_batch = world2pixel(yt_batch)[:,:,:2]
-    eps_batch = get_bounded_correction(y_batch, yt_batch, num_coords=2)
+    eps_batch = get_bounded_correction(y_batch, yt_batch, num_coords=2, L=3)
     #for i in range(x_batch.shape[0]):
     #    visualizeImgHmsEps(np.copy(x_batch[i]), yt_batch[i], eps_batch[i])
     return x_batch, eps_batch
@@ -404,12 +405,15 @@ def main():
         #cv2.imshow('img', depth_resize[i])
         #cv2.waitKey(0)
 
+    joints[:, :, 0] *= 224.0/320
+    joints[:, :, 1] *= 224.0/240
+
     if not os.path.isdir(out_dir):
         os.makedirs(out_dir)
-    np.save(out_dir + 'depth_' + view + '_train.npy', depth_resize[:60])
-    np.save(out_dir + 'joint_' + view + '_train.npy', joints[:60])
-    np.save(out_dir + 'depth_' + view + '_test.npy', depth_resize[60:100])
-    np.save(out_dir + 'joint_' + view + '_test.npy', joints[60:100])
+    np.save(out_dir + 'depth_' + view + '_train_small.npy', depth_resize[:60])
+    np.save(out_dir + 'joint_' + view + '_train_small.npy', joints[:60,:,:3])
+    np.save(out_dir + 'depth_' + view + '_val_small.npy', depth_resize[60:100])
+    np.save(out_dir + 'joint_' + view + '_val_small.npy', joints[60:100,:,:3])
 
 
 def main_1():
