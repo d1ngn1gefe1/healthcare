@@ -1,4 +1,4 @@
-import numpy as np
+ import numpy as np
 from multiprocessing import Process as worker
 import os
 import glob
@@ -17,8 +17,8 @@ def map_features(X, theta_u, theta_v, images, thread_index, feature_dir):
         if (i % 100 == 0):
           print 'Processed:', i, '/', m
         for j in range(0,num_features):
-            left = X[i][:1] + theta_u[j] / (X[i][2]/normalize+eps)
-            right =  X[i][:1] + theta_v[j] / (X[i][2]/normalize+eps)
+            left = X[i][:2] + theta_u[j] / (X[i][2]/normalize+eps)
+            right =  X[i][:2] + theta_v[j] / (X[i][2]/normalize+eps)
 
             left_new = np.maximum(0, np.minimum(left, [width-1, height-1]))
             right_new = np.maximum(0, np.minimum(right, [width-1, height-1]))
