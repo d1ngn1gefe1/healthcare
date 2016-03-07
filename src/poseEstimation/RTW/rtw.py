@@ -226,12 +226,14 @@ def testModel(regressor, L, theta, qm0, img, bodyCenter):
         f = getFeatures(img, theta, qm[i], bodyCenter[2]).reshape(1, -1)
         leafID = regressor.apply(f)[0]
 
+        # L[leafID][0]: weights, L[leafID][1]: centers
         idx = np.random.choice(K, p=L[leafID][0])
         u = L[leafID][1][idx]
 
         qm[i+1] = qm[i] + u*stepSize
         qm[i+1][0] = np.clip(qm[i+1][0], 0, W-1)
         qm[i+1][1] = np.clip(qm[i+1][1], 0, H-1)
+        qm[i+1][2] = img[int(qm[i+1][1]), int(qm[i+1][0])]
         joint_pred += qm[i+1]
 
     joint_pred = joint_pred/nSteps
@@ -316,9 +318,9 @@ def main(**kwargs):
     nTrain = I_train.shape[0]
     nTest = I_test.shape[0]
 
+    regressors, Ls = {}, {}
     if not loadTest:
-        logger.debug('\n------- training models  -------')
-        regressors, Ls = {}, {}
+        logger.debug('\n------- training models -------')
         if multiThreads:
             processes = []
             regressorQ, LQ = Queue(), Queue()
@@ -372,21 +374,29 @@ def main(**kwargs):
         np.save(outDir+modelsDir+'/qms', qms)
         np.save(outDir+modelsDir+'/joints_pred', joints_pred)
 
+    mkdir(outDir+modelsDir+'/pred/')
     for jointID in range(nJoints):
         #print joints_test[:, jointID].shape
-        np.savetxt(outDir+modelsDir+'/'+jointName[jointID]+'_test.txt', \
-            joints_test[:, jointID], fmt='%1.3f')
+        np.savetxt(outDir+modelsDir+'/pred/'+jointName[jointID]+'_test.txt', \
+            joints_test[:, jointID], fmt='%.3f')
         #print joints_pred[:, jointID].shape
-        np.savetxt(outDir+modelsDir+'/'+jointName[jointID]+'_pred.txt', \
-            joints_pred[: jointID], fmt='%1.3f')
+        np.savetxt(outDir+modelsDir+'/pred/'+jointName[jointID]+'_pred.txt', \
+            joints_pred[:, jointID], fmt='%.3f ')
     joints_pred[:, :, 2] = joints_test[:, :, 2]
     dists = getDists(joints_test, joints_pred)*100.0
-    np.savetxt(outDir+modelsDir+'/dists.txt', dists, fmt='%1.3f')
+    np.savetxt(outDir+modelsDir+'/pred/dists.txt', dists, fmt='%.3f')
+
+    distsPixel = np.zeros((joints.shape[:2]))
+    for i in range(joints.shape[0]):
+        p1 = joints[i]
+        p2 = joints_pred[i]
+        distsPixel[i] = np.sqrt(np.sum((p1-p2)**2, axis=1))
 
     mAP = 0
     for i in range(nJoints):
         logger.debug('\nJoint %s:', jointName[i])
         logger.debug('average distance: %f cm', np.mean(dists[:, i]))
+        logger.debug('average pixel distance: %f', np.mean(distsPixel[:, i]))
         logger.debug('5cm accuracy: %f', np.sum(dists[:, i] < 5)/ \
             float(dists.shape[0]))
         logger.debug('10cm accuracy: %f', np.sum(dists[:, i] < 10)/ \
@@ -400,9 +410,9 @@ def main(**kwargs):
     if not makePng:
         return
 
+    mkdir(outDir+dataDir+'/png/')
     for i in range(nTest):
         pngPath = outDir+dataDir+'/png/'+str(i)+'.png'
-        mkdir(outDir+dataDir+'/png/')
         drawPred(I_test[i], joints_pred[i], qms[i], bodyCenters_test[i], \
                  pngPath, nJoints, jointName)
 

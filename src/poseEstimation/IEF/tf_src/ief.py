@@ -14,7 +14,7 @@ def main(**kwargs):
     offset = 115
 
     # y's are joints in 2D (x, y)
-    X_train, y_train, X_val, y_val = load_data(data_root, view, small_data, offset, False)
+    X_train, y_train, X_val, y_val = load_data(data_root, view, small_data, offset)
 
     print 'Train X shape', X_train.shape
     print 'Train y shape', y_train.shape

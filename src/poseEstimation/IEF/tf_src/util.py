@@ -388,7 +388,7 @@ def main():
     id = 0
     view = 'side'
     data_root = '/mnt0/data/ITOP/out/'
-    out_dir = '/tf_data/'
+    out_dir = '../tf_data/'
     index = str(0).zfill(2)
     depth = np.load(data_root + index + '_depth_' + view + '.npy')[:100]
     labels = np.load(data_root + index + '_predicts_' + view + '.npy')[:100]
@@ -397,11 +397,15 @@ def main():
     labels[labels < 0] = 0
     depth *= labels
 
-    depth_resize = np.emtpy(depth.shape[0], 224, 224)
+    depth_resize = np.empty((depth.shape[0], 224, 224))
     for i, img in enumerate(depth):
-        cv2.resize(img, depth_resize[i], (224, 224))
-        cv2.imshow('img', img)
+        depth_resize[i] = cv2.resize(img, (224, 224))
+        #print np.amin(depth_resize[i]), np.amax(depth_resize[i]), np.mean(depth_resize[i])
+        #cv2.imshow('img', depth_resize[i])
+        #cv2.waitKey(0)
 
+    if not os.path.isdir(out_dir):
+        os.makedirs(out_dir)
     np.save(out_dir + 'depth_' + view + '_train.npy', depth_resize[:60])
     np.save(out_dir + 'joint_' + view + '_train.npy', joints[:60])
     np.save(out_dir + 'depth_' + view + '_test.npy', depth_resize[60:100])
