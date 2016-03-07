@@ -55,7 +55,7 @@ def main(**kwargs):
     x = tf.placeholder('float', [None, input_img_size, input_img_size])
     y = tf.placeholder('float', [None, n_outputs])
     dropout = tf.placeholder('float')
-    y_hat = vgg19(x, y, dropout_prob, n_outputs, input_img_size)
+    y_hat = vgg19(x, y, dropout_prob, n_outputs, input_img_size, num_joints+1)
 
     with tf.name_scope("xent") as scope:
         cost = tf.reduce_mean(tf.pow(y - y_hat, 2))/(2*batch_size)

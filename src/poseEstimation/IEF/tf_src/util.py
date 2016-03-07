@@ -31,29 +31,98 @@ def resize(data_dir, img_height, img_width):
             images_new[i] = cv2.resize(images[i], (img_height, img_width))
         np.save(f, images_new)
 
-def load_data(data_root, view, small_data, offset):
-    X_train = np.load(data_root + 'depth_' + view + '_train.npy')
-    y_train = np.load(data_root + 'joint_' + view + '_train.npy')
+def load_data(data_root, view, small_data=None, offset=0, overwrite=False):
+    X_train, y_train, X_val, y_val = None, None, None, None
 
-    X_train = X_train[offset:offset+small_data] / 1000
-    # y_train = y_train[offset:offset+small_data, :, 2:] / 1000
-    y_train = y_train[offset:offset+small_data, :, :2] # 2D (x, y)
+    if (small_data is not None) and (not overwrite) and \
+        os.path.exists(data_root+'depth_'+view+'_train_small.npy'):
+        X_train = np.load(data_root+'depth_'+view+'_train_small.npy')
+        y_train = np.load(data_root+'joint_'+view+'_train_small.npy')
+        X_val = np.load(data_root+'depth_'+view+'_val_small.npy')
+        y_val = np.load(data_root+'joint_'+view+'_val_small.npy')
+    elif (not os.path.exists(data_root+'depth_'+view+'_train_small.npy')) or \
+        overwrite:
+        X_train = np.load(data_root+'depth_'+view+'_train.npy')
+        y_train = np.load(data_root+'joint_'+view+'_train.npy')
+        X_val = np.load(data_root+'depth_'+view+'_val.npy')
+        y_val = np.load(data_root+'joint_'+view+'_val.npy')
+        y_train[:, :, 0] *= 224.0/320
+        y_train[:, :, 1] *= 224.0/240
+        y_val[:, :, 0] *= 224.0/320
+        y_val[:, :, 1] *= 224.0/240
 
-    # X_train = np.load(data_root + 'small_train_X.npy') / 1000
-    # y_train = np.load(data_root + 'small_train_y.npy')
+        if small_data is not None:
+            X_train = X_train[offset:(offset+small_data)] / 1000.0
+            # y_train = y_train[offset:offset+small_data, :, 2:] / 1000
+            y_train = y_train[offset:(offset+small_data), :, :2] # 2D (x, y)
 
-    X_val = np.load(data_root + 'depth_' + view + '_val.npy')
-    y_val = np.load(data_root + 'joint_' + view + '_val.npy')
+            # X_train = np.load(data_root + 'small_train_X.npy') / 1000
+            # y_train = np.load(data_root + 'small_train_y.npy')
 
-    X_val = X_val[offset:offset+small_data/2] / 1000
-    # y_val = y_val[offset:offset+small_data/2, :, 2:] / 1000
-    y_val = y_val[offset:offset+small_data/2, :, :2]
+            X_val = X_val[offset:(offset+small_data/2)] / 1000.0
+            # y_val = y_val[offset:offset+small_data/2, :, 2:] / 1000
+            y_val = y_val[offset:(offset+small_data/2), :, :2]
+            np.save(data_root+'depth_'+view+'_train_small.npy', X_train)
+            np.save(data_root+'joint_'+view+'_train_small.npy', y_train)
+            np.save(data_root+'depth_'+view+'_val_small.npy', X_val)
+            np.save(data_root+'joint_'+view+'_val_small.npy', y_val)
+
+    '''
+    for i in range(X_train.shape[0]):
+        cv2.normalize(X_train[i], X_train[i], 0, 255, cv2.NORM_MINMAX)
+        img = cv2.equalizeHist(X_train[i].astype(np.uint8))
+        img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+        for j in range(y_train.shape[1]):
+            cv2.circle(img, tuple(y_train[i, j, :2].astype(np.uint16)), 2, (255, 0, 0), -1)
+        cv2.imshow('img', img)
+        cv2.waitKey(0)
+    '''
 
     # col = [1, 2, 0]
     # y_train = y_train[:, :, col]
     # y_val = y_val[:, :, col]
 
     return X_train, y_train, X_val, y_val
+
+def visualizeImgJointsEps(imgs, joints=None, eps=None, name='img'):
+    for i in range(imgs.shape[0]):
+        cv2.normalize(imgs[i], imgs[i], 0, 255, cv2.NORM_MINMAX)
+        img = cv2.equalizeHist(imgs[i].astype(np.uint8))
+        img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+        img_corrected = img.copy()
+
+        if joints is not None:
+            for j in range(joints.shape[1]):
+                cv2.circle(img, tuple(joints[i, j].astype(np.uint16)), \
+                    2, (255, 0, 0), -1)
+        if (joints is not None) and (eps is not None):
+            for j in range(joints.shape[1]):
+                joints_corrected = joints[i, j] + eps[i, j]
+                cv2.circle(img_corrected, \
+                    tuple(joints_corrected.astype(np.uint16)), \
+                    2, (255, 0, 0), -1)
+        cv2.imshow(name, img)
+        cv2.imshow(name+'_corrected', img_corrected)
+        cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+def visualizeImgHmsEps(x, yt, eps, name='img'):
+    # 224 x 224 x 16
+    cv2.normalize(x[:, :, 0], x[:, :, 0], 0, 255, cv2.NORM_MINMAX)
+    img = cv2.equalizeHist(x[:, :, 0].astype(np.uint8))
+    cv2.imshow(name, img)
+
+    hms = np.sum(x[:, :, 1:], axis=2)
+    cv2.normalize(hms, hms, 0, 255, cv2.NORM_MINMAX)
+    hms = cv2.equalizeHist(hms.astype(np.uint8))
+    hms = cv2.cvtColor(hms, cv2.COLOR_GRAY2RGB)
+    for i, e in enumerate(eps):
+        cv2.line(hms, tuple(yt[i].astype(np.uint16)), \
+            tuple((yt[i]+e).astype(np.uint16)), (0, 0, 255), 2)
+
+    cv2.imshow(name+'-hms', hms)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 def world2pixel(coordW, W=320, H=240, C=3.51e-3):
     coordP = np.zeros(coordW.shape)
@@ -82,8 +151,8 @@ def add_hms(images, yt, num_joints, num_channel=1, H=240.0, W=320.0):
     N, img_height, img_width = images.shape
     # joints = world2pixel(yt) # joint in 240 x 320 pixel space
     joints_new = np.zeros(yt.shape)
-    joints_new[:,:,0] = yt[:,:,0] * (img_width / W * 1.0) # convert to 224 x 224
-    joints_new[:,:,1] = yt[:,:,1] * (img_height / H * 1.0)
+    joints_new[:,:,0] = yt[:,:,0]
+    joints_new[:,:,1] = yt[:,:,1]
     # joints_new[:,:,2] = joints[:,:,2]
     # np.save('/mnt0/emma/IEF/tf_src/test_data/pixel_joint.npy', joints_new)
     for n in range(N):
@@ -97,16 +166,17 @@ def add_hms(images, yt, num_joints, num_channel=1, H=240.0, W=320.0):
     print 'Heatmaps added for', N, 'images'
     return out
 
-def get_bounded_correction(y, yt, num_coords, L=20):
+def get_bounded_correction(y, yt, num_coords, L=None):
     u = y - yt
     u_norm = np.sqrt(np.sum(u**2, axis=2)).reshape(u.shape[0], u.shape[1], 1)
     mask = np.array(u_norm == 0, dtype=int)
     u_norm += mask
     unit = u / u_norm
     correction = np.zeros(unit.shape)
-    c_norm = np.minimum(L, u_norm)
+    if L is not None:
+        u_norm = np.minimum(L, u_norm)
     for i in range(num_coords):
-        correction[:,:,i] = unit[:,:,i] * c_norm.reshape(unit.shape[:2])
+        correction[:,:,i] = unit[:,:,i] * u_norm.reshape(unit.shape[:2])
     return correction
 
 def get_batch(X, y, yt, start_idx, end_idx, num_joints):
@@ -118,6 +188,8 @@ def get_batch(X, y, yt, start_idx, end_idx, num_joints):
     # y_batch = world2pixel(y_batch)[:,:,:2] # use 2D pixel joints
     # yt_batch = world2pixel(yt_batch)[:,:,:2]
     eps_batch = get_bounded_correction(y_batch, yt_batch, num_coords=2)
+    #for i in range(x_batch.shape[0]):
+    #    visualizeImgHmsEps(np.copy(x_batch[i]), yt_batch[i], eps_batch[i])
     return x_batch, eps_batch
 
 def alexNet(x, y, dropout_prob, n_outputs, input_img_size):

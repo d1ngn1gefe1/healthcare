@@ -4,6 +4,7 @@
 /src/.*
 /hands/*
 /src/ap/*.txt
+/src/poseEstimation/IEF/tf_src/models/
 *.pkl
 *.mp4
 *.png
