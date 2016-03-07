@@ -12,11 +12,11 @@ import glob
 num_joints = 15
 root_dir = '/mnt0/emma/shotton/shotton_people/'
 BATCH_SIZE = 500
-train_batch = 1
-test_batch = 1
+train_batch = 3
+test_batch = 3
 ensemble = 8
 
-def get_data_ensemble(data_dir, train_batch, view):
+def get_data_ensemble(data_dir, train_batch):
   data = {}
   dirs = [data_dir+d+'/' for d in os.listdir(data_dir) if d.find('0') != -1]
   dirs.sort()
@@ -27,17 +27,17 @@ def get_data_ensemble(data_dir, train_batch, view):
   labels = []
   for i in range(num_batch):
     print 'Load data from', dirs[i]
-    features.append(np.load(dirs[i] + 'f16_'+ view +'.npy'))
-    labels.append(np.load(dirs[i] + view + '_labels.npy').reshape(features[-1].shape[0], 1))
+    features.append(np.load(dirs[i] + 'f16.npy'))
+    labels.append(np.load(dirs[i] + 'labels.npy').reshape(features[-1].shape[0], 1))
   features = np.vstack(features)
   labels = np.vstack(labels)
   data['features'] = features
   data['labels'] = labels.reshape(labels.shape[0],)
   return data
 
-def train_rf(i, view, root_dir):
+def train_rf(i, root_dir):
   data_dir = root_dir + 'person_' + str(i).zfill(2) + '/'
-  train_data = get_data_ensemble(data_dir, train_batch, view)
+  train_data = get_data_ensemble(data_dir, train_batch)
 
   # train a random forest classifier
   print 'Feature shape:', train_data['features'].shape
@@ -45,36 +45,37 @@ def train_rf(i, view, root_dir):
   rf = RandomForestClassifier(n_estimators=3, criterion='entropy', max_depth=20)
   rf.fit(train_data['features'], train_data['labels'])
 
-  joblib.dump(rf, 'models/rf_' + view + '_' + str(i).zfill(2) + '.pkl')
-  print 'models/rf_' + view + '_' + str(i).zfill(2) + '.pkl saved'
+  joblib.dump(rf, root_dir + 'models/rf_' + str(i).zfill(2) + '.pkl')
+  print root_dir + 'models/rf_' + str(i).zfill(2) + '.pkl saved'
 
-def test_rf(root_dir, view, test_range, train_range):
-  processes = []
+def test_rf(root_dir, test_range, train_range):
+  # processes = []
   for i in test_range:
-    processes.append(
-      worker(
-        target=test_rf_batch,
-        name="Thread #%d" % i,
-        args=(i, view, train_range, root_dir)
-      )
-    )
-  [t.start() for t in processes]
-  [t.join() for t in processes]
+      test_rf_batch(i, train_range, root_dir)
+  #   processes.append(
+  #     worker(
+  #       target=test_rf_batch,
+  #       name="Thread #%d" % i,
+  #       args=(i, train_range, root_dir)
+  #     )
+  #   )
+  # [t.start() for t in processes]
+  # [t.join() for t in processes]
 
-def test_rf_batch(i, view, train_range, root_dir):
+def test_rf_batch(i, train_range, root_dir):
   data_dir = root_dir + 'person_' + str(i).zfill(2) + '/'
-  test_data = get_data_ensemble(data_dir, test_batch, view)
+  test_data = get_data_ensemble(data_dir, test_batch)
   print 'Loading test batch from', data_dir
 
   pred_prob_ensemble = np.zeros((len(test_data['labels']), num_joints))
   for j in train_range:
-    rf = joblib.load('models/rf_' + view + '_' + str(j).zfill(2) + '.pkl')
-    print 'Model loaded for', 'models/rf_' + view + '_' + str(j).zfill(2) + '.pkl'
+    rf = joblib.load(root_dir + 'models/rf_' + str(j).zfill(2) + '.pkl')
+    print 'Model loaded for', root_dir + 'models/rf_' + str(j).zfill(2) + '.pkl'
     pred_prob_ensemble += rf.predict_proba(test_data['features'])
 
   pred_label = np.argmax(pred_prob_ensemble, axis=1)
-  np.save(data_dir+view+'_pred_prob.npy', pred_prob_ensemble)
-  np.save(data_dir+view+'_pred_label.npy', pred_label)
+  np.save(data_dir+'pred_prob.npy', pred_prob_ensemble)
+  np.save(data_dir+'pred_label.npy', pred_label)
 
   avg_accuracy = util.get_cm_acc(test_data['labels'].astype(int), pred_label)
   print 'MAP for person', i, ':', avg_accuracy
@@ -94,26 +95,27 @@ def test_rf_batch(i, view, train_range, root_dir):
 
 
 def main():
-  root_dir = '/mnt0/emma/shotton/shotton_people/'
-  view = 'side'
-  train_range = range(4)
-  test_range = range(8,9)
-  mode = 'test'
+  view = 'top'
+  root_dir = '/mnt0/emma/shotton/shotton_people_' + view + '/'
+  train_range = range(5, 12)
+  test_range = range(4)
+  mode = 'train'
 
   if mode == 'train':
-    processes = []
+    # processes = []
     for i in train_range:
-      processes.append(
-        worker(
-          target=train_rf,
-          name="Thread #%d" % i,
-          args=(i, view, root_dir)
-        )
-      )
-    [t.start() for t in processes]
-    [t.join() for t in processes]
+        train_rf(i, root_dir)
+    #   processes.append(
+    #     worker(
+    #       target=train_rf,
+    #       name="Thread #%d" % i,
+    #       args=(i, root_dir)
+    #     )
+    #   )
+    # [t.start() for t in processes]
+    # [t.join() for t in processes]
   elif mode == 'test':
-    test_rf(root_dir, view, test_range, train_range)
+    test_rf(root_dir, test_range, train_range)
 
 if __name__ == "__main__":
   main()
