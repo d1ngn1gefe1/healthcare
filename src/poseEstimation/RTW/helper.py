@@ -290,3 +290,51 @@ print np.mean(I[np.nonzero(I)])
 print np.mean(I)
 #visualizeImgs(I, joints)
 '''
+
+def main():
+    idx = 10
+
+    qm, img = None, None
+    if os.path.isfile('visualize/qm'+str(idx)+'.npy'):
+        qm = np.load('visualize/qm'+str(idx)+'.npy')
+        img = np.load('visualize/img'+str(idx)+'.npy')
+    else:
+        qms = np.load('models_ITOP_side/qms.npy')
+        I = np.load('data_ITOP_side/I_test.npy')
+        if not os.path.isdir('visualize'):
+            os.makedirs('visualize')
+        img = I[idx]
+        qm = qms[idx]
+        np.save('visualize/qm'+str(idx)+'.npy', qm)
+        np.save('visualize/img'+str(idx)+'.npy', img)
+
+    img *= 255.0/np.amax(img)
+    img = img.astype(np.uint8)
+    #img = cv2.equalizeHist(img)
+    img = cv2.applyColorMap(img, cv2.COLORMAP_OCEAN)
+
+    #kinemOrderITOP =   [8, 1, 0, 9, 10, 2, 3, 4, 5, 6, 7, 11, 12, 13, 14]
+    #kinemParentITOP = [-1, 8, 1, 8, 8,  1, 1, 2, 3, 4, 5, 9,  10, 11, 12]
+    frameId = -1
+    print qm.shape[1]
+    indices = np.arange(20)
+    indices = indices**2
+    indices = indices*(float(qm.shape[1])-1)/indices[-1]
+    indices = indices.astype(int)
+    if not os.path.isdir('visualize/jpg'):
+        os.makedirs('visualize/jpg')
+    for i in kinemOrderITOP:
+        #disp = img.copy()
+        disp = img
+
+        for j in indices:
+            pt = qm[i, j, :2].astype(int)
+            cv2.circle(disp, tuple(pt), 2, palette[i], -1)
+            frameId += 1
+            #cv2.imshow('img', disp)
+            #cv2.waitKey(0)
+            print 'frameId: %d' % frameId
+            cv2.imwrite('visualize/jpg/frame_'+str(frameId).zfill(3)+'.jpg', img[50:, 70:230])
+
+if __name__ == '__main__':
+    main()

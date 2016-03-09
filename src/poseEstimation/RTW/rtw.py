@@ -13,8 +13,8 @@ maxOffSampXY = 40 # the maximum offset for samples in x, y axes
 maxOffSampZ = 2 # the maximum offset for samples in z axis
 maxOffFeat = 100 # the maximum offset for features (before divided by d)
 largeNum = 100
-nSteps = 200
-stepSize = 1
+nSteps = 500
+stepSize = 2
 K = 20
 minSamplesLeaf = 400
 trainRatio = 0.9
@@ -386,17 +386,17 @@ def main(**kwargs):
     dists = getDists(joints_test, joints_pred)*100.0
     np.savetxt(outDir+modelsDir+'/pred/dists.txt', dists, fmt='%.3f')
 
-    distsPixel = np.zeros((joints.shape[:2]))
-    for i in range(joints.shape[0]):
-        p1 = joints[i]
-        p2 = joints_pred[i]
-        distsPixel[i] = np.sqrt(np.sum((p1-p2)**2, axis=1))
+    #distsPixel = np.zeros((joints.shape[:2]))
+    #for i in range(joints.shape[0]):
+    #    p1 = joints[i]
+    #    p2 = joints_pred[i]
+    #    distsPixel[i] = np.sqrt(np.sum((p1-p2)**2, axis=1))
 
     mAP = 0
     for i in range(nJoints):
         logger.debug('\nJoint %s:', jointName[i])
         logger.debug('average distance: %f cm', np.mean(dists[:, i]))
-        logger.debug('average pixel distance: %f', np.mean(distsPixel[:, i]))
+        #logger.debug('average pixel distance: %f', np.mean(distsPixel[:, i]))
         logger.debug('5cm accuracy: %f', np.sum(dists[:, i] < 5)/ \
             float(dists.shape[0]))
         logger.debug('10cm accuracy: %f', np.sum(dists[:, i] < 10)/ \

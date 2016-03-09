@@ -4,6 +4,25 @@ from scipy.stats import multivariate_normal
 import os
 import cv2
 
+C = 3.50666662e-3
+
+def pixel2world(pixel, C):
+    world = np.empty(pixel.shape)
+    world[:, 2] = pixel[:, 2]
+    world[:, 0] = (pixel[:, 0]-W/2.0)*C*pixel[:, 2]
+    world[:, 1] = -(pixel[:, 1]-H/2.0)*C*pixel[:, 2]
+    return world
+
+def getDists(joints, joints_pred):
+    assert joints.shape == joints_pred.shape
+    dists = np.zeros((joints.shape[:2]))
+
+    for i in range(joints.shape[0]):
+        p1 = pixel2world(joints[i], C)
+        p2 = pixel2world(joints_pred[i], C)
+        dists[i] = np.sqrt(np.sum((p1-p2)**2, axis=1))
+    return dists
+
 def resize(data_dir, img_height, img_width):
     depth_people = [data_dir + d for d in os.listdir(data_dir) if d.find('depth') != -1]
     for f in depth_people:
@@ -32,10 +51,6 @@ def load_data(data_root, view, small_data=None, offset=0, overwrite=False):
         y_train = np.load(data_root+'joint_'+view+'_train.npy')
         X_val = np.load(data_root+'depth_'+view+'_val.npy')
         y_val = np.load(data_root+'joint_'+view+'_val.npy')
-        y_train[:, :, 0] *= 224.0/320
-        y_train[:, :, 1] *= 224.0/240
-        y_val[:, :, 0] *= 224.0/320
-        y_val[:, :, 1] *= 224.0/240
 
         if small_data is not None:
             X_train = X_train[offset:(offset+small_data)] / 1000.0
@@ -67,7 +82,9 @@ def load_data(data_root, view, small_data=None, offset=0, overwrite=False):
     # col = [1, 2, 0]
     # y_train = y_train[:, :, col]
     # y_val = y_val[:, :, col]
-
+    if np.mean(X_train[X_train != 0]) > 100:
+        X_train /= 1000.0
+        X_val /= 1000.0
     return X_train, y_train[:, :, :2], X_val, y_val[:, :, :2]
 
 def visualizeImgJointsEps(imgs, joints=None, eps=None, name='img'):
@@ -87,10 +104,14 @@ def visualizeImgJointsEps(imgs, joints=None, eps=None, name='img'):
                 cv2.circle(img_corrected, \
                     tuple(joints_corrected.astype(np.uint16)), \
                     2, (255, 0, 0), -1)
-        cv2.imshow(name, img)
-        cv2.imshow(name+'_corrected', img_corrected)
-        cv2.waitKey(0)
-    cv2.destroyAllWindows()
+
+        if not os.path.isdir('out'):
+            os.makedirs('out')
+        cv2.imwrite('out/'+name+'_'+str(i)+'.jpg', img_corrected)
+        #cv2.imshow(name, img)
+        #cv2.imshow(name+'_corrected', img_corrected)
+        #cv2.waitKey(0)
+    #cv2.destroyAllWindows()
 
 def visualizeImgHmsEps(x, yt, eps, name='img'):
     # 224 x 224 x 16
@@ -173,7 +194,7 @@ def get_batch(X, y, yt, start_idx, end_idx, num_joints):
     x_batch = np.swapaxes(np.swapaxes(x_batch, 1, 2), 2, 3) # e.g. 60 x 224 x 224 x 16
     # y_batch = world2pixel(y_batch)[:,:,:2] # use 2D pixel joints
     # yt_batch = world2pixel(yt_batch)[:,:,:2]
-    eps_batch = get_bounded_correction(y_batch, yt_batch, num_coords=2, L=3)
+    eps_batch = get_bounded_correction(y_batch, yt_batch, num_coords=2, L=10)
     #for i in range(x_batch.shape[0]):
     #    visualizeImgHmsEps(np.copy(x_batch[i]), yt_batch[i], eps_batch[i])
     return x_batch, eps_batch
@@ -390,30 +411,47 @@ def main():
     view = 'side'
     data_root = '/mnt0/data/ITOP/out/'
     out_dir = '../tf_data/'
-    index = str(0).zfill(2)
-    depth = np.load(data_root + index + '_depth_' + view + '.npy')[:100]
-    labels = np.load(data_root + index + '_predicts_' + view + '.npy')[:100]
-    joints = np.load(data_root + index + '_joints_' + view + '.npy')[:100]
-    labels[labels >= 0] = 1
-    labels[labels < 0] = 0
-    depth *= labels
+    nJoints = 15
 
-    depth_resize = np.empty((depth.shape[0], 224, 224))
-    for i, img in enumerate(depth):
-        depth_resize[i] = cv2.resize(img, (224, 224))
-        #print np.amin(depth_resize[i]), np.amax(depth_resize[i]), np.mean(depth_resize[i])
-        #cv2.imshow('img', depth_resize[i])
-        #cv2.waitKey(0)
+    I_train, I_val = np.empty((0, 224, 224), np.float16), \
+        np.empty((0, 224, 224), np.float16)
+    joints_train, joints_val = np.empty((0, nJoints, 3)), \
+        np.empty((0, nJoints, 3))
 
-    joints[:, :, 0] *= 224.0/320
-    joints[:, :, 1] *= 224.0/240
+    trainTestITOP = [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+
+    for i, isTest in enumerate(trainTestITOP): #test
+        index = str(i).zfill(2)
+        depth = np.load(data_root + index + '_depth_' + view + '.npy')
+        labels = np.load(data_root + index + '_predicts_' + view + '.npy')
+        joints = np.load(data_root + index + '_joints_' + view + '.npy')
+
+        labels[labels >= 0] = 1
+        labels[labels < 0] = 0
+        depth *= labels
+        depth /= 1000.0
+        joints[:, :, 2] /= 1000.0
+
+        depth_resize = np.empty((depth.shape[0], 224, 224))
+        for i, img in enumerate(depth):
+            depth_resize[i] = cv2.resize(img, (224, 224))
+        joints[:, :, 0] *= 224.0/320
+        joints[:, :, 1] *= 224.0/240
+        joints = joints[:, :, :3]
+
+        if isTest == 0:
+            I_train = np.append(I_train, depth_resize, axis=0).astype('float16')
+            joints_train = np.append(joints_train, joints, axis=0)
+        else:
+            I_val = np.append(I_val, depth_resize, axis=0).astype('float16')
+            joints_val = np.append(joints_val, joints, axis=0)
 
     if not os.path.isdir(out_dir):
         os.makedirs(out_dir)
-    np.save(out_dir + 'depth_' + view + '_train_small.npy', depth_resize[:60])
-    np.save(out_dir + 'joint_' + view + '_train_small.npy', joints[:60,:,:3])
-    np.save(out_dir + 'depth_' + view + '_val_small.npy', depth_resize[60:100])
-    np.save(out_dir + 'joint_' + view + '_val_small.npy', joints[60:100,:,:3])
+    np.save(out_dir + 'depth_' + view + '_train.npy', I_train)
+    np.save(out_dir + 'joint_' + view + '_train.npy', joints_train)
+    np.save(out_dir + 'depth_' + view + '_val.npy', I_val)
+    np.save(out_dir + 'joint_' + view + '_val.npy', joints_val)
 
 
 def main_1():
