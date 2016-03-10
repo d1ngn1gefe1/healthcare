@@ -2,9 +2,25 @@ import numpy as np
 import tensorflow as tf
 from scipy.stats import multivariate_normal
 import os
+import logging
 import cv2
 
 C = 3.50666662e-3
+
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+
+fh = logging.FileHandler('log.txt')
+fh.setLevel(logging.DEBUG)
+fh.setFormatter(formatter)
+logger.addHandler(fh)
+
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+ch.setFormatter(formatter)
+logger.addHandler(ch)
 
 def pixel2world(pixel, C):
     world = np.empty(pixel.shape)
@@ -26,47 +42,29 @@ def getDists(joints, joints_pred):
 def resize(data_dir, img_height, img_width):
     depth_people = [data_dir + d for d in os.listdir(data_dir) if d.find('depth') != -1]
     for f in depth_people:
-        print 'Loading', f
+        logger.debug('Loading %d', f)
         images = np.load(f)
         images_new = np.zeros((len(images), img_height, img_width))
         for i in range(len(images)):
             if i % 100 == 0:
-                print 'Processed', i, '/', len(images)
+                logger.debug('Processed %d/%d', i, len(images))
             images_new[i] = cv2.resize(images[i], (img_height, img_width))
         np.save(f, images_new)
 
-def load_data(data_root, view, small_data=None, offset=0, overwrite=False):
+def load_data(data_root, view, small_data=None):
     X_train, y_train, X_val, y_val = None, None, None, None
 
-    print data_root+'depth_'+view+'_train_small.npy'
     if (small_data is not None) and (not overwrite) and \
         os.path.exists(data_root+'depth_'+view+'_train_small.npy'):
         X_train = np.load(data_root+'depth_'+view+'_train_small.npy')
         y_train = np.load(data_root+'joint_'+view+'_train_small.npy')
         X_val = np.load(data_root+'depth_'+view+'_val_small.npy')
         y_val = np.load(data_root+'joint_'+view+'_val_small.npy')
-    elif (not os.path.exists(data_root+'depth_'+view+'_train_small.npy')) or \
-        overwrite:
+    elif small_data is None:
         X_train = np.load(data_root+'depth_'+view+'_train.npy')
         y_train = np.load(data_root+'joint_'+view+'_train.npy')
         X_val = np.load(data_root+'depth_'+view+'_val.npy')
         y_val = np.load(data_root+'joint_'+view+'_val.npy')
-
-        if small_data is not None:
-            X_train = X_train[offset:(offset+small_data)] / 1000.0
-            # y_train = y_train[offset:offset+small_data, :, 2:] / 1000
-            y_train = y_train[offset:(offset+small_data), :, :2] # 2D (x, y)
-
-            # X_train = np.load(data_root + 'small_train_X.npy') / 1000
-            # y_train = np.load(data_root + 'small_train_y.npy')
-
-            X_val = X_val[offset:(offset+small_data/2)] / 1000.0
-            # y_val = y_val[offset:offset+small_data/2, :, 2:] / 1000
-            y_val = y_val[offset:(offset+small_data/2), :, :2]
-            np.save(data_root+'depth_'+view+'_train_small.npy', X_train)
-            np.save(data_root+'joint_'+view+'_train_small.npy', y_train)
-            np.save(data_root+'depth_'+view+'_val_small.npy', X_val)
-            np.save(data_root+'joint_'+view+'_val_small.npy', y_val)
 
     '''
     for i in range(X_train.shape[0]):
@@ -85,7 +83,8 @@ def load_data(data_root, view, small_data=None, offset=0, overwrite=False):
     if np.mean(X_train[X_train != 0]) > 100:
         X_train /= 1000.0
         X_val /= 1000.0
-    return X_train, y_train[:, :, :2], X_val, y_val[:, :, :2]
+    #return X_train, y_train[:, :, :2], X_val, y_val[:, :, :2]
+    return X_train[:23], y_train[:23, :, :2], X_val[:23], y_val[:23, :, :2]
 
 def visualizeImgJointsEps(imgs, joints=None, eps=None, name='img'):
     for i in range(imgs.shape[0]):
@@ -170,7 +169,7 @@ def add_hms(images, yt, num_joints, num_channel=1, H=240.0, W=320.0):
         out_n = np.vstack((image, hms))
         out.append(out_n)
     out = np.array(out)
-    print 'Heatmaps added for', N, 'images'
+    # logger.debug('Heatmaps added for %d images', N)
     return out
 
 def get_bounded_correction(y, yt, num_coords, L=None):
@@ -384,7 +383,7 @@ def save_data(data_root, out_dir, view, person_id_list, d_type):
     joint_view = []
     for i in person_id_list:
         index = str(i).zfill(2)
-        print 'Loading', data_root + index
+        logger.debug('Loading %s', data_root+index)
         depth = np.load(data_root + index + '_depth_' + view + '.npy')
         joint = np.load(data_root + index + '_joints_' + view + '.npy')
         depth_view.append(depth)
@@ -402,7 +401,7 @@ def main_0():
     train_list = [d + 4 for d in range(8)]
 
     for view in views:
-        print 'View', view
+        logger.debug('View %s', view)
         save_data(data_root, out_dir, view, val_list, 'val')
         save_data(data_root, out_dir, view, train_list, 'train')
 

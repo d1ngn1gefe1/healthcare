@@ -11,15 +11,6 @@ def main(**kwargs):
     view = 'side'
     num_joints = 15
     small_data = 60 # 100 batches
-    offset = 115
-
-    # y's are joints in 2D (x, y)
-    X_train, y_train, X_val, y_val = load_data(data_root, view, small_data, offset)
-
-    print 'Train X shape', X_train.shape
-    print 'Train y shape', y_train.shape
-    print 'Val X shape', X_val.shape
-    print 'Val y shape', y_val.shape
 
     # Titan X has 12 GB memory, TensorFlow requires user to specify a fraction
     max_gpu_memory = kwargs.get('gpu_mem')
@@ -28,6 +19,19 @@ def main(**kwargs):
     learning_rate = kwargs.get('lr')
     num_epochs = kwargs.get('n_epochs')
     num_steps = kwargs.get('n_steps')
+
+    # y's are joints in 2D (x, y)
+    X_train, y_train, X_val, y_val = load_data(data_root, view, None)
+    drop = (X_train.shape[0])%batch_size
+    X_train = X_train[:-drop]
+    y_train = y_train[:-drop]
+    X_val = X_val[:-drop]
+    y_val = y_val[:-drop]
+
+    logger.debug('Train X shape: %s', X_train.shape)
+    logger.debug('Train y shape: %s', y_train.shape)
+    logger.debug('Val X shape: %s', X_val.shape)
+    logger.debug('Val y shape: %s', y_val.shape)
 
     # Parameters
     input_img_size = 224
@@ -73,19 +77,19 @@ def main(**kwargs):
         num_batches_train = int(np.ceil(1.0 * n_train / batch_size))
         num_batches_val = int(np.ceil(1.0 * X_val.shape[0] / batch_size))
         for epoch in xrange(num_epochs):
-            print '\n----- step %d, epoch %d -----' % (t, epoch)
+            logger.debug('\n----- step %d, epoch %d -----', t, epoch)
             r_order = range(num_batches_train)
             np.random.shuffle(r_order)
-            print 'Batch order', r_order
+            #print 'Batch order', r_order
             for i, b in enumerate(r_order):
-                start_idx = b * batch_size
-                end_idx = min(X_train.shape[0], (b+1)*batch_size)
-                print 'Training using batch %d' % b
+                start_idx = b*batch_size
+                end_idx = (b+1)*batch_size
+                if end_idx > X_train.shape[0]:
+                    continue
+                #logger.debug('Training using batch %d', b)
                 x_batch, eps_batch = get_batch(X_train, y_train, yt_train, start_idx, end_idx, num_joints)
                 #x_batch_flat = x_batch.reshape(batch_size, input_img_size*input_img_size*num_channel)
-                eps_batch_flat = eps_batch.reshape(batch_size, n_outputs) #/ 20.0 # normalize labels to be -1 to 1
-                #print 'Max x:', np.amax(x_batch), 'Min x:', np.amin(x_batch)
-                #print 'Max correction:', np.amax(eps_batch), 'Min correction:', np.amin(eps_batch)
+                eps_batch_flat = eps_batch.reshape(batch_size, n_outputs)
                 feed = {x: x_batch, y: eps_batch_flat, dropout: dropout_prob}
                 sess.run(optimizer, feed_dict=feed)
                 if i == 0:
@@ -97,10 +101,11 @@ def main(**kwargs):
                     loc_err = error(y_train[start_idx:end_idx], current_estimate) # pixel error per joint
 
                     num_iteration = epoch * num_batches_train + r_order.index(b)
-                    print "[INFO:train] Iteration: " + str(num_iteration) + "\nLoss: " + \
-                          "{:.2f}".format(loss) + "\nError: " + "{:.2f}".format(loc_err) + \
-                          "\nLearning rate: " + "{:.7f}".format(learning_rate)
+                    logger.debug("\n[INFO:train] Iteration: %s\nLoss: %f\n" + \
+                        "Error: %f\nLearning rate: %f", \
+                        str(num_iteration), loss, loc_err, learning_rate)
 
+                    '''
                     dists = getDists(y_train[start_idx:end_idx], current_estimate)
                     logger.debug('5cm accuracy: %f', np.sum(dists[:, i] < 5)/ \
                         float(dists.shape[0]))
@@ -108,21 +113,21 @@ def main(**kwargs):
                         float(dists.shape[0]))
                     logger.debug('15cm accuracy: %f', np.sum(dists[:, i] < 15)/ \
                         float(dists.shape[0]))
+                    '''
 
-                    if epoch % 15 == 0:
+                    if epoch % 10 == 0:
                         visualizeImgJointsEps(x_batch[:,:,:,0], yt_train[start_idx:end_idx], eps_pred, str(t)+'_'+str(epoch))
 
             runValidationSet(sess, x, y, dropout, y_hat, cost, X_val, y_val, yt_val, \
                              batch_size, n_outputs, dropout_prob, start_time, num_joints, num_coords)
+
         train_eps_pred = run_prediction(sess, num_batches_train, batch_size, X_train, y_train, yt_train, \
                                         x, y, y_hat, dropout, dropout_prob, num_joints, num_coords)
         val_eps_pred = run_prediction(sess, num_batches_val, batch_size, X_val, y_val, yt_val, \
                                       x, y, y_hat, dropout, dropout_prob, num_joints, num_coords)
         yt_train += train_eps_pred
         yt_val += val_eps_pred
-
-        #np.save('small_data_pred_vgg.npy', yt_train)
-        #np.save('small_data_pred_vgg_val.npy', yt_val)
+        #print yt_train.shape, train_eps_pred.shape, yt_val.shape, val_eps_pred.shape
 
     saver = tf.train.Saver()
     if not os.path.isdir('models'):
@@ -138,8 +143,10 @@ def runValidationSet(sess, x, y, dropout, y_hat, cost, X_val, y_val, yt_val, \
     accumulator_err = 0.0
     accumulator_cost = 0.0
     for b in xrange(num_batches):
-        start_idx = b * batch_size
-        end_idx = min(X_val.shape[0], (b+1)*batch_size)
+        start_idx = b*batch_size
+        end_idx = (b+1)*batch_size
+        if end_idx > X_val.shape[0]:
+            continue
         x_batch, eps_batch = get_batch(X_val, y_val, yt_val, start_idx, end_idx, num_joints)
         # x_batch = x_batch.reshape(batch_size, 224*224*16)
         eps_batch = eps_batch.reshape(batch_size, n_outputs)
@@ -153,14 +160,17 @@ def runValidationSet(sess, x, y, dropout, y_hat, cost, X_val, y_val, yt_val, \
         accumulator_err += batch_weight*loc_err
         accumulator_cost += batch_weight*loss
     elapsed_time = 1.0 * (time.time() - start_time) / 60
-    print '[INFO:val] Loss: %f\t Error: %f\t Elapsed: %0.1f min' % (accumulator_cost, accumulator_err, elapsed_time)
+    logger.debug('\n[INFO:val] Loss: %f\nError: %f\nElapsed: %f min', \
+        accumulator_cost, accumulator_err, elapsed_time)
 
 def run_prediction(sess, num_batches, batch_size, X_all, y_all, yt, x, y, y_hat, \
                    dropout, dropout_prob, num_joints, num_coords):
     prediction = []
     for b in range(num_batches):
         start_idx = b * batch_size
-        end_idx = min(X_all.shape[0], (b+1)*batch_size)
+        end_idx = (b+1)*batch_size
+        if end_idx > X_all.shape[0]:
+            continue
         x_batch, eps_batch = get_batch(X_all, y_all, yt, start_idx, end_idx, num_joints)
         # x_batch = x_batch.reshape(batch_size, 224*224*16)
         eps_batch = eps_batch.reshape(batch_size, num_joints * num_coords)
@@ -175,10 +185,10 @@ def run_prediction(sess, num_batches, batch_size, X_all, y_all, yt, x, y, y_hat,
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--batch_size', nargs='?', default=10, type=int)
-    parser.add_argument('--n_steps', nargs='?', default=20, type=int)
-    parser.add_argument('--n_epochs', nargs='?', default=50, type=int)
+    parser.add_argument('--n_steps', nargs='?', default=5, type=int)
+    parser.add_argument('--n_epochs', nargs='?', default=5, type=int)
     parser.add_argument('--lr', nargs='?', default=5e-4, type=float)
     parser.add_argument('--gpu_mem', nargs='?', default=12287, type=int)
-    parser.add_argument('--gpu_frac', nargs='?', default=0.5, type=float)
+    parser.add_argument('--gpu_frac', nargs='?', default=0.7, type=float)
     args = parser.parse_args()
     main(**vars(args))
