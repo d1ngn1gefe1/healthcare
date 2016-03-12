@@ -4,6 +4,7 @@ from scipy.stats import multivariate_normal
 import os
 import logging
 import cv2
+import cProfile
 
 C = 3.50666662e-3
 
@@ -107,9 +108,9 @@ def load_data(data_root, view, small_data=None):
         X_train /= 1000.0
         X_val /= 1000.0
     '''
-    return X_train, y_train[:, :, :2], X_val, y_val[:, :, :2]
-    #rand = np.random.randint(0, X_train.shape[0], 23)
-    #return X_train[rand], y_train[rand, :, :2], X_val[500:523], y_val[500:523, :, :2]
+    #return X_train, y_train[:, :, :2], X_val, y_val[:, :, :2]
+    rand = np.random.randint(0, X_train.shape[0], 23)
+    return X_train[rand], y_train[rand, :, :2], X_val[500:523], y_val[500:523, :, :2]
 
 def visualizeImgJointsEps(imgs, joints=None, eps=None, name='img', write=False, show=False):
     for i in range(imgs.shape[0]):
@@ -186,33 +187,31 @@ def create_single_heatmap(H, W):
     return hm
 
 def joint_to_hm(joints, num_joints, hm, img_height=224, img_width=224):
-    heat_maps = np.zeros((num_joints, img_height, img_width))
+    N = joints.shape[0]
+    heat_maps = np.zeros((N, img_height, img_width, num_joints))
 
-    for i in range(num_joints):
-        dim1_start = img_height - joints[i][1]
-        dim1_end = dim1_start + img_height
-        dim2_start = img_width - joints[i][0]
-        dim2_end = dim2_start + img_width
+    for i in range(N):
+        for j in range(num_joints):
+            dim1_start = img_height - joints[i, j, 1]
+            dim1_end = dim1_start + img_height
+            dim2_start = img_width - joints[i, j, 0]
+            dim2_end = dim2_start + img_width
 
-        heat_map = hm[dim1_start:dim1_end, dim2_start:dim2_end]
-        if heat_map.shape == heat_maps[i].shape:
-            heat_maps[i] = heat_map
+            heat_map = hm[dim1_start:dim1_end, dim2_start:dim2_end]
+            if heat_map.shape == heat_maps[i, :, :, j].shape:
+                heat_maps[i, :, :, j] = heat_map
 
     return heat_maps
 
 def add_hms(images, yt, num_joints, hm, num_channel=1, H=240.0, W=320.0):
-    out = []
-    N, img_height, img_width = images.shape
+    # x_batch = add_hms(x_batch, yt, num_joints, hm) # e.g. 60 x 16 x 224 x 224
+    # x_batch = np.swapaxes(np.swapaxes(x_batch, 1, 2), 2, 3) # e.g. 60 x 224 x 224 x 16
 
-    for n in range(N):
-        # if n % 10 == 0:
-        #     print 'Add hms for ', n, 'th image'
-        image = images[n].reshape(num_channel, img_height, img_width)
-        hms = joint_to_hm(yt[n, :, :2], num_joints, hm)
-        out_n = np.vstack((image, hms))
-        out.append(out_n)
-    out = np.array(out)
-    # logger.debug('Heatmaps added for %d images', N)
+    N, img_height, img_width = images.shape
+    out = np.empty((N, img_height, img_width, num_channel+num_joints))
+    out[:, :, :, 0] = images
+    out[:, :, :, 1:] = joint_to_hm(yt[:, :, :2], num_joints, hm)
+
     return out
 
 def get_bounded_correction(y, yt, num_coords, L=None):
@@ -220,20 +219,19 @@ def get_bounded_correction(y, yt, num_coords, L=None):
     u_norm = np.sqrt(np.sum(u**2, axis=2)).reshape(u.shape[0], u.shape[1], 1)
     mask = np.array(u_norm == 0, dtype=int)
     u_norm += mask
-    unit = u / u_norm
+    unit = u/u_norm
     correction = np.zeros(unit.shape)
     if L is not None:
         u_norm = np.minimum(L, u_norm)
-    for i in range(num_coords):
-        correction[:,:,i] = unit[:,:,i] * u_norm.reshape(unit.shape[:2])
+    correction = unit*u_norm
+
     return correction
 
 def get_batch(X, y, yt, start_idx, end_idx, num_joints, hm):
     x_batch = X[start_idx:end_idx]
     y_batch = y[start_idx:end_idx]
     yt_batch = yt[start_idx:end_idx]
-    x_batch = add_hms(x_batch, yt, num_joints, hm) # e.g. 60 x 16 x 224 x 224
-    x_batch = np.swapaxes(np.swapaxes(x_batch, 1, 2), 2, 3) # e.g. 60 x 224 x 224 x 16
+    x_batch = add_hms(x_batch, yt_batch, num_joints, hm)
     # y_batch = world2pixel(y_batch)[:,:,:2] # use 2D pixel joints
     # yt_batch = world2pixel(yt_batch)[:,:,:2]
     eps_batch = get_bounded_correction(y_batch, yt_batch, num_coords=2, L=20)
@@ -241,7 +239,7 @@ def get_batch(X, y, yt, start_idx, end_idx, num_joints, hm):
     #    visualizeImgHmsEps(np.copy(x_batch[i]), yt_batch[i], eps_batch[i])
     return x_batch, eps_batch
 
-def alexNet(x, y, dropout_prob, n_outputs, input_img_size):
+def alexNet(x, y, keep_prob, n_outputs, input_img_size):
     # Network Parameters
     W = {}
     b = {}
@@ -286,12 +284,12 @@ def alexNet(x, y, dropout_prob, n_outputs, input_img_size):
     b['d1'] = tf.Variable(tf.constant(0.1, shape=[4096]))
     dense1 = tf.reshape(conv5, [-1, W['d1'].get_shape().as_list()[0]])
     dense1 = tf.nn.relu(tf.add(tf.matmul(dense1, W['d1']), b['d1']))
-    dense1 = tf.nn.dropout(dense1, dropout_prob)
+    dense1 = tf.nn.dropout(dense1, keep_prob)
 
     W['d2'] = tf.Variable(tf.truncated_normal([4096, 4096], stddev=0.1))
     b['d2'] = tf.Variable(tf.constant(0.1, shape=[4096]))
     dense2 = tf.nn.relu(tf.add(tf.matmul(dense1, W['d2']), b['d2']))
-    dense2 = tf.nn.dropout(dense2, dropout_prob)
+    dense2 = tf.nn.dropout(dense2, keep_prob)
 
     W['out'] = tf.Variable(tf.truncated_normal([4096, n_outputs], stddev=0.1))
     b['out'] = tf.Variable(tf.constant(0.1, shape=[n_outputs]))
@@ -300,7 +298,7 @@ def alexNet(x, y, dropout_prob, n_outputs, input_img_size):
 
     return y_hat
 
-def vgg19(x, y, dropout_prob, n_outputs, input_img_size, num_channel):
+def vgg19(x, y, keep_prob, n_outputs, input_img_size, num_channel):
     W = {}
     b = {}
     layer = {}
@@ -407,12 +405,12 @@ def vgg19(x, y, dropout_prob, n_outputs, input_img_size, num_channel):
     b['d1'] = tf.Variable(tf.constant(WEIGHT_STD, shape=[4096]))
     layer['d1'] = tf.reshape(layer['c5_4'], [-1, W['d1'].get_shape().as_list()[0]])
     layer['d1'] = tf.nn.relu(tf.nn.bias_add(tf.matmul(layer['d1'], W['d1']), b['d1']))
-    layer['d1'] = tf.nn.dropout(layer['d1'], dropout_prob)
+    layer['d1'] = tf.nn.dropout(layer['d1'], keep_prob)
 
     W['d2'] = tf.Variable(tf.truncated_normal([4096, 4096], stddev=WEIGHT_STD))
     b['d2'] = tf.Variable(tf.constant(WEIGHT_STD, shape=[4096]))
     layer['d2'] = tf.nn.relu(tf.nn.bias_add(tf.matmul(layer['d1'], W['d2']), b['d2']))
-    layer['d2'] = tf.nn.dropout(layer['d2'], dropout_prob)
+    layer['d2'] = tf.nn.dropout(layer['d2'], keep_prob)
 
     W['out'] = tf.Variable(tf.truncated_normal([4096, n_outputs], stddev=WEIGHT_STD))
     b['out'] = tf.Variable(tf.constant(WEIGHT_STD, shape=[n_outputs]))

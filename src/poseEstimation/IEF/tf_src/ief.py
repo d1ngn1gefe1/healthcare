@@ -1,13 +1,9 @@
 import argparse
 import time
-import numpy as np
-import cv2
 import math
 from util import *
 
 def main(**kwargs):
-    #data_root = '../tf_data/'
-    data_root = kwargs.get('indir')
     view = 'side'
     num_joints = 15
     small_data = 60 # 100 batches
@@ -20,6 +16,7 @@ def main(**kwargs):
     num_epochs = kwargs.get('n_epochs')
     num_steps = kwargs.get('n_steps')
     load_model = kwargs.get('load_model')
+    data_root = kwargs.get('indir')
 
     # y's are joints in 2D (x, y)
     X_train, y_train, X_val, y_val = load_data(data_root, view, None)
@@ -28,13 +25,13 @@ def main(**kwargs):
     # return
 
     drop = (X_train.shape[0]) % batch_size
-    print 'drop for train: %d' % drop
+    logger.debug('drop for train: %d', drop)
     if drop != 0:
         X_train = X_train[:-drop]
         y_train = y_train[:-drop]
 
     drop = (X_val.shape[0]) % batch_size
-    print 'drop for val: %d' % drop
+    logger.debug('drop for val: %d', drop)
     if drop != 0:
         X_val = X_val[:-drop]
         y_val = y_val[:-drop]
@@ -46,9 +43,9 @@ def main(**kwargs):
 
     # Parameters
     input_img_size = 224
-    dropout_prob = 0.3
+    keep = 0.3
     num_coords = 2
-    n_outputs = num_joints * num_coords # How many regression values to output
+    n_outputs = num_joints*num_coords # How many regression values to output
     n_train, n_val = len(X_train), len(X_val)
     num_channel = num_joints + 1
 
@@ -57,8 +54,8 @@ def main(**kwargs):
     # vgg
     x = tf.placeholder('float', [None, input_img_size, input_img_size, num_channel])
     y = tf.placeholder('float', [None, n_outputs])
-    dropout = tf.placeholder('float')
-    y_hat = vgg19(x, y, dropout_prob, n_outputs, input_img_size, num_channel)
+    keep_prob = tf.placeholder('float')
+    y_hat = vgg19(x, y, keep, n_outputs, input_img_size, num_channel)
 
     # linear regression
     # x = tf.placeholder('float', [None, input_img_size*input_img_size*num_channel])
@@ -107,10 +104,11 @@ def main(**kwargs):
                 x_batch, eps_batch = get_batch(X_train, y_train, \
                     yt_train, start_idx, end_idx, num_joints, hm)
                 eps_batch_flat = eps_batch.reshape(batch_size, n_outputs)
-                print 'mean eps_batch: %f' % np.mean(np.abs(eps_batch_flat))
-                # feed = {x: x_batch, y: eps_batch_flat, dropout: 1.0}
-                feed = {x: x_batch, y: eps_batch_flat}
+                logger.debug('mean eps_batch: %f', np.mean(np.abs(eps_batch_flat)))
+                print x_batch.shape, eps_batch_flat.shape
+                feed = {x: x_batch, y: eps_batch_flat, keep_prob: keep}
                 sess.run(optimizer, feed_dict=feed)
+                print 'good\n\n'
 
                 if i == 0:
                     if epoch % 5 == 0:
@@ -118,15 +116,14 @@ def main(**kwargs):
                         saver.save(sess, 'models/ief.ckpt')
 
                     eps_pred_flat = sess.run(y_hat, feed_dict=feed) # Get eps prediction
-                    print 'mean eps_pred: %f' % np.mean(np.abs(eps_pred_flat))
+                    logger.debug('mean eps_pred: %f', np.mean(np.abs(eps_pred_flat)))
                     eps_pred = eps_pred_flat.reshape(batch_size, num_joints, num_coords)
                     loss = sess.run(cost, feed_dict=feed)  # Get loss
                     current_estimate = yt_train[start_idx:end_idx] + eps_pred # Get error
                     loc_err = error(y_train[start_idx:end_idx], current_estimate) # pixel error per joint
                     num_iteration = epoch*num_batches_train+r_order.index(b)
-                    logger.debug('\n[INFO:train] Iteration: %s\nLoss: %f\n' + \
-                        'Error: %f\nLearning rate: %f', \
-                        str(num_iteration), loss, loc_err, learning_rate)
+                    logger.debug('[INFO:train] Iteration: %s\nLoss: %f\n' + \
+                        'Error: %f', str(num_iteration), loss, loc_err)
 
                     dists = get_distances(X_train[start_idx:end_idx], y_train[start_idx:end_idx], current_estimate)*100
                     logger.debug('average distance: %f cm', np.mean(dists))
@@ -141,24 +138,27 @@ def main(**kwargs):
                             yt_train[start_idx:end_idx], eps_pred, \
                             name=str(t)+'_'+str(epoch))
 
-            run_validation(sess, x, y, dropout, y_hat, cost, X_val, y_val, yt_val, \
-                             batch_size, n_outputs, dropout_prob, start_time, num_joints, num_coords, hm)
+            run_validation(sess, x, y, y_hat, cost, X_val, y_val, yt_val, \
+                           batch_size, n_outputs, num_joints, num_coords, \
+                           hm, keep_prob)
 
-        train_eps_pred = run_prediction(sess, num_batches_train, batch_size, X_train, y_train, yt_train, \
-                                        x, y, y_hat, dropout, dropout_prob, num_joints, num_coords, hm)
-        val_eps_pred = run_prediction(sess, num_batches_val, batch_size, X_val, y_val, yt_val, \
-                                      x, y, y_hat, dropout, dropout_prob, num_joints, num_coords, hm)
+        train_eps_pred = run_prediction(sess, num_batches_train, batch_size, \
+                                        X_train, y_train, yt_train, x, y, \
+                                        y_hat, num_joints, num_coords, hm, \
+                                        keep_prob)
+        val_eps_pred = run_prediction(sess, num_batches_val, batch_size, \
+                                      X_val, y_val, yt_val, x, y, y_hat, \
+                                      num_joints, num_coords, hm, keep_prob)
         yt_train += train_eps_pred
         yt_val += val_eps_pred
-        print 'mean train_eps_pred: %f' % np.mean(np.abs(train_eps_pred))
-        print 'mean val_eps_pred: %f' % np.mean(np.abs(val_eps_pred))
-        #print yt_train.shape, train_eps_pred.shape, yt_val.shape, val_eps_pred.shape
+        logger.debug('mean train_eps_pred: %f', np.mean(np.abs(train_eps_pred)))
+        logger.debug('mean val_eps_pred: %f', np.mean(np.abs(val_eps_pred)))
 
 def error(estimate, ground_truth):
     return np.mean(np.sqrt(np.sum((estimate-ground_truth)**2, 2)))
 
-def run_validation(sess, x, y, dropout, y_hat, cost, X_val, y_val, yt_val, \
-                     batch_size, n_outputs, keep_prob, start_time, num_joints, num_coords, hm):
+def run_validation(sess, x, y, y_hat, cost, X_val, y_val, yt_val, \
+                   batch_size, n_outputs, num_joints, num_coords, hm, keep_prob):
     num_batches = int(math.ceil(1.0*X_val.shape[0]/batch_size))
     accumulator_err = 0.0
     accumulator_cost = 0.0
@@ -168,8 +168,7 @@ def run_validation(sess, x, y, dropout, y_hat, cost, X_val, y_val, yt_val, \
         x_batch, eps_batch = get_batch(X_val, y_val, yt_val, start_idx, end_idx, num_joints, hm)
         # x_batch = x_batch.reshape(batch_size, 224*224*16)
         eps_batch = eps_batch.reshape(batch_size, n_outputs)
-        # feed = {x: x_batch, y: eps_batch, dropout: 1.0}
-        feed = {x: x_batch, y: eps_batch}
+        feed = {x: x_batch, y: eps_batch, keep_prob: 1.0}
         eps_pred = sess.run(y_hat, feed_dict=feed) # Get eps prediction
         eps_pred = eps_pred.reshape(batch_size, num_joints, num_coords)
         loss = sess.run(cost, feed_dict=feed)
@@ -178,12 +177,11 @@ def run_validation(sess, x, y, dropout, y_hat, cost, X_val, y_val, yt_val, \
         batch_weight = 1.0*(end_idx - start_idx) / X_val.shape[0]
         accumulator_err += batch_weight*loc_err
         accumulator_cost += batch_weight*loss
-    elapsed_time = 1.0 * (time.time() - start_time) / 60
-    logger.debug('\n[INFO:val] Loss: %f\nError: %f\nElapsed: %f min', \
-        accumulator_cost, accumulator_err, elapsed_time)
+    logger.debug('[INFO:val] Loss: %f\nError: %f', accumulator_cost, \
+                 accumulator_err)
 
-def run_prediction(sess, num_batches, batch_size, X_all, y_all, yt, x, y, y_hat, \
-                   dropout, dropout_prob, num_joints, num_coords, hm, L=20):
+def run_prediction(sess, num_batches, batch_size, X_all, y_all, yt, x, y, \
+                   y_hat, num_joints, num_coords, hm, keep_prob, L=20):
     prediction = []
     for b in range(num_batches):
         start_idx = b * batch_size
@@ -191,8 +189,7 @@ def run_prediction(sess, num_batches, batch_size, X_all, y_all, yt, x, y, y_hat,
         x_batch, eps_batch = get_batch(X_all, y_all, yt, start_idx, end_idx, num_joints, hm)
         # x_batch = x_batch.reshape(batch_size, 224*224*16)
         eps_batch = eps_batch.reshape(batch_size, num_joints*num_coords)
-        # feed = {x: x_batch, y: eps_batch, dropout: 1.0}
-        feed = {x: x_batch, y: eps_batch}
+        feed = {x: x_batch, y: eps_batch, keep_prob: 1.0}
         feedback = sess.run(y_hat, feed_dict=feed)
         feedback = np.reshape(feedback, (batch_size, num_joints, num_coords))
         prediction.append(feedback)
@@ -209,6 +206,6 @@ if __name__ == '__main__':
     parser.add_argument('--gpu_mem', nargs='?', default=12287, type=int)
     parser.add_argument('--gpu_frac', nargs='?', default=0.5, type=float)
     parser.add_argument('--load_model', action='store_true')
-    parser.add_argument('--indir')
+    parser.add_argument('--indir', nargs='?', default='../tf_data/')
     args = parser.parse_args()
     main(**vars(args))
