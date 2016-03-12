@@ -107,9 +107,9 @@ def load_data(data_root, view, small_data=None):
         X_train /= 1000.0
         X_val /= 1000.0
     '''
-    #return X_train, y_train[:, :, :2], X_val, y_val[:, :, :2]
-    rand = np.random.randint(0, X_train.shape[0], 23)
-    return X_train[rand], y_train[rand, :, :2], X_val[500:523], y_val[500:523, :, :2]
+    return X_train, y_train[:, :, :2], X_val, y_val[:, :, :2]
+    #rand = np.random.randint(0, X_train.shape[0], 23)
+    #return X_train[rand], y_train[rand, :, :2], X_val[500:523], y_val[500:523, :, :2]
 
 def visualizeImgJointsEps(imgs, joints=None, eps=None, name='img', write=False, show=False):
     for i in range(imgs.shape[0]):

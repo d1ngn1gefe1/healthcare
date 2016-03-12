@@ -6,7 +6,8 @@ import math
 from util import *
 
 def main(**kwargs):
-    data_root = '../tf_data/'
+    #data_root = '../tf_data/'
+    data_root = kwargs.get('indir')
     view = 'side'
     num_joints = 15
     small_data = 60 # 100 batches
@@ -26,7 +27,7 @@ def main(**kwargs):
     # print y_train[0]
     # return
 
-    drop = (X_train.shape[0])%batch_size
+    drop = (X_train.shape[0]) % batch_size
     print 'drop: %d' % drop
     if drop != 0:
         X_train = X_train[:-drop]
@@ -66,19 +67,13 @@ def main(**kwargs):
     cost = tf.reduce_mean(tf.pow(y - y_hat, 2))
     optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
 
-    saver = tf.train.Saver()
+    saver = tf.train.Saver(tf.all_variables())
 
     gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=gpu_memory_frac)
     sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
 
     if load_model:
-        ckpt = tf.train.get_checkpoint_state('models/ief_vgg')
-        if ckpt and ckpt.model_checkpoint_path:
-            saver.restore(sess, ckpt.model_checkpoint_path)
-            print 'model restored'
-        else:
-            print 'model restoring failed'
-            return
+        saver.restore(sess, 'models/ief.ckpt')
     else:
         sess.run(tf.initialize_all_variables())
 
@@ -92,6 +87,9 @@ def main(**kwargs):
     #visualizeImg(X_train, yt_train)
     #visualizeImg(X_val, yt_val)
 
+    if not os.path.isdir('models'):
+        os.makedirs('models')
+
     for t in xrange(num_steps):
         num_batches_train = int(np.ceil(1.0*n_train/batch_size))
         num_batches_val = int(np.ceil(1.0*n_val/batch_size))
@@ -99,7 +97,6 @@ def main(**kwargs):
             logger.debug('\n\n----- step %d, epoch %d -----', t, epoch)
             r_order = range(num_batches_train)
             np.random.shuffle(r_order)
-
             for i, b in enumerate(r_order):
                 start_idx = b*batch_size
                 end_idx = min(n_train, (b+1)*batch_size)
@@ -110,7 +107,12 @@ def main(**kwargs):
                 # feed = {x: x_batch, y: eps_batch_flat, dropout: 1.0}
                 feed = {x: x_batch, y: eps_batch_flat}
                 sess.run(optimizer, feed_dict=feed)
+
                 if i == 0:
+                    #if epoch % 5 == 0:
+                    num_iteration = epoch*num_batches_train+r_order.index(b)
+                    saver.save(sess, 'models/ief.ckpt')
+
                     eps_pred_flat = sess.run(y_hat, feed_dict=feed) # Get eps prediction
                     print 'mean eps_pred: %f' % np.mean(np.abs(eps_pred_flat))
                     eps_pred = eps_pred_flat.reshape(batch_size, num_joints, num_coords)
@@ -147,10 +149,6 @@ def main(**kwargs):
         print 'mean train_eps_pred: %f' % np.mean(np.abs(train_eps_pred))
         print 'mean val_eps_pred: %f' % np.mean(np.abs(val_eps_pred))
         #print yt_train.shape, train_eps_pred.shape, yt_val.shape, val_eps_pred.shape
-
-    if not os.path.isdir('models'):
-        os.makedirs('models')
-    saver.save(sess, 'models/ief_vgg')
 
 def error(estimate, ground_truth):
     return np.mean(np.sqrt(np.sum((estimate-ground_truth)**2, 2)))
@@ -207,5 +205,6 @@ if __name__ == '__main__':
     parser.add_argument('--gpu_mem', nargs='?', default=12287, type=int)
     parser.add_argument('--gpu_frac', nargs='?', default=0.5, type=float)
     parser.add_argument('--load_model', action='store_true')
+    parser.add_argument('--indir')
     args = parser.parse_args()
     main(**vars(args))
