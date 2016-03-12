@@ -7,6 +7,7 @@ import cv2
 
 C = 3.50666662e-3
 
+np.set_printoptions(threshold=np.nan)
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
@@ -22,20 +23,38 @@ ch.setLevel(logging.DEBUG)
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
-def pixel2world(pixel, C):
+def pixel2world(pixel, C, H, W):
     world = np.empty(pixel.shape)
     world[:, 2] = pixel[:, 2]
     world[:, 0] = (pixel[:, 0]-W/2.0)*C*pixel[:, 2]
     world[:, 1] = -(pixel[:, 1]-H/2.0)*C*pixel[:, 2]
     return world
 
-def getDists(joints, joints_pred):
+def get_distances(imgs, joints, joints_pred):
     assert joints.shape == joints_pred.shape
     dists = np.zeros((joints.shape[:2]))
+    largeNum = np.mean(imgs[imgs != 0].astype(np.float64))
+    assert largeNum > 1 and largeNum < 4
+    H = 224
+    W = 224
 
     for i in range(joints.shape[0]):
-        p1 = pixel2world(joints[i], C)
-        p2 = pixel2world(joints_pred[i], C)
+        coor = joints[i].copy().astype(int)
+        coor_pred = joints_pred[i].copy().astype(int)
+        coor[:, 0] = np.clip(coor[:, 0], 0, W-1)
+        coor[:, 1] = np.clip(coor[:, 1], 0, H-1)
+        coor_pred[:, 0] = np.clip(coor_pred[:, 0], 0, W-1)
+        coor_pred[:, 1] = np.clip(coor_pred[:, 1], 0, H-1)
+
+        z = imgs[i][tuple(np.fliplr(coor).T)]
+        z_pred = imgs[i][tuple(np.fliplr(coor_pred).T)]
+        z[z == 0] = largeNum
+        z_pred[z_pred == 0] = largeNum
+
+        p1 = pixel2world(np.hstack((joints[i], z[:, np.newaxis])), C, H, W)
+        p2 = pixel2world(np.hstack((joints_pred[i], z_pred[:, np.newaxis])), \
+                         C, H, W)
+
         dists[i] = np.sqrt(np.sum((p1-p2)**2, axis=1))
     return dists
 
@@ -66,9 +85,10 @@ def load_data(data_root, view, small_data=None):
         X_val = np.load(data_root+'depth_'+view+'_val.npy')
         y_val = np.load(data_root+'joint_'+view+'_val.npy')
 
+    print X_train.shape, y_train.shape, X_val.shape, y_val.shape
     '''
     for i in range(X_train.shape[0]):
-        cv2.normalize(X_train[i], X_train[i], 0, 255, cv2.NORM_MINMAX)
+        #cv2.normalize(X_train[i], X_train[i], 0, 255, cv2.NORM_MINMAX)
         img = cv2.equalizeHist(X_train[i].astype(np.uint8))
         img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
         for j in range(y_train.shape[1]):
@@ -80,23 +100,30 @@ def load_data(data_root, view, small_data=None):
     # col = [1, 2, 0]
     # y_train = y_train[:, :, col]
     # y_val = y_val[:, :, col]
+    #print np.mean(X_train), np.mean(X_train[X_train != 0])
+    '''
     if np.mean(X_train[X_train != 0]) > 100:
+        print 'ops'
         X_train /= 1000.0
         X_val /= 1000.0
+    '''
     #return X_train, y_train[:, :, :2], X_val, y_val[:, :, :2]
-    return X_train[:23], y_train[:23, :, :2], X_val[:23], y_val[:23, :, :2]
+    rand = np.random.randint(0, X_train.shape[0], 23)
+    return X_train[rand], y_train[rand, :, :2], X_val[500:523], y_val[500:523, :, :2]
 
-def visualizeImgJointsEps(imgs, joints=None, eps=None, name='img'):
+def visualizeImgJointsEps(imgs, joints=None, eps=None, name='img', write=False, show=False):
     for i in range(imgs.shape[0]):
-        cv2.normalize(imgs[i], imgs[i], 0, 255, cv2.NORM_MINMAX)
+        #cv2.normalize(imgs[i], imgs[i], 0, 255, cv2.NORM_MINMAX)
+        imgs[i] = (imgs[i]-np.amin(imgs[i]))*255.0/(np.amax(imgs[i])-np.amin(imgs[i]))
         img = cv2.equalizeHist(imgs[i].astype(np.uint8))
         img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
         img_corrected = img.copy()
 
         if joints is not None:
             for j in range(joints.shape[1]):
-                cv2.circle(img, tuple(joints[i, j].astype(np.uint16)), \
+                cv2.circle(img, tuple(joints[i, j, :2].astype(np.uint16)), \
                     2, (255, 0, 0), -1)
+
         if (joints is not None) and (eps is not None):
             for j in range(joints.shape[1]):
                 joints_corrected = joints[i, j] + eps[i, j]
@@ -104,13 +131,15 @@ def visualizeImgJointsEps(imgs, joints=None, eps=None, name='img'):
                     tuple(joints_corrected.astype(np.uint16)), \
                     2, (255, 0, 0), -1)
 
-        if not os.path.isdir('out'):
-            os.makedirs('out')
-        cv2.imwrite('out/'+name+'_'+str(i)+'.jpg', img_corrected)
-        #cv2.imshow(name, img)
-        #cv2.imshow(name+'_corrected', img_corrected)
-        #cv2.waitKey(0)
-    #cv2.destroyAllWindows()
+        if write:
+            if not os.path.isdir('out'):
+                os.makedirs('out')
+            cv2.imwrite('out/'+name+'_'+str(i)+'.jpg', img_corrected)
+        if show:
+            cv2.imshow(name, img)
+            cv2.imshow(name+'_corrected', img_corrected)
+            cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 def visualizeImgHmsEps(x, yt, eps, name='img'):
     # 224 x 224 x 16
@@ -137,35 +166,49 @@ def world2pixel(coordW, W=320, H=240, C=3.51e-3):
     coordP[:,:,2] = coordW[:,:,2]
     return coordP
 
-def joint_to_hm(joints, num_joints, img_height=224, img_width=224):
-    cov = [[15, 0], [0, 15]]
-    hm_shape = np.ones((img_height, img_width))
-    pair = np.nonzero(hm_shape)
-    hm_index = np.array(zip(pair[0],pair[1])).reshape(img_height, img_width, 2)
-    heat_maps = []
+def create_single_heatmap(H, W):
+    '''
+    Creates a single heatmap
+
+    :param cov: matrix as a python list
+    :param mean: location of heatmap center as length 2 python list
+    :returns hm: (cnn_input_dim1*2, cnn_input_dim2*2) grayscale heatmap
+    '''
+    cov = [[50, 0], [0, 50]]
+    mean = [H, W]
+    big_dim1, big_dim2 = H*2, W*2
+    pair = np.nonzero(np.ones((big_dim1, big_dim2)))
+    hm_index = np.array(zip(pair[0],pair[1])).reshape(big_dim1, big_dim2, 2)
+    hm = multivariate_normal.pdf(hm_index, mean, cov)
+    scale = np.amax(hm) - np.amin(hm)
+    hm /= scale
+
+    return hm
+
+def joint_to_hm(joints, num_joints, hm, img_height=224, img_width=224):
+    heat_maps = np.zeros((num_joints, img_height, img_width))
+
     for i in range(num_joints):
-        mean = [joints[i][1], joints[i][0]]
-        hm = multivariate_normal.pdf(hm_index, mean, cov)
-        scale = np.amax(hm) - np.amin(hm)
-        hm /= scale
-        heat_maps.append(hm)
-    heat_maps = np.array(heat_maps)
+        dim1_start = img_height - joints[i][1]
+        dim1_end = dim1_start + img_height
+        dim2_start = img_width - joints[i][0]
+        dim2_end = dim2_start + img_width
+
+        heat_map = hm[dim1_start:dim1_end, dim2_start:dim2_end]
+        if heat_map.shape == heat_maps[i].shape:
+            heat_maps[i] = heat_map
+
     return heat_maps
 
-def add_hms(images, yt, num_joints, num_channel=1, H=240.0, W=320.0):
+def add_hms(images, yt, num_joints, hm, num_channel=1, H=240.0, W=320.0):
     out = []
     N, img_height, img_width = images.shape
-    # joints = world2pixel(yt) # joint in 240 x 320 pixel space
-    joints_new = np.zeros(yt.shape)
-    joints_new[:,:,0] = yt[:,:,0]
-    joints_new[:,:,1] = yt[:,:,1]
-    # joints_new[:,:,2] = joints[:,:,2]
-    # np.save('/mnt0/emma/IEF/tf_src/test_data/pixel_joint.npy', joints_new)
+
     for n in range(N):
         # if n % 10 == 0:
         #     print 'Add hms for ', n, 'th image'
         image = images[n].reshape(num_channel, img_height, img_width)
-        hms = joint_to_hm(joints_new[n,:,:2], num_joints)
+        hms = joint_to_hm(yt[n, :, :2], num_joints, hm)
         out_n = np.vstack((image, hms))
         out.append(out_n)
     out = np.array(out)
@@ -185,15 +228,15 @@ def get_bounded_correction(y, yt, num_coords, L=None):
         correction[:,:,i] = unit[:,:,i] * u_norm.reshape(unit.shape[:2])
     return correction
 
-def get_batch(X, y, yt, start_idx, end_idx, num_joints):
+def get_batch(X, y, yt, start_idx, end_idx, num_joints, hm):
     x_batch = X[start_idx:end_idx]
     y_batch = y[start_idx:end_idx]
     yt_batch = yt[start_idx:end_idx]
-    x_batch = add_hms(x_batch, yt, num_joints) # e.g. 60 x 16 x 224 x 224
+    x_batch = add_hms(x_batch, yt, num_joints, hm) # e.g. 60 x 16 x 224 x 224
     x_batch = np.swapaxes(np.swapaxes(x_batch, 1, 2), 2, 3) # e.g. 60 x 224 x 224 x 16
     # y_batch = world2pixel(y_batch)[:,:,:2] # use 2D pixel joints
     # yt_batch = world2pixel(yt_batch)[:,:,:2]
-    eps_batch = get_bounded_correction(y_batch, yt_batch, num_coords=2, L=10)
+    eps_batch = get_bounded_correction(y_batch, yt_batch, num_coords=2, L=20)
     #for i in range(x_batch.shape[0]):
     #    visualizeImgHmsEps(np.copy(x_batch[i]), yt_batch[i], eps_batch[i])
     return x_batch, eps_batch
@@ -411,6 +454,8 @@ def main():
     data_root = '/mnt0/data/ITOP/out/'
     out_dir = '../tf_data/'
     nJoints = 15
+    scale = False
+    tl = (48, 16) # x, y
 
     I_train, I_val = np.empty((0, 224, 224), np.float16), \
         np.empty((0, 224, 224), np.float16)
@@ -429,14 +474,22 @@ def main():
         labels[labels < 0] = 0
         depth *= labels
         depth /= 1000.0
+        joints = joints[:, :, :3]
         joints[:, :, 2] /= 1000.0
 
         depth_resize = np.empty((depth.shape[0], 224, 224))
-        for i, img in enumerate(depth):
-            depth_resize[i] = cv2.resize(img, (224, 224))
-        joints[:, :, 0] *= 224.0/320
-        joints[:, :, 1] *= 224.0/240
-        joints = joints[:, :, :3]
+        if scale:
+            joints[:, :, 0] *= 224.0/320
+            joints[:, :, 1] *= 224.0/240
+            for j, img in enumerate(depth):
+                depth_resize[j] = cv2.resize(img, (224, 224))
+        else:
+            joints[:, :, 0] -= tl[0]
+            joints[:, :, 1] -= tl[1]
+            for j, img in enumerate(depth):
+                depth_resize[j] = img[tl[1]:(tl[1]+224), tl[0]:(tl[0]+224)]
+
+        #visualizeImgJointsEps(depth_resize.copy(), joints.copy())
 
         if isTest == 0:
             I_train = np.append(I_train, depth_resize, axis=0).astype('float16')
@@ -447,22 +500,11 @@ def main():
 
     if not os.path.isdir(out_dir):
         os.makedirs(out_dir)
+
     np.save(out_dir + 'depth_' + view + '_train.npy', I_train)
     np.save(out_dir + 'joint_' + view + '_train.npy', joints_train)
     np.save(out_dir + 'depth_' + view + '_val.npy', I_val)
     np.save(out_dir + 'joint_' + view + '_val.npy', joints_val)
-
-
-def main_1():
-    data_root = '/mnt0/emma/IEF/tf_data/'
-    image_path = data_root + 'small_train_X.npy'
-    joint_path = data_root + 'small_train_y.npy'
-
-    images = np.load(image_path)
-    joints = np.load(joint_path)
-    img_hms = add_hms(images, joints, num_joints=15)
-
-    np.save('/mnt0/emma/IEF/tf_src/test_data/img_hms.npy', img_hms)
 
 if __name__ == "__main__":
     main()
