@@ -28,10 +28,14 @@ def main(**kwargs):
     # return
 
     drop = (X_train.shape[0]) % batch_size
-    print 'drop: %d' % drop
+    print 'drop for train: %d' % drop
     if drop != 0:
         X_train = X_train[:-drop]
         y_train = y_train[:-drop]
+
+    drop = (X_val.shape[0]) % batch_size
+    print 'drop for val: %d' % drop
+    if drop != 0:
         X_val = X_val[:-drop]
         y_val = y_val[:-drop]
 
@@ -109,9 +113,9 @@ def main(**kwargs):
                 sess.run(optimizer, feed_dict=feed)
 
                 if i == 0:
-                    #if epoch % 5 == 0:
-                    num_iteration = epoch*num_batches_train+r_order.index(b)
-                    saver.save(sess, 'models/ief.ckpt')
+                    if epoch % 5 == 0:
+                        num_iteration = epoch*num_batches_train+r_order.index(b)
+                        saver.save(sess, 'models/ief.ckpt')
 
                     eps_pred_flat = sess.run(y_hat, feed_dict=feed) # Get eps prediction
                     print 'mean eps_pred: %f' % np.mean(np.abs(eps_pred_flat))
