@@ -4,7 +4,6 @@ import math
 from util import *
 
 def main(**kwargs):
-    view = 'side'
     num_joints = 15
 
     # Titan X has 12 GB memory, TensorFlow requires user to specify a fraction
@@ -17,6 +16,7 @@ def main(**kwargs):
     load_model = kwargs.get('load_model')
     data_root = kwargs.get('indir')
     small_data = kwargs.get('small_data')
+    view = 'top' if kwargs.get('top') else 'side'
 
     # y's are joints in 2D (x, y)
     X_train, y_train, X_val, y_val = load_data(data_root, view, small_data)
@@ -210,5 +210,6 @@ if __name__ == '__main__':
     parser.add_argument('--load_model', action='store_true')
     parser.add_argument('--indir', nargs='?', default='../tf_data/')
     parser.add_argument('--small_data', action='store_true')
+    parser.add_argument('--top', action='store_true')
     args = parser.parse_args()
     main(**vars(args))
