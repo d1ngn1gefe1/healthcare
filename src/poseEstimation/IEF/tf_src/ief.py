@@ -43,7 +43,7 @@ def main(**kwargs):
 
     # Parameters
     input_img_size = 224
-    keep = 0.3
+    keep = 0.5
     num_coords = 2
     n_outputs = num_joints*num_coords # How many regression values to output
     n_train, n_val = len(X_train), len(X_val)
@@ -104,14 +104,13 @@ def main(**kwargs):
                 x_batch, eps_batch = get_batch(X_train, y_train, \
                     yt_train, start_idx, end_idx, num_joints, hm)
                 eps_batch_flat = eps_batch.reshape(batch_size, n_outputs)
-                logger.debug('mean eps_batch: %f', np.mean(np.abs(eps_batch_flat)))
+                # logger.debug('mean eps_batch: %f', np.mean(np.abs(eps_batch_flat)))
                 feed = {x: x_batch, y: eps_batch_flat, keep_prob: keep}
                 sess.run(optimizer, feed_dict=feed)
 
                 if i == 0:
-                    if epoch % 5 == 0:
-                        num_iteration = epoch*num_batches_train+r_order.index(b)
-                        saver.save(sess, 'models/ief.ckpt')
+                    num_iteration = epoch*num_batches_train+r_order.index(b)
+                    saver.save(sess, 'models/ief.ckpt')
 
                     eps_pred_flat = sess.run(y_hat, feed_dict=feed) # Get eps prediction
                     logger.debug('mean eps_pred: %f', np.mean(np.abs(eps_pred_flat)))

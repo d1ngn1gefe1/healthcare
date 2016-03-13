@@ -28,9 +28,9 @@ W = 320
 
 palette = [(34, 88, 226), (34, 69, 101), (0, 195, 243), (146, 86, 135), \
            (38, 61, 43), (241, 202, 161), (50, 0, 190), (128, 178, 194), \
-           (23, 45, 136), (86, 136, 0), (172, 143, 230), (165, 103, 0), \
-           (121, 147, 249), (151, 78, 96), (0, 166, 246), (108, 68, 179), \
-           (0, 211, 220), (130, 132, 132), (0, 182, 141), (0, 132, 243)] # BGR
+           (23, 45, 136), (0, 211, 220), (172, 143, 230), (108, 68, 179), \
+           (121, 147, 249), (151, 78, 96), (0, 166, 246), (165, 103, 0), \
+           (86, 136, 0), (130, 132, 132), (0, 182, 141), (0, 132, 243)] # BGR
 
 jointNameEVAL = ['NECK', 'HEAD', 'LEFT SHOULDER', 'LEFT ELBOW', \
                 'LEFT HAND', 'RIGHT SHOULDER', 'RIGHT ELBOW', 'RIGHT HAND', \
@@ -213,9 +213,11 @@ def drawPred(img, joints, paths, center, filename, nJoints, jointName, isTop):
     H = img.shape[0]
     W = img.shape[1]
 
-    bg = np.load('/mnt0/data/ITOP/out/00_depth_top.npy')[3]
+    '''
+    bg = np.load('/mnt0/data/ITOP/out/00_depth_top.npy')[312]
     bg /= 1000.0
     img[img == 0] = bg[img == 0]
+    '''
     img = (img-np.amin(img))*255.0/(np.amax(img)-np.amin(img))
     img = img.astype(np.uint8)
     #img = cv2.equalizeHist(img)

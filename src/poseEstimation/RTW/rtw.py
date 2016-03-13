@@ -15,7 +15,7 @@ maxOffFeat = 100 # the maximum offset for features (before divided by d)
 largeNum = 100
 nSteps = 750
 stepSize = 3
-K = 20
+K = 10
 minSamplesLeaf = 400
 trainRatio = 0.9
 
@@ -291,21 +291,6 @@ def main(**kwargs):
     jointName = jointNameITOP if ITOP else jointNameEVAL
     C = 3.50666662e-3 if ITOP else 3.8605e-3
 
-    '''
-    for i, arg in enumerate(argv[2:]):
-        if arg == '-loaddata':
-            loadData = True
-        elif arg == '-loadmodels':
-            loadModels = True
-        elif arg == '-maxn':
-            maxN = int(argv[2:][i+1])
-            print 'maxN: %d' % maxN
-        elif arg == '-multithreads':
-            multiThreads = True
-        elif arg == '-png':
-            makePng = True
-    '''
-
     if ITOP:
         I_train, I_test, joints_train, joints_test, theta, bodyCenters_train, \
             bodyCenters_test = getInfoITOP(depthDir, dataDir, outDir, isTop, \
@@ -412,10 +397,9 @@ def main(**kwargs):
 
     mkdir(outDir+dataDir+'/png/')
     for i in range(nTest):
-        if i == 3:
-            pngPath = outDir+dataDir+'/png/'+str(i)+'.png'
-            drawPred(I_test[i], joints_pred[i], qms[i], bodyCenters_test[i], \
-                     pngPath, nJoints, jointName, isTop)
+        pngPath = outDir+dataDir+'/png/'+str(i)+'.png'
+        drawPred(I_test[i], joints_pred[i], qms[i], bodyCenters_test[i], \
+                 pngPath, nJoints, jointName, isTop)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

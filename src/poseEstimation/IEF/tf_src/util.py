@@ -110,10 +110,13 @@ def load_data(data_root, view, small_data=False):
     y_val = np.load(data_root+'joint_'+view+'_val.npy')
 
     print X_train.shape, y_train.shape, X_val.shape, y_val.shape
+
     '''
     for i in range(X_train.shape[0]):
-        #cv2.normalize(X_train[i], X_train[i], 0, 255, cv2.NORM_MINMAX)
-        img = cv2.equalizeHist(X_train[i].astype(np.uint8))
+        img = X_train[i]
+        img = (img-np.amin(img))*255.0/(np.amax(img)-np.amin(img))
+        img = img.astype(np.uint8)
+        #img = cv2.equalizeHist(X_train[i].astype(np.uint8))
         img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
         for j in range(y_train.shape[1]):
             cv2.circle(img, tuple(y_train[i, j, :2].astype(np.uint16)), 2, (255, 0, 0), -1)
@@ -125,12 +128,12 @@ def load_data(data_root, view, small_data=False):
     # y_train = y_train[:, :, col]
     # y_val = y_val[:, :, col]
     #print np.mean(X_train), np.mean(X_train[X_train != 0])
-    '''
+
     if np.mean(X_train[X_train != 0]) > 100:
         print 'ops'
         X_train /= 1000.0
         X_val /= 1000.0
-    '''
+
     if small_data:
         rand = np.random.randint(0, X_train.shape[0], 23)
         return X_train[rand], y_train[rand, :, :2], X_val[500:523], \
@@ -475,11 +478,11 @@ def main_0():
 
 def main():
     id = 0
-    view = 'side'
+    view = 'top'
     data_root = '/mnt0/data/ITOP/out/'
     out_dir = '../tf_data/'
     nJoints = 15
-    scale = False
+    scale = True
     tl = (48, 16) # x, y
 
     I_train, I_val = np.empty((0, 224, 224), np.float16), \
