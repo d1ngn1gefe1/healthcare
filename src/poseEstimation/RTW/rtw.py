@@ -13,8 +13,8 @@ maxOffSampXY = 40 # the maximum offset for samples in x, y axes
 maxOffSampZ = 2 # the maximum offset for samples in z axis
 maxOffFeat = 100 # the maximum offset for features (before divided by d)
 largeNum = 100
-nSteps = 500
-stepSize = 2
+nSteps = 750
+stepSize = 3
 K = 20
 minSamplesLeaf = 400
 trainRatio = 0.9
@@ -412,9 +412,10 @@ def main(**kwargs):
 
     mkdir(outDir+dataDir+'/png/')
     for i in range(nTest):
-        pngPath = outDir+dataDir+'/png/'+str(i)+'.png'
-        drawPred(I_test[i], joints_pred[i], qms[i], bodyCenters_test[i], \
-                 pngPath, nJoints, jointName)
+        if i == 3:
+            pngPath = outDir+dataDir+'/png/'+str(i)+'.png'
+            drawPred(I_test[i], joints_pred[i], qms[i], bodyCenters_test[i], \
+                     pngPath, nJoints, jointName, isTop)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

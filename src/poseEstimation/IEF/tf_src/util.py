@@ -4,7 +4,6 @@ from scipy.stats import multivariate_normal
 import os
 import logging
 import cv2
-import cProfile
 
 C = 3.50666662e-3
 
@@ -24,6 +23,35 @@ ch.setLevel(logging.DEBUG)
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
+jointNameITOP = ['HEAD', 'NECK', 'LEFT_SHOULDER', 'RIGHT_SHOULDER', \
+                'LEFT_ELBOW', 'RIGHT_ELBOW', 'LEFT_HAND', 'RIGHT_HAND', \
+                'TORSO', 'LEFT_HIP', 'RIGHT_HIP', 'LEFT_KNEE', \
+                'RIGHT_KNEE', 'LEFT_FOOT', 'RIGHT_FOOT']
+
+def get_results(x=None, y=None, yt=None, show=True, dists=None, per_joint=False):
+    if dists is None:
+        dists = get_distances(x, y, yt)*100
+    if show == True:
+        if per_joint:
+            for i in range(dists.shape[1]):
+                logger.debug('%s: ', jointNameITOP[i])
+                logger.debug('average distance: %f cm', np.mean(dists[:, i]))
+                logger.debug('5cm accuracy: %f', np.sum(dists[:, i] < 5)/ \
+                    float(dists.shape[0]))
+                logger.debug('10cm accuracy: %f', np.sum(dists[:, i] < 10)/ \
+                    float(dists.shape[0]))
+                logger.debug('15cm accuracy: %f', np.sum(dists[:, i] < 15)/ \
+                    float(dists.shape[0]))
+        else:
+            logger.debug('average distance: %f cm', np.mean(dists))
+            logger.debug('5cm accuracy: %f', np.sum(dists < 5)/ \
+                float(dists.shape[0]*dists.shape[1]))
+            logger.debug('10cm accuracy: %f', np.sum(dists < 10)/ \
+                float(dists.shape[0]*dists.shape[1]))
+            logger.debug('15cm accuracy: %f', np.sum(dists < 15)/ \
+                float(dists.shape[0]*dists.shape[1]))
+    return dists
+
 def pixel2world(pixel, C, H, W):
     world = np.empty(pixel.shape)
     world[:, 2] = pixel[:, 2]
@@ -35,7 +63,9 @@ def get_distances(imgs, joints, joints_pred):
     assert joints.shape == joints_pred.shape
     dists = np.zeros((joints.shape[:2]))
     largeNum = np.mean(imgs[imgs != 0].astype(np.float64))
-    assert largeNum > 1 and largeNum < 4
+    if largeNum < 1 or largeNum > 4:
+        print 'largeNum: %f' % largeNum
+        assert False
     H = 224
     W = 224
 
@@ -71,20 +101,13 @@ def resize(data_dir, img_height, img_width):
             images_new[i] = cv2.resize(images[i], (img_height, img_width))
         np.save(f, images_new)
 
-def load_data(data_root, view, small_data=None):
+def load_data(data_root, view, small_data=False):
     X_train, y_train, X_val, y_val = None, None, None, None
 
-    if (small_data is not None) and (not overwrite) and \
-        os.path.exists(data_root+'depth_'+view+'_train_small.npy'):
-        X_train = np.load(data_root+'depth_'+view+'_train_small.npy')
-        y_train = np.load(data_root+'joint_'+view+'_train_small.npy')
-        X_val = np.load(data_root+'depth_'+view+'_val_small.npy')
-        y_val = np.load(data_root+'joint_'+view+'_val_small.npy')
-    elif small_data is None:
-        X_train = np.load(data_root+'depth_'+view+'_train.npy')
-        y_train = np.load(data_root+'joint_'+view+'_train.npy')
-        X_val = np.load(data_root+'depth_'+view+'_val.npy')
-        y_val = np.load(data_root+'joint_'+view+'_val.npy')
+    X_train = np.load(data_root+'depth_'+view+'_train.npy')
+    y_train = np.load(data_root+'joint_'+view+'_train.npy')
+    X_val = np.load(data_root+'depth_'+view+'_val.npy')
+    y_val = np.load(data_root+'joint_'+view+'_val.npy')
 
     print X_train.shape, y_train.shape, X_val.shape, y_val.shape
     '''
@@ -108,9 +131,13 @@ def load_data(data_root, view, small_data=None):
         X_train /= 1000.0
         X_val /= 1000.0
     '''
-    #return X_train, y_train[:, :, :2], X_val, y_val[:, :, :2]
-    rand = np.random.randint(0, X_train.shape[0], 23)
-    return X_train[rand], y_train[rand, :, :2], X_val[500:523], y_val[500:523, :, :2]
+    if small_data:
+        rand = np.random.randint(0, X_train.shape[0], 23)
+        return X_train[rand], y_train[rand, :, :2], X_val[500:523], \
+            y_val[500:523, :, :2]
+    else:
+        return X_train, y_train[:, :, :2], X_val, y_val[:, :, :2]
+
 
 def visualizeImgJointsEps(imgs, joints=None, eps=None, name='img', write=False, show=False):
     for i in range(imgs.shape[0]):

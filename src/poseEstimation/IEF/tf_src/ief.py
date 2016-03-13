@@ -6,7 +6,6 @@ from util import *
 def main(**kwargs):
     view = 'side'
     num_joints = 15
-    small_data = 60 # 100 batches
 
     # Titan X has 12 GB memory, TensorFlow requires user to specify a fraction
     max_gpu_memory = kwargs.get('gpu_mem')
@@ -17,9 +16,10 @@ def main(**kwargs):
     num_steps = kwargs.get('n_steps')
     load_model = kwargs.get('load_model')
     data_root = kwargs.get('indir')
+    small_data = kwargs.get('small_data')
 
     # y's are joints in 2D (x, y)
-    X_train, y_train, X_val, y_val = load_data(data_root, view, None)
+    X_train, y_train, X_val, y_val = load_data(data_root, view, small_data)
     # print np.mean(X_train[0]), np.mean(X_train[0][X_train[0] != 0])
     # print y_train[0]
     # return
@@ -105,10 +105,8 @@ def main(**kwargs):
                     yt_train, start_idx, end_idx, num_joints, hm)
                 eps_batch_flat = eps_batch.reshape(batch_size, n_outputs)
                 logger.debug('mean eps_batch: %f', np.mean(np.abs(eps_batch_flat)))
-                print x_batch.shape, eps_batch_flat.shape
                 feed = {x: x_batch, y: eps_batch_flat, keep_prob: keep}
                 sess.run(optimizer, feed_dict=feed)
-                print 'good\n\n'
 
                 if i == 0:
                     if epoch % 5 == 0:
@@ -122,16 +120,11 @@ def main(**kwargs):
                     current_estimate = yt_train[start_idx:end_idx] + eps_pred # Get error
                     loc_err = error(y_train[start_idx:end_idx], current_estimate) # pixel error per joint
                     num_iteration = epoch*num_batches_train+r_order.index(b)
-                    logger.debug('[INFO:train] Iteration: %s\nLoss: %f\n' + \
-                        'Error: %f', str(num_iteration), loss, loc_err)
-
-                    dists = get_distances(X_train[start_idx:end_idx], y_train[start_idx:end_idx], current_estimate)*100
-                    logger.debug('average distance: %f cm', np.mean(dists))
-                    logger.debug('5cm accuracy: %f', np.sum(dists < 5)/float(dists.shape[0]*dists.shape[1]))
-                    logger.debug('10cm accuracy: %f', np.sum(dists < 10)/ \
-                        float(dists.shape[0]*dists.shape[1]))
-                    logger.debug('15cm accuracy: %f', np.sum(dists < 15)/ \
-                        float(dists.shape[0]*dists.shape[1]))
+                    logger.debug('[INFO:train]')
+                    logger.debug('Iteration: %s', str(num_iteration))
+                    logger.debug('Loss: %f', loss)
+                    logger.debug('Error: %f', loc_err)
+                    get_results(X_train[start_idx:end_idx], y_train[start_idx:end_idx], current_estimate, per_joint=True)
 
                     if epoch % 10 == 0:
                         visualizeImgJointsEps(x_batch[:,:,:,0], \
@@ -162,6 +155,8 @@ def run_validation(sess, x, y, y_hat, cost, X_val, y_val, yt_val, \
     num_batches = int(math.ceil(1.0*X_val.shape[0]/batch_size))
     accumulator_err = 0.0
     accumulator_cost = 0.0
+    dists = []
+
     for b in xrange(num_batches):
         start_idx = b*batch_size
         end_idx = min(X_val.shape[0], (b+1)*batch_size)
@@ -174,15 +169,22 @@ def run_validation(sess, x, y, y_hat, cost, X_val, y_val, yt_val, \
         loss = sess.run(cost, feed_dict=feed)
         current_estimate = yt_val[start_idx:end_idx] + eps_pred # Get error
         loc_err = error(y_val[start_idx:end_idx], current_estimate) # pixel error per joint
-        batch_weight = 1.0*(end_idx - start_idx) / X_val.shape[0]
+        batch_weight = 1.0*(end_idx-start_idx)/X_val.shape[0]
         accumulator_err += batch_weight*loc_err
         accumulator_cost += batch_weight*loss
-    logger.debug('[INFO:val] Loss: %f\nError: %f', accumulator_cost, \
-                 accumulator_err)
+        dists.append(get_results(X_val[start_idx:end_idx], \
+            y_val[start_idx:end_idx], current_estimate, show=False))
+
+    logger.debug('[INFO:val]')
+    logger.debug('Loss: %f', accumulator_cost)
+    logger.debug('Error: %f', accumulator_err)
+    dists = np.vstack(dists)
+    get_results(dists=dists, per_joint=True)
 
 def run_prediction(sess, num_batches, batch_size, X_all, y_all, yt, x, y, \
                    y_hat, num_joints, num_coords, hm, keep_prob, L=20):
     prediction = []
+
     for b in range(num_batches):
         start_idx = b * batch_size
         end_idx = min(X_all.shape[0], (b+1)*batch_size)
@@ -201,11 +203,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--batch_size', nargs='?', default=10, type=int)
     parser.add_argument('--n_steps', nargs='?', default=10, type=int)
-    parser.add_argument('--n_epochs', nargs='?', default=50, type=int)
+    parser.add_argument('--n_epochs', nargs='?', default=10 , type=int)
     parser.add_argument('--lr', nargs='?', default=5e-4, type=float)
     parser.add_argument('--gpu_mem', nargs='?', default=12287, type=int)
     parser.add_argument('--gpu_frac', nargs='?', default=0.5, type=float)
     parser.add_argument('--load_model', action='store_true')
     parser.add_argument('--indir', nargs='?', default='../tf_data/')
+    parser.add_argument('--small_data', action='store_true')
     args = parser.parse_args()
     main(**vars(args))

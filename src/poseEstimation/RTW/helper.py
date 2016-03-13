@@ -27,10 +27,10 @@ H = 240
 W = 320
 
 palette = [(34, 88, 226), (34, 69, 101), (0, 195, 243), (146, 86, 135), \
-           (0, 132, 243), (241, 202, 161), (50, 0, 190), (128, 178, 194), \
+           (38, 61, 43), (241, 202, 161), (50, 0, 190), (128, 178, 194), \
            (23, 45, 136), (86, 136, 0), (172, 143, 230), (165, 103, 0), \
            (121, 147, 249), (151, 78, 96), (0, 166, 246), (108, 68, 179), \
-           (0, 211, 220), (130, 132, 132), (0, 182, 141), (38, 61, 43)] # BGR
+           (0, 211, 220), (130, 132, 132), (0, 182, 141), (0, 132, 243)] # BGR
 
 jointNameEVAL = ['NECK', 'HEAD', 'LEFT SHOULDER', 'LEFT ELBOW', \
                 'LEFT HAND', 'RIGHT SHOULDER', 'RIGHT ELBOW', 'RIGHT HAND', \
@@ -209,24 +209,35 @@ def drawPts(img, pts):
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-def drawPred(img, joints, paths, center, filename, nJoints, jointName):
+def drawPred(img, joints, paths, center, filename, nJoints, jointName, isTop):
     H = img.shape[0]
     W = img.shape[1]
 
-    #img = cv2.equalizeHist(img.astype(np.uint8))
+    bg = np.load('/mnt0/data/ITOP/out/00_depth_top.npy')[3]
+    bg /= 1000.0
+    img[img == 0] = bg[img == 0]
+    img = (img-np.amin(img))*255.0/(np.amax(img)-np.amin(img))
     img = img.astype(np.uint8)
+    #img = cv2.equalizeHist(img)
     img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+    img = cv2.applyColorMap(img, cv2.COLORMAP_OCEAN)
     img = np.hstack((img, np.zeros((H, 100, 3)))).astype(np.uint8)
 
     if paths is not None:
-        for i, path in enumerate(paths):
+        paths_copy = paths.copy()
+        if isTop:
+            paths_copy = paths_copy[:8]
+        for i, path in enumerate(paths_copy):
             nPts = path.shape[0]
             for j, pt in enumerate(path):
                 color = tuple(c*(2*j+nPts)/(3*nPts) for c in palette[i])
                 cv2.circle(img, tuple(pt[:2].astype(np.uint16)), 1, color, -1)
 
     if joints is not None:
-        for i, joint in enumerate(joints):
+        joints_copy = joints.copy()
+        if isTop:
+            joints_copy = joints_copy[:8]
+        for i, joint in enumerate(joints_copy):
             cv2.circle(img, tuple(joint[:2].astype(np.uint16)), 4, \
                 palette[i], -1)
 
