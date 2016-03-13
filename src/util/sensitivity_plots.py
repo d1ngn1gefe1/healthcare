@@ -8,7 +8,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 palette = ['peru', 'dodgerblue', 'brown', 'red', \
-           'yellow', 'lawngreen', 'purple', 'darkolivegreen', \
+           'lightcoral', 'lawngreen', 'purple', 'darkolivegreen', \
            'fuchsia', 'silver', 'powderblue', 'aqua', \
            'orange', 'chartreuse', 'lavender']
 
