@@ -7,7 +7,10 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 
-DATA_FILE = 'rtw_itop_front.tsv'
+palette = ['peru', 'dodgerblue', 'brown', 'red', \
+           'lightcoral', 'lawngreen', 'purple', 'darkolivegreen', \
+           'fuchsia', 'silver', 'powderblue', 'aqua', \
+           'orange', 'chartreuse', 'lavender']
 
 def accepts(**types):
     """
@@ -43,12 +46,20 @@ def main(**kwargs):
     '''
     Main entry point of the program
     '''
-    # Get the GT joint positions to compute PCKh
+    in_file = kwargs.get('in')
+    out_file = kwargs.get('out')
+    ubody = kwargs.get('ubody')
 
+    # Get the GT joint positions to compute PCKh
     # Get the actual localization error to compute detection rates
-    data = pd.read_csv(DATA_FILE, sep='\t')
+    data = pd.read_csv(in_file, sep=' ')
     # ITOP
-    visible_joints = ['H','N','LS','RS','LE','RE','LH','RH','T','LHIP','RHIP','LK','RK','LF','RF']
+    visible_joints = None
+    if ubody:
+        visible_joints = ['H','N','LS','RS','LE','RE','LH','RH']
+    else:
+        visible_joints = ['H','N','LS','RS','LE','RE','LH','RH','T','LHIP','RHIP','LK','RK','LF','RF']
+
     # OTOP
     #visible_joints = ['H', 'C', 'LS', 'LE', 'LH', 'RS', 'RE', 'RH']
     # EVAL
@@ -57,8 +68,9 @@ def main(**kwargs):
     detection_rates = np.zeros((thresholds.shape[0], len(visible_joints)))
     for j, jname in enumerate(visible_joints):
         errors = np.array(data[jname])
+        print errors.shape
         detection_rates[:,j] = compute_detection_curve(errors, thresholds)
-        plt.plot(thresholds, detection_rates[:,j], linewidth=2)
+        plt.plot(thresholds, detection_rates[:,j], linewidth=2, color=palette[j])
 
     plt.tick_params(axis='x', colors='black')
     plt.tick_params(axis='y', colors='black')
@@ -67,8 +79,8 @@ def main(**kwargs):
     plt.ylim([0, 1])
     plt.legend(visible_joints, loc='lower right', prop={'size': 14})
     plt.subplots_adjust(left=0.15, right=0.95, top=0.95, bottom=0.15)
-    plt.savefig('itop_rtw.eps', format='eps')
-    plt.show()
+    plt.savefig(out_file+'.eps', format='eps')
+    #plt.show()
 
     print 'Threshold of 10 cm'
     print detection_rates[np.where(thresholds == 10)[0]]
@@ -88,9 +100,12 @@ def compute_detection_curve(errors, thresholds):
 
 if __name__ == '__main__':
     # Configure matplotlib
-    plt.style.use('ggplot')
+    #plt.style.use('ggplot')
     matplotlib.rcParams.update({'font.size': 22})
     # Parse command line arguments
-    P = argparse.ArgumentParser()
-    cmd_args = P.parse_args()
-    main(**vars(cmd_args))
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--in')
+    parser.add_argument('--out')
+    parser.add_argument('--ubody', action='store_true')
+    args = parser.parse_args()
+    main(**vars(args))
