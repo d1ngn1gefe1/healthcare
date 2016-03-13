@@ -47,13 +47,19 @@ def main(**kwargs):
     Main entry point of the program
     '''
     in_file = kwargs.get('in')
-    out_file = kwargs.get('in')
+    out_file = kwargs.get('out')
+    ubody = kwargs.get('ubody')
 
     # Get the GT joint positions to compute PCKh
     # Get the actual localization error to compute detection rates
     data = pd.read_csv(in_file, sep=' ')
     # ITOP
-    visible_joints = ['H','N','LS','RS','LE','RE','LH','RH']#,'T','LHIP','RHIP','LK','RK','LF','RF']
+    visible_joints = None
+    if ubody:
+        visible_joints = ['H','N','LS','RS','LE','RE','LH','RH']
+    else:
+        visible_joints = ['H','N','LS','RS','LE','RE','LH','RH','T','LHIP','RHIP','LK','RK','LF','RF']
+
     # OTOP
     #visible_joints = ['H', 'C', 'LS', 'LE', 'LH', 'RS', 'RE', 'RH']
     # EVAL
@@ -73,7 +79,7 @@ def main(**kwargs):
     plt.ylim([0, 1])
     plt.legend(visible_joints, loc='lower right', prop={'size': 14})
     plt.subplots_adjust(left=0.15, right=0.95, top=0.95, bottom=0.15)
-    plt.savefig(out_file, format='eps')
+    plt.savefig(out_file+'.eps', format='eps')
     #plt.show()
 
     print 'Threshold of 10 cm'
@@ -100,5 +106,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--in')
     parser.add_argument('--out')
+    parser.add_argument('--ubody', action='store_true')
     args = parser.parse_args()
     main(**vars(args))
