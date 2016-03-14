@@ -63,7 +63,7 @@ def get_distances(imgs, joints, joints_pred):
     assert joints.shape == joints_pred.shape
     dists = np.zeros((joints.shape[:2]))
     largeNum = np.mean(imgs[imgs != 0].astype(np.float64))
-    if largeNum < 1 or largeNum > 4:
+    if largeNum > 4:
         print 'largeNum: %f' % largeNum
         assert False
     H = 224
@@ -109,8 +109,6 @@ def load_data(data_root, view, small_data=False):
     X_val = np.load(data_root+'depth_'+view+'_val.npy')
     y_val = np.load(data_root+'joint_'+view+'_val.npy')
 
-    print X_train.shape, y_train.shape, X_val.shape, y_val.shape
-
     '''
     for i in range(X_train.shape[0]):
         img = X_train[i]
@@ -129,8 +127,8 @@ def load_data(data_root, view, small_data=False):
     # y_val = y_val[:, :, col]
     #print np.mean(X_train), np.mean(X_train[X_train != 0])
 
-    if np.mean(X_train[X_train != 0]) > 100:
-        print 'ops'
+    if np.mean(X_train[X_train != 0].astype(np.float64)) > 100:
+        print 'ops, mean = %f' % np.mean(X_train[X_train != 0].astype(np.float64))
         X_train /= 1000.0
         X_val /= 1000.0
 

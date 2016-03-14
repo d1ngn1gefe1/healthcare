@@ -20,8 +20,8 @@ def main(**kwargs):
 
     # y's are joints in 2D (x, y)
     X_train, y_train, X_val, y_val = load_data(data_root, view, small_data)
-    # print np.mean(X_train[0]), np.mean(X_train[0][X_train[0] != 0])
-    # print y_train[0]
+    print X_train.shape, y_train.shape, X_val.shape, y_val.shape
+    print np.mean(X_train.astype(np.float64)), np.mean(X_train[X_train != 0].astype(np.float64))
     # return
 
     drop = (X_train.shape[0]) % batch_size
