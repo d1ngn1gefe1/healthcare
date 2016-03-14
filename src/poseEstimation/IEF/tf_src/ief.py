@@ -17,6 +17,7 @@ def main(**kwargs):
     data_root = kwargs.get('indir')
     small_data = kwargs.get('small_data')
     view = 'top' if kwargs.get('top') else 'side'
+    test = kwargs.get('test')
 
     # y's are joints in 2D (x, y)
     X_train, y_train, X_val, y_val = load_data(data_root, view, small_data)
@@ -91,6 +92,9 @@ def main(**kwargs):
     if not os.path.isdir('models'):
         os.makedirs('models')
 
+    if not os.path.isdir('results'):
+        os.makedirs('results')
+
     for t in xrange(num_steps):
         num_batches_train = int(np.ceil(1.0*n_train/batch_size))
         num_batches_val = int(np.ceil(1.0*n_val/batch_size))
@@ -98,52 +102,60 @@ def main(**kwargs):
             logger.debug('\n\n----- step %d, epoch %d -----', t, epoch)
             r_order = range(num_batches_train)
             np.random.shuffle(r_order)
-            for i, b in enumerate(r_order):
-                start_idx = b*batch_size
-                end_idx = min(n_train, (b+1)*batch_size)
-                x_batch, eps_batch = get_batch(X_train, y_train, \
-                    yt_train, start_idx, end_idx, num_joints, hm)
-                eps_batch_flat = eps_batch.reshape(batch_size, n_outputs)
-                # logger.debug('mean eps_batch: %f', np.mean(np.abs(eps_batch_flat)))
-                feed = {x: x_batch, y: eps_batch_flat, keep_prob: keep}
-                sess.run(optimizer, feed_dict=feed)
+            if not test:
+                for i, b in enumerate(r_order):
+                    start_idx = b*batch_size
+                    end_idx = min(n_train, (b+1)*batch_size)
+                    x_batch, eps_batch = get_batch(X_train, y_train, \
+                        yt_train, start_idx, end_idx, num_joints, hm)
+                    eps_batch_flat = eps_batch.reshape(batch_size, n_outputs)
+                    # logger.debug('mean eps_batch: %f', np.mean(np.abs(eps_batch_flat)))
+                    feed = {x: x_batch, y: eps_batch_flat, keep_prob: keep}
+                    sess.run(optimizer, feed_dict=feed)
 
-                if i == 0:
-                    num_iteration = epoch*num_batches_train+r_order.index(b)
-                    saver.save(sess, 'models/ief.ckpt')
+                    if i == 0:
+                        num_iteration = epoch*num_batches_train+r_order.index(b)
+                        saver.save(sess, 'models/ief.ckpt')
 
-                    eps_pred_flat = sess.run(y_hat, feed_dict=feed) # Get eps prediction
-                    logger.debug('mean eps_pred: %f', np.mean(np.abs(eps_pred_flat)))
-                    eps_pred = eps_pred_flat.reshape(batch_size, num_joints, num_coords)
-                    loss = sess.run(cost, feed_dict=feed)  # Get loss
-                    current_estimate = yt_train[start_idx:end_idx] + eps_pred # Get error
-                    loc_err = error(y_train[start_idx:end_idx], current_estimate) # pixel error per joint
-                    num_iteration = epoch*num_batches_train+r_order.index(b)
-                    logger.debug('[INFO:train]')
-                    logger.debug('Iteration: %s', str(num_iteration))
-                    logger.debug('Loss: %f', loss)
-                    logger.debug('Error: %f', loc_err)
-                    get_results(X_train[start_idx:end_idx], y_train[start_idx:end_idx], current_estimate, per_joint=True)
+                        eps_pred_flat = sess.run(y_hat, feed_dict=feed) # Get eps prediction
+                        logger.debug('mean eps_pred: %f', np.mean(np.abs(eps_pred_flat)))
+                        eps_pred = eps_pred_flat.reshape(batch_size, num_joints, num_coords)
+                        loss = sess.run(cost, feed_dict=feed)  # Get loss
+                        current_estimate = yt_train[start_idx:end_idx] + eps_pred # Get error
+                        loc_err = error(y_train[start_idx:end_idx], current_estimate) # pixel error per joint
+                        num_iteration = epoch*num_batches_train+r_order.index(b)
+                        logger.debug('[INFO:train]')
+                        logger.debug('Iteration: %s', str(num_iteration))
+                        logger.debug('Loss: %f', loss)
+                        logger.debug('Error: %f', loc_err)
+                        get_results(X_train[start_idx:end_idx], y_train[start_idx:end_idx], current_estimate, per_joint=True)
 
-                    if epoch % 10 == 0:
-                        visualizeImgJointsEps(x_batch[:,:,:,0], \
-                            yt_train[start_idx:end_idx], eps_pred, \
-                            name=str(t)+'_'+str(epoch))
+                        if epoch % 10 == 0:
+                            visualizeImgJointsEps(x_batch[:,:,:,0], \
+                                yt_train[start_idx:end_idx], eps_pred, \
+                                name=str(t)+'_'+str(epoch))
 
             run_validation(sess, x, y, y_hat, cost, X_val, y_val, yt_val, \
                            batch_size, n_outputs, num_joints, num_coords, \
                            hm, keep_prob)
 
-        train_eps_pred = run_prediction(sess, num_batches_train, batch_size, \
-                                        X_train, y_train, yt_train, x, y, \
-                                        y_hat, num_joints, num_coords, hm, \
-                                        keep_prob)
+        if not test:
+            train_eps_pred = run_prediction(sess, num_batches_train, batch_size, \
+                                            X_train, y_train, yt_train, x, y, \
+                                            y_hat, num_joints, num_coords, hm, \
+                                            keep_prob)
+            yt_train += train_eps_pred
+            np.save('results/pred_2d_train_' + view + '.npy', yt_train)
+            logger.debug('mean train_eps_pred: %f', np.mean(np.abs(train_eps_pred)))
+
         val_eps_pred = run_prediction(sess, num_batches_val, batch_size, \
                                       X_val, y_val, yt_val, x, y, y_hat, \
                                       num_joints, num_coords, hm, keep_prob)
-        yt_train += train_eps_pred
         yt_val += val_eps_pred
-        logger.debug('mean train_eps_pred: %f', np.mean(np.abs(train_eps_pred)))
+        localization_error = get_distances(X_val, y_val, yt_val)
+        np.save('results/pred_2d_val_' + view + '.npy', yt_val)
+        np.save('results/local_err_val_' + view + '.npy', localization_error)
+
         logger.debug('mean val_eps_pred: %f', np.mean(np.abs(val_eps_pred)))
 
 def error(estimate, ground_truth):
@@ -210,5 +222,6 @@ if __name__ == '__main__':
     parser.add_argument('--indir', nargs='?', default='../tf_data/')
     parser.add_argument('--small_data', action='store_true')
     parser.add_argument('--top', action='store_true')
+    parser.add_argument('--test', action='store_true')
     args = parser.parse_args()
     main(**vars(args))
