@@ -463,16 +463,56 @@ def save_data(data_root, out_dir, view, person_id_list, d_type):
     np.save(out_dir + 'joint_' + view + '_' + d_type + '.npy', joint_view)
 
 def main_0():
-    data_root = '/mnt0/data/ITOP/out/'
-    out_dir = '/mnt0/emma/IEF/tf_data/'
-    views = ['top', 'side']
-    val_list = range(4)
-    train_list = [d + 4 for d in range(8)]
+    a = np.load('/mnt0/data/ITOP/out/00_depth_top.npy')
+    b = np.load('/mnt0/alan/healthcare/src/poseEstimation/IEF/tf_src/results/pred_2d_val_top.npy')
 
-    for view in views:
-        logger.debug('View %s', view)
-        save_data(data_root, out_dir, view, val_list, 'val')
-        save_data(data_root, out_dir, view, train_list, 'train')
+    np.save('/mnt0/alan/healthcare/src/poseEstimation/IEF/tf_src/results/depth_top_small.npy', a[:1000])
+    np.save('/mnt0/alan/healthcare/src/poseEstimation/IEF/tf_src/results/pred_2d_val_top_small.npy', b[:1000])
+
+def main_1():
+    id = 0
+    view = 'top'
+    data_root = '/mnt0/alan/healthcare/src/poseEstimation/RTW/data_EVAL'
+    out_dir = '/mnt0/alan/healthcare/src/poseEstimation/IEF/tf_data_EVAL'
+    nJoints = 12
+    scale = True
+    tl = (48, 16) # x, y
+
+    I_train, I_val = np.empty((0, 224, 224), np.float16), \
+        np.empty((0, 224, 224), np.float16)
+    joints_train, joints_val = np.empty((0, nJoints, 3)), \
+        np.empty((0, nJoints, 3))
+
+    depth = np.load(data_root + '/I.npy')
+    mask = np.load(data_root + '/I_mask.npy')
+    joints = np.load(data_root + '/joints.npy')
+    depth *= mask
+
+    depth_resize = np.empty((depth.shape[0], 224, 224))
+    if scale:
+        joints[:, :, 0] *= 224.0/320
+        joints[:, :, 1] *= 224.0/240
+        for j, img in enumerate(depth):
+            depth_resize[j] = cv2.resize(img, (224, 224))
+    else:
+        joints[:, :, 0] -= tl[0]
+        joints[:, :, 1] -= tl[1]
+        for j, img in enumerate(depth):
+            depth_resize[j] = img[tl[1]:(tl[1]+224), tl[0]:(tl[0]+224)]
+
+    nTest = depth_resize.shape[0]*0.3
+    I_val = depth_resize[:nTest]
+    I_train = depth_resize[nTest:]
+    joints_val = joints[:nTest]
+    joints_train = joints[nTest:]
+
+    if not os.path.isdir(out_dir):
+        os.makedirs(out_dir)
+
+    np.save(out_dir + '/I_train.npy', I_train)
+    np.save(out_dir + '/joints_train.npy', joints_train)
+    np.save(out_dir + '/I_val.npy', I_val)
+    np.save(out_dir + '/joints_val.npy', joints_val)
 
 def main():
     id = 0
@@ -533,4 +573,4 @@ def main():
     np.save(out_dir + 'joint_' + view + '_val.npy', joints_val)
 
 if __name__ == "__main__":
-    main()
+    main_1()

@@ -9,52 +9,55 @@ from multiprocessing import Process, Queue
 
 nSamps = 500 # the number of samples of each joint
 nFeats = 500 # the number of features of each offset point
-maxOffSampXY = 40 # the maximum offset for samples in x, y axes
+maxOffSampXY = 60 # the maximum offset for samples in x, y axes
 maxOffSampZ = 2 # the maximum offset for samples in z axis
-maxOffFeat = 100 # the maximum offset for features (before divided by d)
+maxOffFeat = 150 # the maximum offset for features (before divided by d)
 largeNum = 100
-nSteps = 750
+nSteps = 300
 stepSize = 3
-K = 10
+K = 20
 minSamplesLeaf = 400
-trainRatio = 0.9
+trainRatio = 0.7
 
 nJoints = None
 jointName = None
 C = None
 
-def getInfoEVAL(depthDir, dataDir, outDir, maxN=None, loadData=False):
+def getInfoEVAL(dataDir, outDir, maxN=None, loadData=False):
+    I, joints, theta, bodyCenters = None, None, None, None
     I_train, I_test, joints_train, joints_test = None, None, None, None
     theta, bodyCenters_train, bodyCenters_test = None, None, None
 
     if loadData:
         I = np.load(outDir+dataDir+'/I.npy')
+        I_mask = np.load(outDir+dataDir+'/I_mask.npy')
+        I = I*I_mask
         joints = np.load(outDir+dataDir+'/joints.npy')
         theta = np.load(outDir+dataDir+'/theta.npy')
         bodyCenters = np.load(outDir+dataDir+'/bodyCenters.npy')
         N, _, _ = I.shape
     else:
         mkdir(outDir+dataDir)
-
         # the N x H x W depth images and the N x nJoints x 3 joint locations
-        I, joints = getImgsAndJointsEVAL(depthDir, maxN, nJoints)
+        I = np.load(outDir+dataDir+'/I.npy')
+        I_mask = np.load(outDir+dataDir+'/I_mask.npy')
+        I = I*I_mask
+        joints = np.load(outDir+dataDir+'/joints.npy')
         theta = np.random.randint(-maxOffFeat, maxOffFeat+1, (4, nFeats))
-        bodyCenters = joints[:, nJoints]
-        joints = joints[:, :nJoints]
-
-        np.save(outDir+dataDir+'/I', I)
-        np.save(outDir+dataDir+'/joints', joints)
+        leftHip = (joints[:, 2]+2*joints[:, 8])/3.0
+        rightHip = (joints[:, 5]+2*joints[:, 10])/3.0
+        bodyCenters = (joints[:, 2]+leftHip+joints[:, 5]+rightHip)/4.0
         np.save(outDir+dataDir+'/theta', theta)
         np.save(outDir+dataDir+'/bodyCenters', bodyCenters)
 
-    nTrain = I.shape[0]*trainRatio
-
-    I_train = I[:nTrain]
-    I_test = I[nTrain:]
-    joints_train = joints[:nTrain]
-    joints_test = joints[nTrain:]
-    bodyCenters_train = bodyCenters[:nTrain]
-    bodyCenters_test = bodyCenters[nTrain:]
+    print I.shape, joints.shape, theta.shape, bodyCenters.shape
+    nTest = I.shape[0]*(1-trainRatio)
+    I_test = I[:nTest]
+    I_train = I[nTest:]
+    joints_test = joints[:nTest]
+    joints_train = joints[nTest:]
+    bodyCenters_test = bodyCenters[:nTest]
+    bodyCenters_train = bodyCenters[nTest:]
 
     logger.debug('#train: %d, #test: %d', I_train.shape[0], I_test.shape[0])
     return (I_train, I_test, joints_train, joints_test, theta, \
@@ -110,6 +113,7 @@ def getSamples(dataDir, outDir, jointID, theta, I, bodyCenters, joints, \
     nTrain, _, _ = I.shape
 
     if loadData:
+        print outDir+dataDir+'/sf'+str(jointID)+'.npy'
         S_u = np.load(outDir+dataDir+'/su'+str(jointID)+'.npy')
         S_f = np.load(outDir+dataDir+'/sf'+str(jointID)+'.npy')
     else:
@@ -287,9 +291,24 @@ def main(**kwargs):
     maxN = kwargs.get('maxn')
     multiThreads = kwargs.get('multithreads')
 
-    nJoints = 15 if ITOP else 14
+    nJoints = 15 if ITOP else 12
     jointName = jointNameITOP if ITOP else jointNameEVAL
     C = 3.50666662e-3 if ITOP else 3.8605e-3
+
+    '''
+    for i, arg in enumerate(argv[2:]):
+        if arg == '-loaddata':
+            loadData = True
+        elif arg == '-loadmodels':
+            loadModels = True
+        elif arg == '-maxn':
+            maxN = int(argv[2:][i+1])
+            print 'maxN: %d' % maxN
+        elif arg == '-multithreads':
+            multiThreads = True
+        elif arg == '-png':
+            makePng = True
+    '''
 
     if ITOP:
         I_train, I_test, joints_train, joints_test, theta, bodyCenters_train, \
@@ -297,7 +316,7 @@ def main(**kwargs):
             maxN, loadData)
     else:
         I_train, I_test, joints_train, joints_test, theta, bodyCenters_train, \
-            bodyCenters_test = getInfoEVAL(depthDir, dataDir, outDir, maxN, \
+            bodyCenters_test = getInfoEVAL(dataDir, outDir, maxN, \
             loadData)
 
     nTrain = I_train.shape[0]

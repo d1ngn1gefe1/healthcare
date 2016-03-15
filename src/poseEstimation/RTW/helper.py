@@ -4,7 +4,6 @@ import cv2
 import os
 import logging
 import os.path
-import time
 from sklearn.neighbors import KNeighborsClassifier
 
 np.set_printoptions(threshold=np.nan)
@@ -13,7 +12,7 @@ logger.setLevel(logging.DEBUG)
 
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 
-fh = logging.FileHandler(time.strftime('%Y%m%d-%H%M%S')+'.txt')
+fh = logging.FileHandler('log.txt')
 fh.setLevel(logging.DEBUG)
 fh.setFormatter(formatter)
 logger.addHandler(fh)
@@ -42,8 +41,8 @@ jointNameITOP = ['HEAD', 'NECK', 'LEFT_SHOULDER', 'RIGHT_SHOULDER', \
                 'RIGHT_KNEE', 'LEFT_FOOT', 'RIGHT_FOOT']
 
 trainTestITOP = [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0] # train = 0, test = 1
-kinemOrderEVAL =   [0, 1, 2, 5, 3, 6, 4, 7, 12, 13,  8, 10, 9, 11]
-kinemParentEVAL = [-1, 0, 0, 0, 2, 5, 3, 6, -1, -1, 12, 13, 8, 10]
+kinemOrderEVAL =   [0, 1, 2, 5, 3, 6, 4, 7, 8, 10, 9, 11]
+kinemParentEVAL = [-1, 0, 0, 0, 2, 5, 3, 6, -1, -1, 8, 10]
 kinemOrderITOP =   [8, 1, 0, 9, 10, 2, 3, 4, 5, 6, 7, 11, 12, 13, 14]
 kinemParentITOP = [-1, 8, 1, 8, 8,  1, 1, 2, 3, 4, 5, 9,  10, 11, 12]
 
@@ -98,60 +97,6 @@ def getImgsAndJointsITOP(dataDir, nJoints, isTop=False, maxN=None):
     assert I_test.shape[0] == joints_test.shape[0]
 
     return (I_train, I_test, joints_train, joints_test)
-
-def getImgsAndJointsEVAL(dataDir, maxN, nJoints, noBg=True):
-    jointsPaths = glob.glob(dataDir)
-    total = len(jointsPaths)
-
-    I = np.empty((total, H, W)).astype('float16')
-    joints = np.empty((total, nJoints+1, 3))
-
-    idx = 0
-    for i in range(total):
-        if i%100 == 0:
-            logger.debug('loading image %d', (i+1))
-        tmp = np.loadtxt(jointsPaths[i])
-        if tmp.shape[0] == nJoints-2:
-            imgPath = jointsPaths[i].replace('txt', 'npy') \
-                          .replace('joints_depthcoor', 'nparray_depthcoor')
-            I[idx] = np.load(imgPath).astype('float16')
-            joints[idx, 0:nJoints-2, :] = tmp
-            idx += 1
-            if idx == maxN:
-                break
-
-    joints[:, nJoints-2, :] = (joints[:, 0, :]+2*joints[:, 8, :])/3
-    joints[:, nJoints-1, :] = (joints[:, 0, :]+2*joints[:, 10, :])/3
-    joints[:, nJoints, :] = (2*joints[:, 0, :]+joints[:, nJoints-2, :]+
-                                joints[:, nJoints-1, :])/4
-
-    logger.debug('total number of images: %d/%d', idx, total)
-    I = I[:idx]
-    joints = joints[:idx]
-    if noBg:
-        I = bgSub(I, joints)
-    return (I, joints) # including bodyCenters
-
-def bgSub(I, joints, thres=250, scale=30):
-    N = I.shape[0]
-    assert N == joints.shape[0]
-    indices = np.indices(I.shape[1:]).swapaxes(0, 1).swapaxes(1, 2)
-    mask = 1e10*np.ones(I.shape)
-
-    # scale z axis
-    I = scale*I
-    joints_copy = joints.copy()
-    joints_copy[:, :, 2] = scale*joints_copy[:, :, 2]
-    joints_copy[:, :, [0, 1]] = joints_copy[:, :, [1, 0]]
-
-    for i in range(N):
-        mat = np.concatenate((indices, I[i][:, :, np.newaxis]), 2)
-        for j in range(joints_copy.shape[1]):
-            mask[i] = np.minimum(mask[i], np.sum(np.square(mat-joints_copy[i][j]), 2))
-
-    mask[mask > thres] = 0
-    mask[mask > 0] = 1
-    return I*mask
 
 def perPixelLabels(I, joints, nJoints):
     '''

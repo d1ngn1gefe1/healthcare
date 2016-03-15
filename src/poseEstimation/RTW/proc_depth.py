@@ -211,6 +211,26 @@ def main():
     np.save(dataDir+'/I.npy', imgs)
     np.save(dataDir+'/I_mask.npy', imgs_mask)
 
+def main1():
+    #I_mask = np.load('/mnt0/alan/healthcare/src/poseEstimation/RTW/data_EVAL/I_mask.npy')
+    #I = np.load('/mnt0/alan/healthcare/src/poseEstimation/RTW/data_EVAL/I.npy')
+    #np.save('/mnt0/alan/healthcare/src/poseEstimation/RTW/data_EVAL/img_mask.npy', I_mask[0])
+    #np.save('/mnt0/alan/healthcare/src/poseEstimation/RTW/data_EVAL/img.npy', I[0])
+
+    img_mask = np.load('/mnt0/alan/healthcare/src/poseEstimation/RTW/data_EVAL/img_mask.npy')
+    img = np.load('/mnt0/alan/healthcare/src/poseEstimation/RTW/data_EVAL/img.npy')
+
+    #img[img_mask != 0] = img[img_mask != 0]*0.5
+
+    img = (img-np.amin(img))*255.0/(np.amax(img)-np.amin(img))
+    img = img.astype(np.uint8)
+    img = cv2.equalizeHist(img)
+    img[img == 0] = np.mean(img)*2
+    img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+    img = cv2.applyColorMap(img, cv2.COLORMAP_OCEAN)
+    cv2.imshow('img', img)
+    cv2.waitKey(0)
+
 
 if __name__ == "__main__":
-    main()
+    main1()
