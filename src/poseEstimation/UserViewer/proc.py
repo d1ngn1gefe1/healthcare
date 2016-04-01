@@ -270,6 +270,12 @@ def main(**kwargs):
     out = kwargs.get('out', False)
     outDir = kwargs.get('outdir')
 
+    # append slash
+    if dataDir[-1] != '/':
+        dataDir = dataDir+'/'
+    if outDir[-1] != '/':
+        outDir = outDir+'/'    
+
     key = 0
     if out:
         startFrame = -1
@@ -469,9 +475,11 @@ def main(**kwargs):
             #jointsTop.shape, labelSide.shape, labelTop.shape
 
         if out:
+            print 'saving files...'
             if not os.path.exists(outDir):
                 os.makedirs(outDir)
             outFileName = outDir + str(id).zfill(2)
+            print 'file prefix: %s' % outFileName
 
             np.save(outFileName+'_joints_side', jointsSide_all)
             np.save(outFileName+'_joints_top', jointsTop_all)

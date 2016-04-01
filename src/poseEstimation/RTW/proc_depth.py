@@ -20,6 +20,12 @@ jointNameEVAL = ['NECK', 'HEAD', 'LEFT SHOULDER', 'LEFT ELBOW', \
 skeleton = [(0,1), (0,2), (2,3), (3,4), (0,5), (5,6), (6,7), (14,8), \
             (8, 9), (14,10), (10,11), (14,2), (14,5), (14,12), (14,13)]
 
+palette = [(34, 88, 226), (34, 69, 101), (0, 195, 243), (146, 86, 135), \
+           (38, 61, 43), (241, 202, 161), (50, 0, 190), (128, 178, 194), \
+           (23, 45, 136), (0, 211, 220), (172, 143, 230), (108, 68, 179), \
+           (121, 147, 249), (151, 78, 96), (0, 166, 246), (165, 103, 0), \
+           (86, 136, 0), (130, 132, 132), (0, 182, 141), (0, 132, 243)] # BGR
+
 def visualizeImgAndJoints(imgs, joints, path, show=False, write=False):
     for i in range(imgs.shape[0]):
         print 'average depth: %f' % np.mean(imgs[i][imgs[i] != 0])
@@ -231,6 +237,26 @@ def main1():
     cv2.imshow('img', img)
     cv2.waitKey(0)
 
+def main2():
+    idx = str(30).zfill(4)
+    path = '/mnt0/data/EVAL/data/seq_a_0/'
+    img = np.load(path+'nparray_depthcoor/'+'seq_a_0_'+idx+'.npy')
+    joints = np.loadtxt(path+'joints_depthcoor/'+'seq_a_0_'+idx+'.txt')
+
+    print img.shape, joints.shape
+
+    img = (img-np.amin(img))*255.0/(np.amax(img)-np.amin(img))
+    img = img.astype(np.uint8)
+    img[img == 255] = np.mean(img)*2
+    img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+    img = cv2.applyColorMap(img, cv2.COLORMAP_OCEAN)
+
+    for i in range(12):
+        cv2.circle(img, tuple(joints[i, :2].astype(np.uint16)), 3, palette[i], -1)
+
+    #cv2.imshow('img', img)
+    #cv2.waitKey(0)
+    cv2.imwrite('/mnt0/alan/healthcare/src/poseEstimation/RTW/visualize/EVAL.jpg', img)
 
 if __name__ == "__main__":
-    main1()
+    main2()

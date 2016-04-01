@@ -354,6 +354,7 @@ def main(**kwargs):
     logger.debug('\n------- testing models -------')
     qms = np.zeros((nTest, nJoints, nSteps+1, 3))
     joints_pred = np.zeros((nTest, nJoints, 3))
+    localErr = np.zeros((nTest, nSteps+1, nJoints, 3))
     kinemOrder, kinemParent = None, None
 
     if ITOP:
@@ -366,6 +367,7 @@ def main(**kwargs):
     if loadTest:
         qms = np.load(outDir+modelsDir+'/qms.npy')
         joints_pred = np.load(outDir+modelsDir+'/joints_pred.npy')
+        localErr = np.load(outDir+modelsDir+'/local_err.npy')
     else:
         for idx, jointID in enumerate(kinemOrder):
             logger.debug('testing model %s', jointName[jointID])
@@ -375,8 +377,11 @@ def main(**kwargs):
                 qms[i][jointID], joints_pred[i][jointID] = testModel(
                     regressors[jointID], Ls[jointID], theta, qm0, I_test[i], \
                     bodyCenters_test[i])
+                localErr[i, :, jointID, :] = joints_test[i, jointID] - qms[i][jointID]
+
         np.save(outDir+modelsDir+'/qms', qms)
         np.save(outDir+modelsDir+'/joints_pred', joints_pred)
+        np.save(outDir+modelsDir+'/local_err.npy', localErr)
 
     mkdir(outDir+modelsDir+'/pred/')
     for jointID in range(nJoints):

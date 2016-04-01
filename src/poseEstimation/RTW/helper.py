@@ -44,6 +44,7 @@ trainTestITOP = [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0] # train = 0, test = 1
 kinemOrderEVAL =   [0, 1, 2, 5, 3, 6, 4, 7, 8, 10, 9, 11]
 kinemParentEVAL = [-1, 0, 0, 0, 2, 5, 3, 6, -1, -1, 8, 10]
 kinemOrderITOP =   [8, 1, 0, 9, 10, 2, 3, 4, 5, 6, 7, 11, 12, 13, 14]
+kinemOrderITOPUpper = [8, 1, 0, 2, 3, 4, 5, 6, 7]
 kinemParentITOP = [-1, 8, 1, 8, 8,  1, 1, 2, 3, 4, 5, 9,  10, 11, 12]
 
 def mkdir(dir):
@@ -250,20 +251,38 @@ print np.mean(I)
 '''
 
 def main():
-    idx = 10
+    idx = 103
+    offset = 0
 
-    qm, img = None, None
+    view = 'top'
+    test = 'top'
+
+    qm, joint, img = None, None, None
     if os.path.isfile('visualize/qm'+str(idx)+'.npy'):
         qm = np.load('visualize/qm'+str(idx)+'.npy')
+        joint = np.load('visualize/joint'+str(idx)+'.npy')
         img = np.load('visualize/img'+str(idx)+'.npy')
     else:
-        qms = np.load('models_ITOP_side/qms.npy')
-        I = np.load('data_ITOP_side/I_test.npy')
+        qms = np.load('models_ITOP_'+view+'/qms.npy')
+        joints = np.load('models_ITOP_'+view+'/joints_pred.npy')
+        #I = np.load('data_ITOP_side/I_test.npy')
+        i = 0
+        I = None
+        while True:
+            I = np.load('/mnt0/data/ITOP/out/'+str(i).zfill(2)+'_depth_'+test+'.npy')
+            if I.shape[0] > idx-offset:
+                break
+            else:
+                i += 1
+                offset += I.shape[0]
+
         if not os.path.isdir('visualize'):
             os.makedirs('visualize')
-        img = I[idx]
         qm = qms[idx]
+        joint = joints[idx, :, :2]
+        img = I[idx-offset]
         np.save('visualize/qm'+str(idx)+'.npy', qm)
+        np.save('visualize/joint'+str(idx)+'.npy', joint)
         np.save('visualize/img'+str(idx)+'.npy', img)
 
     img *= 255.0/np.amax(img)
@@ -271,28 +290,36 @@ def main():
     #img = cv2.equalizeHist(img)
     img = cv2.applyColorMap(img, cv2.COLORMAP_OCEAN)
 
-    #kinemOrderITOP =   [8, 1, 0, 9, 10, 2, 3, 4, 5, 6, 7, 11, 12, 13, 14]
-    #kinemParentITOP = [-1, 8, 1, 8, 8,  1, 1, 2, 3, 4, 5, 9,  10, 11, 12]
+    kinemOrder = None
+
+    if test == 'top':
+        kinemOrder = kinemOrderITOPUpper
+    else:
+        kinemOrder = kinemOrderITOP
+
+
     frameId = -1
     print qm.shape[1]
-    indices = np.arange(20)
-    indices = indices**2
-    indices = indices*(float(qm.shape[1])-1)/indices[-1]
+    indices = 2*np.arange(30)
+    #indices = indices**2
+    #indices = indices*(float(qm.shape[1])-1)/indices[-1]
     indices = indices.astype(int)
     if not os.path.isdir('visualize/jpg'):
         os.makedirs('visualize/jpg')
-    for i in kinemOrderITOP:
+    for i in kinemOrder:
         #disp = img.copy()
-        disp = img
 
         for j in indices:
             pt = qm[i, j, :2].astype(int)
-            cv2.circle(disp, tuple(pt), 2, palette[i], -1)
+            cv2.circle(img, tuple(pt), 2, palette[i], -1)
             frameId += 1
-            #cv2.imshow('img', disp)
-            #cv2.waitKey(0)
             print 'frameId: %d' % frameId
-            cv2.imwrite('visualize/jpg/frame_'+str(frameId).zfill(3)+'.jpg', img[50:, 70:230])
+            cv2.imwrite('visualize/jpg/frame_'+str(frameId).zfill(3)+'.jpg', img)#[50:, 70:230])
+        #print joint.shape
+        cv2.circle(img, tuple(joint[i].astype(int)), 2, palette[i], -1)
+        #cv2.imshow('img', img)
+        #cv2.waitKey(0)
+
 
 if __name__ == '__main__':
     main()
